@@ -88,12 +88,14 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange }) => {
                 <div
                   key={stage.key}
                   onClick={() => onStatusChange && onStatusChange(stage.key)}
-                  className={`cursor-pointer transition-all rounded-xl p-2.5 sm:p-2 sm:text-center flex sm:flex-col items-center gap-3 sm:gap-2 ${
+                  className={`transition-all rounded-xl p-2.5 sm:p-2 sm:text-center flex sm:flex-col items-center gap-3 sm:gap-2 ${
+                    onStatusChange ? 'cursor-pointer hover:opacity-90' : 'cursor-default'
+                  } ${
                     isCurrent
                       ? 'col-span-2 sm:col-span-1 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 shadow-xs'
                       : 'bg-neutral-50 dark:bg-neutral-800/40 sm:bg-transparent'
                   }`}
-                  title="Click to simulate stage transition"
+                  title={onStatusChange ? `Switch stage to ${stage.label}` : stage.label}
                 >
                   {isPast && (
                     <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs ring-4 ring-emerald-500/10 shrink-0">

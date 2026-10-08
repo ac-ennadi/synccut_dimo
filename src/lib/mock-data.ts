@@ -1,12 +1,24 @@
 import { Project, CreativeBrief, Deliverable, User } from '@/types';
 
-export const mockUser: User = {
-  user_id: 'usr_mainstreet_01',
+export const mockClientUser: User = {
+  user_id: 'usr_sarah_client',
   name: 'Sarah Jenkins',
   email: 'sarah@mainstreetcowork.com',
   role: 'Client',
   company_name: 'Main Street Co-Working',
 };
+
+export const mockEditorUser: User = {
+  user_id: 'usr_alex_editor',
+  name: 'Alex Morgan',
+  email: 'alex@luminaryfilms.com',
+  role: 'Editor',
+  company_name: 'Luminary Film Studio',
+};
+
+export const mockUsers: User[] = [mockClientUser, mockEditorUser];
+
+export const mockUser: User = mockClientUser;
 
 export const mockProject: Project = {
   project_id: 'proj_promo_2026',
