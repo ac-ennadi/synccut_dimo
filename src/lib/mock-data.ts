@@ -10,7 +10,7 @@ export const mockClientUser: User = {
 
 export const mockEditorUser: User = {
   user_id: 'acennadi',
-  name: 'Alex Morgan',
+  name: 'achraf ennadiri',
   email: 'achrafennadiri@gmail.com',
   role: 'Editor',
   company_name: 'achraf',
@@ -22,12 +22,12 @@ export const mockUser: User = mockClientUser;
 
 export const mockProject: Project = {
   project_id: 'proj_promo_2026',
-  client_id: 'usr_mainstreet_01',
-  title: 'Project: Main Street Co-Working Promo',
+  client_id: 'Ayoub',
+  title: 'Project: Rivo Co-Working',
   status: 'Shooting',
   start_date: '2026-10-01',
   due_date: 'Friday, Nov 14',
-  producer_name: 'Alex Morgan',
+  producer_name: 'achraf ennadiri',
   producer_email: 'alex@luminaryfilms.com',
 };
 
