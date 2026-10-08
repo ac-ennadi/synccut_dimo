@@ -14,7 +14,6 @@ export default function SignupPage() {
   const [profile, setProfile] = useState<SignupProfile>({ name: '', companyName: '' });
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [demoCode, setDemoCode] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,7 +33,6 @@ export default function SignupPage() {
       return;
     }
 
-    setDemoCode(result.demoCode || null);
     setStep('verify');
   };
 
@@ -102,7 +100,6 @@ export default function SignupPage() {
               <h2 className="text-lg font-bold">Check your inbox</h2>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">Enter the 6-digit code sent to <strong>{email}</strong>.</p>
             </div>
-            {demoCode && <p className="text-xs text-center text-emerald-700 dark:text-emerald-300">Demo code: <strong>{demoCode}</strong></p>}
             <OtpInput value={code} onChange={setCode} onComplete={handleVerify} accentColor="emerald" disabled={isLoading} />
             {errorMessage && <p className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs flex gap-2"><AlertCircle className="w-4 h-4 shrink-0" />{errorMessage}</p>}
             <button onClick={() => handleVerify()} disabled={isLoading || code.length !== 6} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-sm font-bold disabled:opacity-40">

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { mockClientUser } from '@/lib/mock-data';
 import { OtpInput } from '@/components/OtpInput';
 import { 
   UserCheck, 
@@ -12,22 +11,19 @@ import {
   CheckCircle2, 
   Shield, 
   RefreshCw, 
-  ExternalLink,
   ChevronLeft,
   AlertCircle,
-  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ClientLoginPage() {
   const router = useRouter();
-  const { currentUser, loginAs, requestMagicLink, verifyCode } = useAuth();
+  const { currentUser, requestMagicLink, verifyCode } = useAuth();
   
   // States: 'input' -> 'sent'
   const [step, setStep] = useState<'input' | 'sent'>('input');
   const [emailInput, setEmailInput] = useState('sarah@mainstreetcowork.com');
   const [otpCode, setOtpCode] = useState('');
-  const [demoCode, setDemoCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resendSeconds, setResendSeconds] = useState(30);
@@ -62,7 +58,6 @@ export default function ClientLoginPage() {
     setIsLoading(false);
 
     if (res.success) {
-      setDemoCode(res.demoCode || '482910');
       setStep('sent');
       setResendSeconds(30);
     } else {
@@ -89,20 +84,6 @@ export default function ClientLoginPage() {
     } else {
       setErrorMessage(res.error || 'Invalid or expired code. Please try again.');
     }
-  };
-
-  // Instant Magic Link click simulation
-  const handleSimulateMagicLinkClick = async () => {
-    setIsLoading(true);
-    const code = demoCode || '482910';
-    await verifyCode(emailInput.trim(), code, 'Client');
-    router.push('/client');
-  };
-
-  // Quick 1-click test login
-  const handleQuickDemoLogin = () => {
-    loginAs('Client');
-    router.push('/client');
   };
 
   return (
@@ -177,25 +158,6 @@ export default function ClientLoginPage() {
               </button>
             </form>
 
-            {/* Quick 1-Click Demo Testing Button */}
-            <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800">
-              <button
-                onClick={handleQuickDemoLogin}
-                type="button"
-                className="w-full p-3 rounded-xl border border-dashed border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors text-left flex items-center justify-between group"
-              >
-                <div>
-                  <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 group-hover:underline flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Quick Access: {mockClientUser.name}</span>
-                  </div>
-                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                    {mockClientUser.company_name} ({mockClientUser.email})
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              </button>
-            </div>
           </div>
         )}
 
@@ -218,29 +180,6 @@ export default function ClientLoginPage() {
               <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-xs mx-auto">
                 We sent a secure magic link and 6-digit access code to <strong className="text-neutral-900 dark:text-neutral-200">{emailInput}</strong>
               </p>
-            </div>
-
-            {/* Simulated Email Action (Fast Testing) */}
-            <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                <span>✉️ Simulated Email Inbox</span>
-                {demoCode && (
-                  <span className="font-mono text-[11px] bg-emerald-200/60 dark:bg-emerald-900/60 px-2 py-0.5 rounded">
-                    Code: {demoCode}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 leading-relaxed">
-                Click below to simulate clicking the magic link directly inside your client email:
-              </p>
-              <button
-                onClick={handleSimulateMagicLinkClick}
-                disabled={isLoading}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
-              >
-                <span>Open Magic Link & Log In</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
             </div>
 
             {/* Or enter 6-digit code */}

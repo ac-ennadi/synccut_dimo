@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { mockEditorUser } from '@/lib/mock-data';
 import { OtpInput } from '@/components/OtpInput';
 import { 
   Clapperboard, 
@@ -13,22 +12,19 @@ import {
   CheckCircle2, 
   UserCheck, 
   RefreshCw, 
-  ExternalLink,
   ChevronLeft,
   AlertCircle,
-  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EditorLoginPage() {
   const router = useRouter();
-  const { currentUser, loginAs, requestMagicLink, verifyCode } = useAuth();
+  const { currentUser, requestMagicLink, verifyCode } = useAuth();
   
   // States: 'input' -> 'sent'
   const [step, setStep] = useState<'input' | 'sent'>('input');
   const [emailInput, setEmailInput] = useState('alex@luminaryfilms.com');
   const [otpCode, setOtpCode] = useState('');
-  const [demoCode, setDemoCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resendSeconds, setResendSeconds] = useState(30);
@@ -63,7 +59,6 @@ export default function EditorLoginPage() {
     setIsLoading(false);
 
     if (res.success) {
-      setDemoCode(res.demoCode || '482910');
       setStep('sent');
       setResendSeconds(30);
     } else {
@@ -90,20 +85,6 @@ export default function EditorLoginPage() {
     } else {
       setErrorMessage(res.error || 'Invalid or expired studio code. Please try again.');
     }
-  };
-
-  // Instant Magic Link click simulation
-  const handleSimulateMagicLinkClick = async () => {
-    setIsLoading(true);
-    const code = demoCode || '482910';
-    await verifyCode(emailInput.trim(), code, 'Editor');
-    router.push('/editor');
-  };
-
-  // Quick 1-click test login
-  const handleQuickDemoLogin = () => {
-    loginAs('Editor');
-    router.push('/editor');
   };
 
   return (
@@ -179,25 +160,6 @@ export default function EditorLoginPage() {
               </button>
             </form>
 
-            {/* Quick 1-Click Demo Login */}
-            <div className="pt-3 border-t border-neutral-800">
-              <button
-                onClick={handleQuickDemoLogin}
-                type="button"
-                className="w-full p-3 rounded-xl border border-dashed border-indigo-700/60 bg-indigo-950/30 hover:bg-indigo-950/60 transition-colors text-left flex items-center justify-between group"
-              >
-                <div>
-                  <div className="text-xs font-bold text-indigo-300 group-hover:underline flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Quick Access: {mockEditorUser.name} (Lead Editor)</span>
-                  </div>
-                  <div className="text-[11px] text-neutral-400">
-                    {mockEditorUser.company_name} ({mockEditorUser.email})
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-indigo-400 shrink-0" />
-              </button>
-            </div>
           </div>
         )}
 
@@ -220,29 +182,6 @@ export default function EditorLoginPage() {
               <p className="text-xs text-neutral-400 max-w-xs mx-auto">
                 Encrypted magic link & 6-digit access code dispatched to <strong className="text-white font-mono">{emailInput}</strong>
               </p>
-            </div>
-
-            {/* Simulated Email Action (Fast Testing) */}
-            <div className="p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-indigo-300">
-                <span>🔐 Simulated Studio Inbox</span>
-                {demoCode && (
-                  <span className="font-mono text-[11px] bg-indigo-900/80 px-2 py-0.5 rounded text-indigo-200">
-                    Token: {demoCode}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-neutral-400 leading-relaxed">
-                Click below to simulate immediate token validation from your studio mailbox:
-              </p>
-              <button
-                onClick={handleSimulateMagicLinkClick}
-                disabled={isLoading}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-xs"
-              >
-                <span>Authorize & Enter Cockpit</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
             </div>
 
             {/* Or enter 6-digit code */}

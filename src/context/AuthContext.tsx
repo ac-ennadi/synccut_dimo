@@ -2,8 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '@/types';
-import { mockClientUser, mockEditorUser } from '@/lib/mock-data';
-import { sendMagicLink, verifyOtpCode } from '@/lib/supabase';
+import { isSupabaseConfigured, sendMagicLink, supabase, verifyOtpCode } from '@/lib/supabase';
 
 export interface SignupProfile {
   name: string;
@@ -13,9 +12,7 @@ export interface SignupProfile {
 interface AuthContextType {
   currentUser: User | null;
   isLoading: boolean;
-  loginAs: (role: UserRole) => void;
-  loginWithEmail: (email: string) => { success: boolean; message: string };
-  requestMagicLink: (email: string, role: UserRole, profile?: SignupProfile) => Promise<{ success: boolean; demoCode?: string | null; error?: string }>;
+  requestMagicLink: (email: string, role: UserRole, profile?: SignupProfile) => Promise<{ success: boolean; error?: string }>;
   verifyCode: (email: string, code: string, role: UserRole, profile?: SignupProfile) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isEditor: boolean;
@@ -31,11 +28,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize from localStorage
   useEffect(() => {
     try {
-      const savedUser = localStorage.getItem('synccut_auth_user');
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
-      } else {
+      if (!isSupabaseConfigured) {
+        localStorage.removeItem('synccut_auth_user');
         setCurrentUser(null);
+      } else {
+        supabase.auth.getSession().then(({ data }) => {
+          const authUser = data.session?.user;
+          if (authUser) {
+            const metadata = authUser.user_metadata;
+            setCurrentUser({
+              user_id: authUser.id,
+              name: metadata?.name || authUser.email || 'User',
+              email: authUser.email || '',
+              role: metadata?.role === 'Editor' ? 'Editor' : 'Client',
+              company_name: metadata?.company_name || '',
+            });
+          }
+        }).catch((error) => {
+          console.error('Unable to restore Supabase session:', error);
+        });
       }
     } catch {
       setCurrentUser(null);
@@ -44,49 +55,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const loginAs = (role: UserRole) => {
-    const user = role === 'Editor' ? mockEditorUser : mockClientUser;
-    setCurrentUser(user);
-    try {
-      localStorage.setItem('synccut_auth_user', JSON.stringify(user));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const loginWithEmail = (email: string): { success: boolean; message: string } => {
-    const cleanEmail = email.trim().toLowerCase();
-    
-    if (cleanEmail === mockEditorUser.email.toLowerCase() || cleanEmail.includes('editor') || cleanEmail.includes('luminary')) {
-      loginAs('Editor');
-      return { success: true, message: `Welcome back, ${mockEditorUser.name} (Editor Cockpit)` };
-    }
-    
-    const clientUser: User = {
-      ...mockClientUser,
-      email: cleanEmail,
-    };
-    setCurrentUser(clientUser);
-    try {
-      localStorage.setItem('synccut_auth_user', JSON.stringify(clientUser));
-    } catch (e) {
-      console.error(e);
-    }
-    return { success: true, message: `Welcome back, ${clientUser.name} (Client Portal)` };
-  };
-
-  const requestMagicLink = async (email: string, role: UserRole, profile?: SignupProfile): Promise<{ success: boolean; demoCode?: string | null; error?: string }> => {
+  const requestMagicLink = async (email: string, role: UserRole, profile?: SignupProfile): Promise<{ success: boolean; error?: string }> => {
     try {
       const redirectUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/${role.toLowerCase()}`
         : `/${role.toLowerCase()}`;
       
-      const { demoCode } = await sendMagicLink(email.trim(), redirectUrl, profile ? {
+      await sendMagicLink(email.trim(), redirectUrl, profile ? {
         name: profile.name,
         company_name: profile.companyName,
         role,
       } : undefined);
-      return { success: true, demoCode };
+      return { success: true };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Failed to send magic link' };
     }
@@ -106,13 +86,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role,
             company_name: metadata?.company_name || profile.companyName,
           }
-        : role === 'Editor'
-          ? { ...mockEditorUser, email: email.trim() }
-          : { ...mockClientUser, email: email.trim() };
+        : {
+            user_id: authUser?.id || email.trim(),
+            name: metadata?.name || email.trim(),
+            email: email.trim(),
+            role,
+            company_name: metadata?.company_name || '',
+          };
 
       setCurrentUser(user);
       try {
-        localStorage.setItem('synccut_auth_user', JSON.stringify(user));
+        localStorage.removeItem('synccut_auth_user');
       } catch (e) {
         console.error(e);
       }
@@ -124,6 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setCurrentUser(null);
+    void supabase.auth.signOut();
     try {
       localStorage.removeItem('synccut_auth_user');
     } catch (e) {
@@ -136,8 +121,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         currentUser,
         isLoading,
-        loginAs,
-        loginWithEmail,
         requestMagicLink,
         verifyCode,
         logout,
