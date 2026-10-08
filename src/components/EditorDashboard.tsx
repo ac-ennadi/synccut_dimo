@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Project, CreativeBrief, Deliverable, ProjectStatus, ActionRequiredBy, FeedbackNote } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { TopBar } from './TopBar';
 import { ScriptBox } from './ScriptBox';
 import { VisualReferences } from './VisualReferences';
@@ -38,9 +39,15 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
   onApproveCut,
   onUploadSuccess,
 }) => {
+  const router = useRouter();
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('00:18');
   const [showClientPreviewModal, setShowClientPreviewModal] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/editor/login');
+  };
 
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 p-4 sm:p-6 lg:p-8 transition-colors">
@@ -84,7 +91,7 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
 
             {/* Sign Out */}
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-semibold text-neutral-600 dark:text-neutral-300 transition-colors shadow-2xs"
               title="Sign out of editor session"
             >
