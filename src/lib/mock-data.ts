@@ -1,4 +1,26 @@
-import { Project, CreativeBrief, Deliverable } from '@/types';
+import { Project, CreativeBrief, Deliverable, User } from '@/types';
+
+// ── Demo user accounts (used by loginAs() quick-access in dev mode) ──────────
+
+export const mockClientUser: User = {
+  user_id: 'usr_ayoub_client',
+  name: 'Ayoub',
+  email: 'ayoub@rivocoworking.com',
+  role: 'Client',
+  company_name: 'Rivo Co-Working',
+};
+
+export const mockEditorUser: User = {
+  user_id: 'usr_achraf_editor',
+  name: 'achraf ennadiri',
+  email: 'achrafennadiri@gmail.com',
+  role: 'Editor',
+  company_name: 'Luminary Film Studio',
+};
+
+// Keep a convenience alias (used by legacy imports)
+export const mockUser: User = mockClientUser;
+
 
 export const mockProject: Project = {
   project_id: 'proj_promo_2026',
