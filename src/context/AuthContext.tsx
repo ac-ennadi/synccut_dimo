@@ -3,12 +3,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '@/types';
 import { mockClientUser, mockEditorUser } from '@/lib/mock-data';
+import { sendMagicLink, verifyOtpCode } from '@/lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
   isLoading: boolean;
   loginAs: (role: UserRole) => void;
   loginWithEmail: (email: string) => { success: boolean; message: string };
+  requestMagicLink: (email: string, role: UserRole) => Promise<{ success: boolean; demoCode?: string | null; error?: string }>;
+  verifyCode: (email: string, code: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isEditor: boolean;
   isClient: boolean;
@@ -20,14 +23,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize from localStorage or default to Client
+  // Initialize from localStorage
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('synccut_auth_user');
       if (savedUser) {
         setCurrentUser(JSON.parse(savedUser));
       } else {
-        // Default to null so user lands on login page, or default to client
         setCurrentUser(null);
       }
     } catch {
@@ -50,13 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithEmail = (email: string): { success: boolean; message: string } => {
     const cleanEmail = email.trim().toLowerCase();
     
-    // Check if email belongs to editor
     if (cleanEmail === mockEditorUser.email.toLowerCase() || cleanEmail.includes('editor') || cleanEmail.includes('luminary')) {
       loginAs('Editor');
       return { success: true, message: `Welcome back, ${mockEditorUser.name} (Editor Cockpit)` };
     }
     
-    // Default to client
     const clientUser: User = {
       ...mockClientUser,
       email: cleanEmail,
@@ -68,6 +68,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error(e);
     }
     return { success: true, message: `Welcome back, ${clientUser.name} (Client Portal)` };
+  };
+
+  const requestMagicLink = async (email: string, role: UserRole): Promise<{ success: boolean; demoCode?: string | null; error?: string }> => {
+    try {
+      const redirectUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/${role.toLowerCase()}`
+        : `/${role.toLowerCase()}`;
+      
+      const { demoCode } = await sendMagicLink(email.trim(), redirectUrl);
+      return { success: true, demoCode };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to send magic link' };
+    }
+  };
+
+  const verifyCode = async (email: string, code: string, role: UserRole): Promise<{ success: boolean; error?: string }> => {
+    try {
+      await verifyOtpCode(email.trim(), code.trim());
+      
+      // Successfully authenticated
+      const user: User = role === 'Editor'
+        ? { ...mockEditorUser, email: email.trim() }
+        : { ...mockClientUser, email: email.trim() };
+
+      setCurrentUser(user);
+      try {
+        localStorage.setItem('synccut_auth_user', JSON.stringify(user));
+      } catch (e) {
+        console.error(e);
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Invalid or expired verification code' };
+    }
   };
 
   const logout = () => {
@@ -86,6 +120,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         loginAs,
         loginWithEmail,
+        requestMagicLink,
+        verifyCode,
         logout,
         isEditor: currentUser?.role === 'Editor',
         isClient: currentUser?.role === 'Client',
