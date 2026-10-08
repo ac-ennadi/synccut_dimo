@@ -5,13 +5,18 @@ import { User, UserRole } from '@/types';
 import { mockClientUser, mockEditorUser } from '@/lib/mock-data';
 import { sendMagicLink, verifyOtpCode } from '@/lib/supabase';
 
+export interface SignupProfile {
+  name: string;
+  companyName: string;
+}
+
 interface AuthContextType {
   currentUser: User | null;
   isLoading: boolean;
   loginAs: (role: UserRole) => void;
   loginWithEmail: (email: string) => { success: boolean; message: string };
-  requestMagicLink: (email: string, role: UserRole) => Promise<{ success: boolean; demoCode?: string | null; error?: string }>;
-  verifyCode: (email: string, code: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
+  requestMagicLink: (email: string, role: UserRole, profile?: SignupProfile) => Promise<{ success: boolean; demoCode?: string | null; error?: string }>;
+  verifyCode: (email: string, code: string, role: UserRole, profile?: SignupProfile) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isEditor: boolean;
   isClient: boolean;
@@ -70,27 +75,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true, message: `Welcome back, ${clientUser.name} (Client Portal)` };
   };
 
-  const requestMagicLink = async (email: string, role: UserRole): Promise<{ success: boolean; demoCode?: string | null; error?: string }> => {
+  const requestMagicLink = async (email: string, role: UserRole, profile?: SignupProfile): Promise<{ success: boolean; demoCode?: string | null; error?: string }> => {
     try {
       const redirectUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/${role.toLowerCase()}`
         : `/${role.toLowerCase()}`;
       
-      const { demoCode } = await sendMagicLink(email.trim(), redirectUrl);
+      const { demoCode } = await sendMagicLink(email.trim(), redirectUrl, profile ? {
+        name: profile.name,
+        company_name: profile.companyName,
+        role,
+      } : undefined);
       return { success: true, demoCode };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Failed to send magic link' };
     }
   };
 
-  const verifyCode = async (email: string, code: string, role: UserRole): Promise<{ success: boolean; error?: string }> => {
+  const verifyCode = async (email: string, code: string, role: UserRole, profile?: SignupProfile): Promise<{ success: boolean; error?: string }> => {
     try {
-      await verifyOtpCode(email.trim(), code.trim());
+      const { user: authUser } = await verifyOtpCode(email.trim(), code.trim());
       
       // Successfully authenticated
-      const user: User = role === 'Editor'
-        ? { ...mockEditorUser, email: email.trim() }
-        : { ...mockClientUser, email: email.trim() };
+      const metadata = authUser?.user_metadata;
+      const user: User = profile
+        ? {
+            user_id: authUser?.id || email.trim(),
+            name: metadata?.name || profile.name,
+            email: email.trim(),
+            role,
+            company_name: metadata?.company_name || profile.companyName,
+          }
+        : role === 'Editor'
+          ? { ...mockEditorUser, email: email.trim() }
+          : { ...mockClientUser, email: email.trim() };
 
       setCurrentUser(user);
       try {

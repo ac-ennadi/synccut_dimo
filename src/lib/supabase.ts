@@ -14,12 +14,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 /**
  * Send Magic Link / OTP via Supabase (or fallback to demo simulator)
  */
-export async function sendMagicLink(email: string, redirectTo: string) {
+export async function sendMagicLink(
+  email: string,
+  redirectTo: string,
+  metadata?: Record<string, string>,
+) {
   if (isSupabaseConfigured) {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: redirectTo,
+        data: metadata,
       },
     });
     if (error) throw error;

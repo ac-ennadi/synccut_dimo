@@ -314,6 +314,12 @@ export default function ClientLoginPage() {
         {/* Link to Editor Login */}
         <div className="text-center pt-2">
           <Link
+            href="/signup"
+            className="block mb-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+          >
+            New client? Create an account
+          </Link>
+          <Link
             href="/editor/login"
             className="inline-flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >

@@ -28,7 +28,7 @@ export const mockProject: Project = {
   start_date: '2026-10-01',
   due_date: 'Friday, Nov 14',
   producer_name: 'achraf ennadiri',
-  producer_email: 'alex@luminaryfilms.com',
+  producer_email: 'achrafennadiri@gmail.com',
 };
 
 export const mockBrief: CreativeBrief = {
