@@ -27,7 +27,7 @@ export default function EditorLoginPage() {
   const [otpCode, setOtpCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [resendSeconds, setResendSeconds] = useState(30);
+  const [resendSeconds, setResendSeconds] = useState(60);
 
   // Auto redirect if already logged in as Editor
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function EditorLoginPage() {
 
     if (res.success) {
       setStep('sent');
-      setResendSeconds(30);
+      setResendSeconds(60);
     } else {
       setErrorMessage(res.error || 'Failed to send studio magic link. Please try again.');
     }

@@ -36,14 +36,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
+    const applySession = async (authUser: SupabaseUser | null) => {
+      if (!authUser) {
+        if (mounted) setCurrentUser(null);
+        return;
+      }
+
+      try {
+        const user = await buildAppUser(authUser);
+        if (mounted) setCurrentUser(user);
+      } catch (error) {
+        console.error('Supabase user is not authorized for this project.', error);
+        await supabase.auth.signOut();
+        if (mounted) setCurrentUser(null);
+      }
+    };
+
     const restore = async () => {
       try {
         if (isSupabaseConfigured) {
           const { data } = await supabase.auth.getSession();
           const authUser = data.session?.user;
           if (authUser) {
-            const user = await buildAppUser(authUser);
-            setCurrentUser(user);
+            await applySession(authUser);
             return;
           }
         }
@@ -55,7 +72,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     };
+
     restore();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        if (mounted) {
+          setCurrentUser(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // Defer the membership query so it does not run inside Supabase's auth lock.
+      setTimeout(() => {
+        void applySession(session.user).finally(() => {
+          if (mounted) setIsLoading(false);
+        });
+      }, 0);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const requestMagicLink = async (
@@ -79,9 +121,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { success: true, demoCode };
     } catch (error) {
+      const message = error instanceof Error ? error.message : '';
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to send magic link.',
+        error: message.toLowerCase().includes('rate limit')
+          ? 'Supabase email limit reached. Wait for the limit to reset or configure custom SMTP in Supabase.'
+          : message || 'Failed to send magic link.',
       };
     }
   };

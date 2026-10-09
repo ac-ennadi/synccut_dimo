@@ -32,4 +32,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### 2. Connect Your Backend Services
 Copy `.env.example` to `.env.local` and provide your API keys:
 - **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (recommended) or `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Then run [`schema.sql`](./schema.sql) in the Supabase SQL editor and add each permitted email to `project_members`. The app uses Supabase Auth for passwordless email OTP and only permits assigned members to load the project state.
+- **Email code**: In Supabase Dashboard → Authentication → Email Templates → Magic Link, replace the default template with one that includes `{{ .Token }}`. Keep the token visible in the email, for example: `Your SyncCut verification code is {{ .Token }}`. The app's 6-digit form validates this token with `verifyOtp`. If you keep the default template, Supabase sends a magic link instead; clicking it should still establish the session and open the assigned portal.
 - **Bunny Stream**: Add your `BUNNY_STREAM_LIBRARY_ID` and `BUNNY_STREAM_API_KEY`.

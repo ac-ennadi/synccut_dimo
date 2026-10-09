@@ -26,7 +26,7 @@ export default function ClientLoginPage() {
   const [otpCode, setOtpCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [resendSeconds, setResendSeconds] = useState(30);
+  const [resendSeconds, setResendSeconds] = useState(60);
 
   // Auto redirect if already logged in as Client
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function ClientLoginPage() {
 
     if (res.success) {
       setStep('sent');
-      setResendSeconds(30);
+      setResendSeconds(60);
     } else {
       setErrorMessage(res.error || 'Failed to send magic link. Please try again.');
     }
