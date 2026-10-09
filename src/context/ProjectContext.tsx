@@ -1,8 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Project, CreativeBrief, Deliverable, ProjectStatus, ActionRequiredBy, FeedbackNote } from '@/types';
 import { mockProject, mockBrief, mockDeliverable } from '@/lib/mock-data';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProjectContextType {
   project: Project;
@@ -21,38 +23,132 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'synccut_project_state_v1';
 
+interface PortalState {
+  project: Project;
+  brief: CreativeBrief;
+  deliverable: Deliverable;
+}
+
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUser } = useAuth();
   const [project, setProject] = useState<Project>(mockProject);
   const [brief, setBrief] = useState<CreativeBrief>(mockBrief);
   const [deliverable, setDeliverable] = useState<Deliverable>(mockDeliverable);
   const [isLoaded, setIsLoaded] = useState(false);
+  const applyingRemoteState = useRef(false);
+  const currentUserId = currentUser?.user_id;
+  const canUseRemotePersistence =
+    isSupabaseConfigured &&
+    Boolean(currentUserId) &&
+    !currentUserId?.startsWith('usr_');
 
-  // Restore state from localStorage so changes made by editor persist when switching to client
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.project) setProject(parsed.project);
-        if (parsed.brief) setBrief(parsed.brief);
-        if (parsed.deliverable) setDeliverable(parsed.deliverable);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
+    let cancelled = false;
 
-  // Save changes to localStorage
+    const restore = async () => {
+      setIsLoaded(false);
+      try {
+        if (canUseRemotePersistence) {
+          const { data, error } = await supabase
+            .from('project_portal_state')
+            .select('state')
+            .eq('project_id', mockProject.project_id)
+            .maybeSingle();
+
+          if (error) throw error;
+          const state = data?.state as Partial<PortalState> | null;
+          if (!cancelled && state) {
+            if (state.project) setProject(state.project);
+            if (state.brief) setBrief(state.brief);
+            if (state.deliverable) setDeliverable(state.deliverable);
+          }
+        } else {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved) as Partial<PortalState>;
+            if (!cancelled) {
+              if (parsed.project) setProject(parsed.project);
+              if (parsed.brief) setBrief(parsed.brief);
+              if (parsed.deliverable) setDeliverable(parsed.deliverable);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to restore project state from Supabase.', error);
+      } finally {
+        if (!cancelled) setIsLoaded(true);
+      }
+    };
+
+    void restore();
+    return () => {
+      cancelled = true;
+    };
+  }, [canUseRemotePersistence]);
+
   useEffect(() => {
     if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ project, brief, deliverable }));
-    } catch (e) {
-      console.error(e);
+
+    const state: PortalState = { project, brief, deliverable };
+    if (canUseRemotePersistence) {
+      if (applyingRemoteState.current) {
+        applyingRemoteState.current = false;
+        return;
+      }
+      void supabase
+        .from('project_portal_state')
+        .upsert(
+          {
+            project_id: project.project_id,
+            state,
+            updated_by: currentUserId,
+          },
+          { onConflict: 'project_id' },
+        )
+        .then(({ error }) => {
+          if (error) console.error('Failed to save project state to Supabase.', error);
+        });
+      return;
     }
-  }, [project, brief, deliverable, isLoaded]);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to save project state locally.', error);
+    }
+  }, [project, brief, deliverable, isLoaded, canUseRemotePersistence, currentUserId]);
+
+  useEffect(() => {
+    if (!canUseRemotePersistence) return;
+
+    const channel = supabase
+      .channel(`project-portal-${mockProject.project_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'project_portal_state',
+          filter: `project_id=eq.${mockProject.project_id}`,
+        },
+        (payload) => {
+          const state = (payload.new as { state?: Partial<PortalState> }).state;
+          applyingRemoteState.current = true;
+          if (state?.project) setProject(state.project);
+          if (state?.brief) setBrief(state.brief);
+          if (state?.deliverable) setDeliverable(state.deliverable);
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Supabase realtime subscription failed for project state.');
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [canUseRemotePersistence]);
 
   const updateStatus = (newStatus: ProjectStatus) => {
     setProject((prev) => ({ ...prev, status: newStatus }));
