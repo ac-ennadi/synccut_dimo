@@ -31,5 +31,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 2. Connect Your Backend Services
 Copy `.env.example` to `.env.local` and provide your API keys:
-- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (recommended) or `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Then run [`schema.sql`](./schema.sql) in the Supabase SQL editor. The app uses Supabase Auth for passwordless email OTP and stores the shared project state in `project_portal_state`, with realtime updates enabled.
+- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (recommended) or `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Then run [`schema.sql`](./schema.sql) in the Supabase SQL editor and add each permitted email to `project_members`. The app uses Supabase Auth for passwordless email OTP and only permits assigned members to load the project state.
 - **Bunny Stream**: Add your `BUNNY_STREAM_LIBRARY_ID` and `BUNNY_STREAM_API_KEY`.

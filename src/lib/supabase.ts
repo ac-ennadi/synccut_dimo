@@ -16,28 +16,13 @@ export const isSupabaseConfigured = Boolean(
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
-/** The demo OTP code used in dev mode (no Supabase needed). */
-export const DEMO_OTP = '482910';
-
-/**
- * Send a real Supabase email OTP — or simulate in demo mode.
- *
- * In demo mode (no Supabase env vars):
- *   - Waits 600 ms to simulate a network round-trip.
- *   - Returns `{ demoCode: '482910' }` so the UI can show it in the inbox simulator.
- *
- * In production mode (Supabase configured):
- *   - Calls supabase.auth.signInWithOtp and returns `{ demoCode: null }`.
- */
 export async function sendMagicLink(
   email: string,
   redirectTo: string,
   metadata?: Record<string, string>,
 ): Promise<{ demoCode: string | null }> {
   if (!isSupabaseConfigured) {
-    // Demo / dev mode — simulate network latency
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return { demoCode: DEMO_OTP };
+    throw new Error('Supabase authentication is not configured.');
   }
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -51,23 +36,12 @@ export async function sendMagicLink(
   return { demoCode: null };
 }
 
-/**
- * Verify a Supabase email OTP — or accept any 6-digit code in demo mode.
- *
- * In demo mode: accepts the fixed DEMO_OTP (482910) or any 6-digit code (loose check).
- * In production mode: delegates to supabase.auth.verifyOtp.
- */
 export async function verifyOtpCode(
   email: string,
   token: string,
-): Promise<{ session: unknown; user: unknown }> {
+): Promise<Awaited<ReturnType<typeof supabase.auth.verifyOtp>>['data']> {
   if (!isSupabaseConfigured) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    if (token.length !== 6 || !/^\d{6}$/.test(token)) {
-      throw new Error('Please enter a valid 6-digit code.');
-    }
-    // In demo mode we accept any 6 digits
-    return { session: null, user: null };
+    throw new Error('Supabase authentication is not configured.');
   }
 
   const { data, error } = await supabase.auth.verifyOtp({
@@ -76,5 +50,5 @@ export async function verifyOtpCode(
     type: 'email',
   });
   if (error) throw error;
-  return { session: data.session, user: data.user };
+  return data;
 }

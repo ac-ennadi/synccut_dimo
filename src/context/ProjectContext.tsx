@@ -21,8 +21,6 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'synccut_project_state_v1';
-
 interface PortalState {
   project: Project;
   brief: CreativeBrief;
@@ -61,16 +59,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (state.project) setProject(state.project);
             if (state.brief) setBrief(state.brief);
             if (state.deliverable) setDeliverable(state.deliverable);
-          }
-        } else {
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved) as Partial<PortalState>;
-            if (!cancelled) {
-              if (parsed.project) setProject(parsed.project);
-              if (parsed.brief) setBrief(parsed.brief);
-              if (parsed.deliverable) setDeliverable(parsed.deliverable);
-            }
           }
         }
       } catch (error) {
@@ -111,11 +99,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return;
     }
 
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (error) {
-      console.error('Failed to save project state locally.', error);
-    }
   }, [project, brief, deliverable, isLoaded, canUseRemotePersistence, currentUserId]);
 
   useEffect(() => {
