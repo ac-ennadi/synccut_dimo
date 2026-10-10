@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { FeedbackNote } from '@/types';
 import { MessageSquare, Send, Clock, CheckCheck } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface FeedbackSectionProps {
   notes: FeedbackNote[];
   currentTimecode: string;
-  onAddNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => void;
+  onAddNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => void | Promise<void>;
 }
 
 export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
@@ -18,20 +19,30 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   const [content, setContent] = useState('');
   const [manualTimecode, setManualTimecode] = useState('');
   const [timecodeTag, setTimecodeTag] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const { currentUser } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || isSending) return;
 
-    onAddNote({
-      author_name: 'Client (You)',
-      timecode: timecodeTag || undefined,
-      content: content.trim(),
-    });
-
-    setContent('');
-    setManualTimecode('');
-    setTimecodeTag(null);
+    setIsSending(true);
+    setErrorMessage('');
+    try {
+      await onAddNote({
+        author_name: currentUser?.name || 'Team member',
+        timecode: timecodeTag || undefined,
+        content: content.trim(),
+      });
+      setContent('');
+      setManualTimecode('');
+      setTimecodeTag(null);
+    } catch {
+      setErrorMessage('Could not save your feedback. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleStampTimecode = () => {
@@ -95,12 +106,14 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
           <button
             type="submit"
+            disabled={isSending || !content.trim()}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-xs transition-transform active:scale-98"
           >
-            <span>Post feedback</span>
+            <span>{isSending ? 'Saving…' : 'Post feedback'}</span>
             <Send className="w-3.5 h-3.5" />
           </button>
         </div>
+        {errorMessage && <p role="alert" className="text-xs text-rose-500">{errorMessage}</p>}
       </form>
 
       {/* Logged Notes Feed */}

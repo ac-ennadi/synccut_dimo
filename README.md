@@ -33,6 +33,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 Copy `.env.example` to `.env.local` and provide your API keys:
 - **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), and `EDITOR_EMAIL`. Run [`schema.sql`](./schema.sql). Create the editor's email/password account in Supabase Auth, set that email as `EDITOR_EMAIL`, and add a matching `Editor` row to `project_members` for `proj_promo_2026`. In Supabase Auth settings, disable public sign-ups and turn off email confirmation. Client accounts are created from the editor dashboard; the server marks them confirmed and records their project membership. Clients then sign in with the password supplied by the editor. Never expose the service role key in a `NEXT_PUBLIC_` variable or browser code.
 
+For an existing Supabase project, also run [`20261011_concurrent_project_edits.sql`](./supabase/migrations/20261011_concurrent_project_edits.sql) in the Supabase SQL Editor before deploying this update. It adds safe field-level state merging and separate, realtime feedback records.
+
 For the first setup, create the editor user in **Supabase → Authentication → Users**, then add its matching membership row in the SQL editor (use the s  ame lowercase email):
 
 ```sql
