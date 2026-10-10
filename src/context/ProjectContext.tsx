@@ -24,7 +24,7 @@ interface ContextValue extends ProjectState {
   updateScript: (brief: CreativeBrief) => void;
   addNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => Promise<void>;
   approveCut: () => void;
-  uploadSuccess: (fileName: string) => void;
+  uploadSuccess: (fileName: string, storagePath: string) => void;
 }
 
 const Context = createContext<ContextValue | undefined>(undefined);
@@ -241,8 +241,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       : { ...current, feedback_notes: [savedNote, ...current.feedback_notes] });
   };
 
-  const uploadSuccess = (fileName: string) => {
-    const patch = { action_required_by: 'None' as const, action_banner_text: `Logo file selected: ${fileName}. The editor has been notified.` };
+  const uploadSuccess = (fileName: string, storagePath: string) => {
+    const patch = { logo_file_name: fileName, logo_storage_path: storagePath, action_required_by: 'None' as const, action_banner_text: `Logo received: ${fileName}. The editor can download it from this project.` };
     setDeliverable((current) => ({ ...current, ...patch }));
     savePatch({ deliverable: patch });
   };

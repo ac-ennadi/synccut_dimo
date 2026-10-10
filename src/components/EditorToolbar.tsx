@@ -9,7 +9,8 @@ import {
   AlertCircle, 
   FileEdit, 
   X,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 
 function readVideoDuration(file: File): Promise<number> {
@@ -58,6 +59,26 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
   // Script Edit state
   const [editingBrief, setEditingBrief] = useState(brief);
+  const [logoDownloadError, setLogoDownloadError] = useState('');
+  const [downloadingLogo, setDownloadingLogo] = useState(false);
+
+  const downloadClientLogo = async () => {
+    if (!deliverable.logo_storage_path) return;
+    setDownloadingLogo(true); setLogoDownloadError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Your editor session expired. Sign in again.');
+      const response = await fetch('/api/video/playback-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ projectId, path: deliverable.logo_storage_path, downloadName: deliverable.logo_file_name || 'client-logo' }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not download the client logo.');
+      window.location.assign(result.url);
+    } catch (error) { setLogoDownloadError(error instanceof Error ? error.message : 'Could not download the client logo.'); }
+    finally { setDownloadingLogo(false); }
+  };
 
   const handlePublishCut = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +182,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
         {/* Quick Action Triggers */}
         <div className="flex flex-wrap items-center gap-2">
+          {deliverable.logo_storage_path && <button type="button" onClick={downloadClientLogo} disabled={downloadingLogo} className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-700/50 bg-emerald-950/30 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-950/60 disabled:opacity-60"><Download className="h-3.5 w-3.5"/><span>{downloadingLogo ? 'Preparing logo…' : `Download client logo${deliverable.logo_file_name ? ` · ${deliverable.logo_file_name}` : ''}`}</span></button>}
           <button
             onClick={() => setActiveModal('newCut')}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors"
@@ -185,6 +207,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
             <span>Edit Script / Brief</span>
           </button>
         </div>
+        {logoDownloadError && <p role="alert" className="mt-2 text-xs text-red-400">{logoDownloadError}</p>}
       </div>
 
       {/* MODAL 1: Publish New Cut */}

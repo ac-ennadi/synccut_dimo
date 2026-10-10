@@ -18,7 +18,7 @@ interface ClientPortalProps {
   deliverable: Deliverable;
   onAddNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => void;
   onApproveCut: () => void;
-  onUploadSuccess: (fileName: string) => void;
+  onUploadSuccess: (fileName: string, storagePath: string) => void;
 }
 
 export const ClientPortal: React.FC<ClientPortalProps> = ({
@@ -97,6 +97,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <section className="space-y-6 order-1 lg:order-2 lg:col-span-6">
             <ActionAlert
               deliverable={deliverable}
+              projectId={project.project_id}
               onUploadSuccess={onUploadSuccess}
             />
 
