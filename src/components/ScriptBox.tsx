@@ -52,6 +52,12 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
             </div>
           </div>
         ))}
+        {(brief.script_sections ?? []).filter((section) => section.title.trim() || section.content.trim()).map((section) => (
+          <article key={section.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/40">
+            {section.title.trim() && <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{section.title}</h3>}
+            {section.content.trim() && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{section.content}</p>}
+          </article>
+        ))}
       </div>
     </div>
   );

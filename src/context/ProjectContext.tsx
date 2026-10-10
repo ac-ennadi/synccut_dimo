@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
+import type { ActionRequiredBy, ColorGrade, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
 import { normalizeProjectStatus } from '@/lib/project-status';
 import { normalizeProjectType } from '@/lib/project-type';
@@ -19,9 +19,10 @@ interface ContextValue extends ProjectState {
   isStatusSaving: boolean;
   updateStatus: (status: ProjectStatus) => void;
   updateProjectType: (projectType: ProjectType) => void;
-  postNewCut: (cut: { version: string; videoUrl: string; duration: number }) => void;
+  postNewCut: (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => void;
   setActionAlert: (actionBy: ActionRequiredBy, text: string) => void;
   updateScript: (brief: CreativeBrief) => void;
+  updateColorGrade: (colorGrade: ColorGrade) => void;
   addNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => Promise<void>;
   approveCut: () => void;
   uploadSuccess: (fileName: string) => void;
@@ -190,10 +191,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     saveProjectFields({ project_type: projectType, status });
   };
 
-  const postNewCut = (cut: { version: string; videoUrl: string; duration: number }) => {
+  const postNewCut = (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => {
     const patch = {
       version_number: cut.version,
       video_url: cut.videoUrl,
+      video_storage_path: cut.videoStoragePath,
       duration_seconds: cut.duration,
       uploaded_at: 'Just now by Editor',
       approval_status: 'Pending' as const,
@@ -217,6 +219,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const updateScript = (updated: CreativeBrief) => {
     setBrief(updated);
     savePatch({ brief: updated });
+  };
+
+  const updateColorGrade = (colorGrade: ColorGrade) => {
+    const patch = { color_grade: colorGrade };
+    setDeliverable((current) => ({ ...current, ...patch }));
+    savePatch({ deliverable: patch });
   };
 
   const addNote = async (note: Omit<FeedbackNote, 'id' | 'created_at'>) => {
@@ -251,7 +259,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   };
 
   return (
-    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
+    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, updateColorGrade, addNote, approveCut, uploadSuccess }}>
       {children}
     </Context.Provider>
   );

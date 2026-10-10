@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
+import { Deliverable, CreativeBrief, ActionRequiredBy, ScriptSection } from '@/types';
+import { supabase } from '@/lib/supabase';
 import { 
   Settings2, 
   Upload, 
@@ -10,10 +11,22 @@ import {
   X
 } from 'lucide-react';
 
+function readVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => { const duration = Number.isFinite(video.duration) ? Math.round(video.duration) : 0; URL.revokeObjectURL(url); resolve(duration); };
+    video.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
+    video.src = url;
+  });
+}
+
 interface EditorToolbarProps {
   deliverable: Deliverable;
   brief: CreativeBrief;
-  onPostNewCut: (cut: { version: string; videoUrl: string; duration: number }) => void;
+  projectId: string;
+  onPostNewCut: (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => void;
   onSetActionAlert: (actionBy: ActionRequiredBy, bannerText: string) => void;
   onUpdateScript: (newScript: CreativeBrief) => void;
 }
@@ -21,6 +34,7 @@ interface EditorToolbarProps {
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   deliverable,
   brief,
+  projectId,
   onPostNewCut,
   onSetActionAlert,
   onUpdateScript,
@@ -31,6 +45,9 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   const [cutVersion, setCutVersion] = useState('');
   const [cutUrl, setCutUrl] = useState('');
   const [cutDuration, setCutDuration] = useState(0);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   // Action Banner state
   const [alertText, setAlertText] = useState(
@@ -41,14 +58,64 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   // Script Edit state
   const [editingBrief, setEditingBrief] = useState(brief);
 
-  const handlePublishCut = (e: React.FormEvent) => {
+  const handlePublishCut = async (e: React.FormEvent) => {
     e.preventDefault();
-    onPostNewCut({
-      version: cutVersion,
-      videoUrl: cutUrl,
-      duration: cutDuration,
-    });
-    setActiveModal('none');
+    setUploadError('');
+    setIsUploading(true);
+    try {
+      let videoUrl = cutUrl.trim();
+      let videoStoragePath: string | undefined;
+      let duration = cutDuration;
+      if (videoFile) {
+        if (videoFile.size > 512 * 1024 * 1024) throw new Error('This video is larger than the 512 MB per-file limit.');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error('Your editor session expired. Sign in again and retry.');
+        const ticketResponse = await fetch('/api/video/upload-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ projectId, fileName: videoFile.name, contentType: videoFile.type }),
+        });
+        const ticket = await ticketResponse.json();
+        if (!ticketResponse.ok) throw new Error(ticket.error || 'Could not prepare video upload.');
+        const { error } = await supabase.storage.from('project-videos').uploadToSignedUrl(ticket.path, ticket.token, videoFile, { contentType: videoFile.type, upsert: false });
+        if (error) throw error;
+        videoStoragePath = ticket.path;
+        duration = await readVideoDuration(videoFile);
+        setCutDuration(duration);
+      }
+      if (!videoUrl) throw new Error('Choose a video file or enter a video URL.');
+      onPostNewCut({ version: cutVersion, videoUrl, videoStoragePath, duration });
+      setVideoFile(null);
+      setCutUrl('');
+      setActiveModal('none');
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'Video upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const updateScene = (index: number, field: 'title' | 'timecode' | 'visual_description' | 'voiceover', value: string) => {
+    const scenes = editingBrief.script_scenes.map((scene, sceneIndex) => sceneIndex === index ? { ...scene, [field]: value } : scene);
+    setEditingBrief({ ...editingBrief, script_scenes: scenes });
+  };
+
+  const addScene = () => {
+    const nextNumber = editingBrief.script_scenes.reduce((max, scene) => Math.max(max, scene.scene_number), 0) + 1;
+    setEditingBrief({ ...editingBrief, script_scenes: [...editingBrief.script_scenes, { scene_number: nextNumber, title: '', timecode: '', visual_description: '', voiceover: '' }] });
+  };
+
+  const addScriptSection = () => {
+    const section: ScriptSection = { id: crypto.randomUUID(), title: '', content: '' };
+    setEditingBrief({ ...editingBrief, script_sections: [...(editingBrief.script_sections ?? []), section] });
+  };
+
+  const updateScriptSection = (id: string, field: 'title' | 'content', value: string) => {
+    setEditingBrief({ ...editingBrief, script_sections: (editingBrief.script_sections ?? []).map((section) => section.id === id ? { ...section, [field]: value } : section) });
+  };
+
+  const removeScriptSection = (id: string) => {
+    setEditingBrief({ ...editingBrief, script_sections: (editingBrief.script_sections ?? []).filter((section) => section.id !== id) });
   };
 
   const handleSaveActionAlert = (e: React.FormEvent) => {
@@ -103,7 +170,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveModal('editScript')}
+            onClick={() => { setEditingBrief(brief); setActiveModal('editScript'); }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold border border-neutral-700 transition-colors"
           >
             <FileEdit className="w-3.5 h-3.5 text-neutral-400" />
@@ -140,27 +207,34 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </div>
 
               <div>
-                <label className="block text-neutral-300 font-semibold mb-1">
-                  Video URL
-                </label>
+                <label className="block text-neutral-300 font-semibold mb-1">Upload video file</label>
+                <input type="file" accept="video/*" onChange={(e) => { const file = e.target.files?.[0] ?? null; setVideoFile(file); if (file) setCutUrl(''); setUploadError(''); }} className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-300 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-800 file:px-3 file:py-2 file:text-neutral-100" />
+                {videoFile && <p className="mt-1 text-[11px] text-neutral-400">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB</p>}
+                <p className="mt-1 text-[11px] text-neutral-500">The file uploads directly to the project video storage. Large files may take a few minutes.</p>
+              </div>
+
+              <div>
+                <label className="block text-neutral-300 font-semibold mb-1">Or paste a hosted video URL</label>
                 <input
                   type="text"
                   value={cutUrl}
                   onChange={(e) => setCutUrl(e.target.value)}
                   placeholder="MP4, WebM, or video embed link"
-                  required
+                  disabled={Boolean(videoFile)}
                   className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono text-[11px] focus:outline-none focus:border-indigo-500"
                 />
               </div>
+
+              {uploadError && <p role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-2.5 text-red-300">{uploadError}</p>}
 
               <div>
                 <label className="block text-neutral-300 font-semibold mb-1">Duration in seconds</label>
                 <input
                   type="number"
                   value={cutDuration}
-                  min={1}
+                  min={videoFile ? 0 : 1}
                   onChange={(e) => setCutDuration(Number(e.target.value))}
-                  required
+                  required={!videoFile}
                   className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -179,9 +253,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold"
+                  disabled={isUploading || (!videoFile && !cutUrl.trim())}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold disabled:cursor-wait disabled:opacity-60"
                 >
-                  Publish Cut to Client
+                  {isUploading ? 'Uploading video…' : 'Publish Cut to Client'}
                 </button>
               </div>
             </form>
@@ -305,27 +380,18 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </div>
 
               <div className="space-y-3">
-                <span className="font-bold text-neutral-300">Scenes & Voiceover Lines:</span>
+                <div className="flex items-center justify-between gap-3"><span className="font-bold text-neutral-300">Scenes & Voiceover Lines</span><button type="button" onClick={addScene} className="rounded-lg border border-indigo-500/40 px-3 py-2 font-semibold text-indigo-300 hover:bg-indigo-950/40">+ Add scene</button></div>
                 {editingBrief.script_scenes.map((scene, idx) => (
                   <div key={scene.scene_number} className="p-3 rounded-xl border border-neutral-800 bg-neutral-950 space-y-2">
-                    <div className="font-semibold text-indigo-400">
-                      Scene {scene.scene_number}: {scene.title} ({scene.timecode})
-                    </div>
-                    <div>
-                      <label className="text-[11px] text-neutral-400 block mb-0.5">Voiceover Text</label>
-                      <textarea
-                        rows={2}
-                        value={scene.voiceover}
-                        onChange={(e) => {
-                          const updated = [...editingBrief.script_scenes];
-                          updated[idx] = { ...updated[idx], voiceover: e.target.value };
-                          setEditingBrief({ ...editingBrief, script_scenes: updated });
-                        }}
-                        className="w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white text-xs"
-                      />
-                    </div>
+                    <div className="grid grid-cols-2 gap-2"><label className="text-[11px] text-neutral-400">Scene title<input value={scene.title} onChange={(e) => updateScene(idx, 'title', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Scene title" /></label><label className="text-[11px] text-neutral-400">Timecode<input value={scene.timecode} onChange={(e) => updateScene(idx, 'timecode', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="00:00–00:05" /></label></div>
+                    <label className="block text-[11px] text-neutral-400">Visual direction<textarea rows={2} value={scene.visual_description} onChange={(e) => updateScene(idx, 'visual_description', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Describe the shots or animation" /></label>
+                    <label className="block text-[11px] text-neutral-400">Voiceover<textarea rows={2} value={scene.voiceover} onChange={(e) => updateScene(idx, 'voiceover', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Voiceover line for this scene" /></label>
                   </div>
                 ))}
+              </div>
+
+              <div className="space-y-3 border-t border-neutral-800 pt-4"><div className="flex items-center justify-between gap-3"><span className="font-bold text-neutral-300">Additional script sections</span><button type="button" onClick={addScriptSection} className="rounded-lg border border-indigo-500/40 px-3 py-2 font-semibold text-indigo-300 hover:bg-indigo-950/40">+ Add section</button></div>
+                {(editingBrief.script_sections ?? []).map((section) => <div key={section.id} className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950 p-3"><div className="flex items-center gap-2"><input aria-label="Section title" value={section.title} onChange={(e) => updateScriptSection(section.id, 'title', e.target.value)} className="w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-white" placeholder="Section title" /><button type="button" onClick={() => removeScriptSection(section.id)} className="rounded-lg border border-neutral-800 p-2 text-neutral-400 hover:text-red-300" aria-label="Remove section"><X className="h-4 w-4" /></button></div><textarea value={section.content} onChange={(e) => updateScriptSection(section.id, 'content', e.target.value)} rows={3} className="w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-white" placeholder="Add notes, instructions, or copy for this section" /></div>)}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
