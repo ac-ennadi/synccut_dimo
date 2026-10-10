@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
+import { normalizeProjectStatus } from '@/lib/project-status';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 
@@ -94,7 +95,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
 
         const state = row?.state as Partial<ProjectState> | null;
         const restoredDeliverable = state?.deliverable ?? seed.deliverable;
-        setProject(state?.project ?? seed.project);
+        const restoredProject = state?.project ?? seed.project;
+        setProject({ ...restoredProject, status: normalizeProjectStatus(restoredProject.status) });
         setBrief(state?.brief ?? seed.brief);
         setDeliverable({
           ...restoredDeliverable,
@@ -127,7 +129,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       .channel(`portal-${id}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_portal_state', filter: `project_id=eq.${id}` }, (event) => {
         const state = (event.new as { state?: Partial<ProjectState> }).state;
-        if (state?.project) setProject(state.project);
+        if (state?.project) setProject({ ...state.project, status: normalizeProjectStatus(state.project.status) });
         if (state?.brief) setBrief(state.brief);
         if (state?.deliverable) {
           setDeliverable((current) => ({
@@ -186,7 +188,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     };
     setDeliverable((current) => ({ ...current, ...patch }));
     savePatch({ deliverable: patch });
-    if (['Scripting', 'Pre-Production', 'Shooting'].includes(project.status)) {
+    if (['Scripting', 'Pre-Production', 'Production'].includes(project.status)) {
       setProject((current) => ({ ...current, status: 'Editing' }));
       saveStatus('Editing');
     }

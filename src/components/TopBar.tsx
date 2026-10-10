@@ -13,7 +13,7 @@ interface TopBarProps {
 const STAGES: { key: ProjectStatus; label: string }[] = [
   { key: 'Scripting', label: 'Script' },
   { key: 'Pre-Production', label: 'Pre-production' },
-  { key: 'Shooting', label: 'Shoot' },
+  { key: 'Production', label: 'Production' },
   { key: 'Editing', label: 'Edit' },
   { key: 'Final Review', label: 'Final review' },
   { key: 'Completed', label: 'Complete' },
@@ -22,6 +22,7 @@ const STAGES: { key: ProjectStatus; label: string }[] = [
 export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatusSaving = false }) => {
   const currentStageIndex = STAGES.findIndex((stage) => stage.key === project.status);
   const stageIndex = Math.max(currentStageIndex, 0);
+  const currentStageLabel = STAGES[stageIndex]?.label ?? project.status;
 
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-5" aria-labelledby="project-title">
@@ -43,7 +44,7 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">Project progress</h2>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400" aria-live="polite">{isStatusSaving ? 'Saving status…' : project.status}</span>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400" aria-live="polite">{isStatusSaving ? 'Saving status…' : currentStageLabel}</span>
         </div>
         <ol className="grid grid-cols-2 sm:grid-cols-6 gap-2" aria-label="Project stages">
           {STAGES.map((stage, index) => {

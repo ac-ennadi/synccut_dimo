@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { mockProject, mockBrief, mockDeliverable } from '@/lib/mock-data';
+import { normalizeProjectStatus } from '@/lib/project-status';
 
 function getAdmin() {
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -27,7 +28,7 @@ export async function GET(request:Request) {
   const ids=(clients??[]).map(c=>c.project_id);
   const{data:states}=ids.length?await auth.admin.from('project_portal_state').select('project_id,state').in('project_id',ids):{data:[]};
   const byId=new Map((states??[]).map(row=>[row.project_id,row.state]));
-  return Response.json({clients:(clients??[]).map(client=>{const state=byId.get(client.project_id) as {project?:{status?:string};deliverable?:{version_number?:string}}|undefined;return{...client,status:state?.project?.status??'Not started',latestCut:state?.deliverable?.version_number??'No video uploaded'}})});
+  return Response.json({clients:(clients??[]).map(client=>{const state=byId.get(client.project_id) as {project?:{status?:string};deliverable?:{version_number?:string}}|undefined;return{...client,status:normalizeProjectStatus(state?.project?.status),latestCut:state?.deliverable?.version_number??'No video uploaded'}})});
 }
 export async function POST(request:Request) {
   let auth:Awaited<ReturnType<typeof authorize>>;
