@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { AlertCircle, Clapperboard, Lock, RefreshCw, Shield } from 'lucide-react';
@@ -43,6 +44,12 @@ export default function EditorLoginPage() {
           <div className="relative"><Lock className="absolute left-3 top-3.5 h-4 w-4 text-neutral-500" /><input id="editor-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" className="w-full rounded-xl border border-neutral-700 bg-neutral-950 py-3 pl-10 pr-3.5 text-sm" /></div>
           {error && <p role="alert" className="flex gap-2 rounded-xl bg-rose-950/50 p-3 text-sm text-rose-300"><AlertCircle size={17} className="shrink-0" />{error}</p>}
           <button disabled={isLoading} className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold disabled:opacity-60">{isLoading ? <RefreshCw className="mx-auto animate-spin" /> : 'Sign in'}</button>
+          <p className="pt-1 text-center text-sm text-neutral-400">
+            Client?{' '}
+            <Link href="/client/login" className="font-semibold text-emerald-400 hover:underline">
+              Go to client sign in
+            </Link>
+          </p>
         </form>
       </div>
     </main>
