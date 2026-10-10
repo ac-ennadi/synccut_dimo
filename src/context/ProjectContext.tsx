@@ -41,7 +41,11 @@ function makeInitialState(id: string, user: ReturnType<typeof useAuth>['currentU
       ...mockBrief,
       brief_id: `brief_${id}`,
       project_id: id,
-      script_scenes: mockBrief.script_scenes.map((scene) => ({ ...scene })),
+      version_label: 'Script draft',
+      is_locked: false,
+      target_audience: '',
+      script_scenes: [],
+      script_sections: [],
       references: mockBrief.references.map((reference) => ({ ...reference })),
     },
     deliverable: {

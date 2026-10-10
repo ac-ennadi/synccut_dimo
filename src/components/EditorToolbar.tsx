@@ -8,7 +8,8 @@ import {
   Upload, 
   AlertCircle, 
   FileEdit, 
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 
 function readVideoDuration(file: File): Promise<number> {
@@ -103,6 +104,13 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   const addScene = () => {
     const nextNumber = editingBrief.script_scenes.reduce((max, scene) => Math.max(max, scene.scene_number), 0) + 1;
     setEditingBrief({ ...editingBrief, script_scenes: [...editingBrief.script_scenes, { scene_number: nextNumber, title: '', timecode: '', visual_description: '', voiceover: '' }] });
+  };
+
+  const removeScene = (index: number) => {
+    const scenes = editingBrief.script_scenes
+      .filter((_, sceneIndex) => sceneIndex !== index)
+      .map((scene, sceneIndex) => ({ ...scene, scene_number: sceneIndex + 1 }));
+    setEditingBrief({ ...editingBrief, script_scenes: scenes });
   };
 
   const addScriptSection = () => {
@@ -382,8 +390,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3"><span className="font-bold text-neutral-300">Scenes & Voiceover Lines</span><button type="button" onClick={addScene} className="rounded-lg border border-indigo-500/40 px-3 py-2 font-semibold text-indigo-300 hover:bg-indigo-950/40">+ Add scene</button></div>
+                {editingBrief.script_scenes.length === 0 && <p className="rounded-xl border border-dashed border-neutral-700 p-4 text-neutral-400">No scenes yet. Add a scene when the script is ready.</p>}
                 {editingBrief.script_scenes.map((scene, idx) => (
                   <div key={scene.scene_number} className="p-3 rounded-xl border border-neutral-800 bg-neutral-950 space-y-2">
+                    <div className="flex items-center justify-between"><span className="font-semibold text-neutral-300">Scene {scene.scene_number}</span><button type="button" onClick={() => removeScene(idx)} className="inline-flex items-center gap-1 rounded-lg border border-neutral-800 px-2 py-1.5 text-neutral-400 hover:border-red-500/40 hover:text-red-300" aria-label={`Remove scene ${scene.scene_number}`}><Trash2 className="h-3.5 w-3.5" /> Remove scene</button></div>
                     <div className="grid grid-cols-2 gap-2"><label className="text-[11px] text-neutral-400">Scene title<input value={scene.title} onChange={(e) => updateScene(idx, 'title', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Scene title" /></label><label className="text-[11px] text-neutral-400">Timecode<input value={scene.timecode} onChange={(e) => updateScene(idx, 'timecode', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="00:00–00:05" /></label></div>
                     <label className="block text-[11px] text-neutral-400">Visual direction<textarea rows={2} value={scene.visual_description} onChange={(e) => updateScene(idx, 'visual_description', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Describe the shots or animation" /></label>
                     <label className="block text-[11px] text-neutral-400">Voiceover<textarea rows={2} value={scene.voiceover} onChange={(e) => updateScene(idx, 'voiceover', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Voiceover line for this scene" /></label>

@@ -58,6 +58,9 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
             {section.content.trim() && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{section.content}</p>}
           </article>
         ))}
+        {brief.script_scenes.length === 0 && !(brief.script_sections ?? []).some((section) => section.title.trim() || section.content.trim()) && (
+          <p className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">The script hasn’t been added yet.</p>
+        )}
       </div>
     </div>
   );

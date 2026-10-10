@@ -51,7 +51,7 @@ export async function POST(request:Request) {
   ]);
   if(memberError){await auth.admin.auth.admin.deleteUser(created.user.id);return Response.json({error:memberError.code==='23505'?'That email already has project access.':memberError.message},{status:400})}
   const project={...mockProject,project_id:projectId,client_id:created.user.id,title:`Project: ${companyName}`,project_type:projectType,status:'Scripting' as const};
-  const brief={...mockBrief,brief_id:`brief_${projectId}`,project_id:projectId};
+  const brief={...mockBrief,brief_id:`brief_${projectId}`,project_id:projectId,version_label:'Script draft',is_locked:false,target_audience:'',script_scenes:[],script_sections:[]};
   const deliverable={...mockDeliverable,deliverable_id:`deliverable_${projectId}`,project_id:projectId,video_url:'',feedback_notes:[],uploaded_at:'No video uploaded yet',action_required_by:'Editor' as const,action_banner_text:'Add the first video cut when it is ready.'};
   const{error:stateError}=await auth.admin.from('project_portal_state').insert({project_id:projectId,state:{project,brief,deliverable},updated_by:created.user.id});
   if(stateError){await auth.admin.from('project_members').delete().eq('project_id',projectId);await auth.admin.auth.admin.deleteUser(created.user.id);return Response.json({error:stateError.message},{status:500})}
