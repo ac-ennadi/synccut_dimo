@@ -7,6 +7,11 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 
 interface ProjectState { project: Project; brief: CreativeBrief; deliverable: Deliverable }
+interface ProjectStatePatch {
+  project?: Partial<Project>;
+  brief?: Partial<CreativeBrief>;
+  deliverable?: Partial<Omit<Deliverable, 'feedback_notes'>>;
+}
 interface ContextValue extends ProjectState {
   isProjectLoaded: boolean;
   updateStatus: (status: ProjectStatus) => void;
@@ -139,7 +144,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     return () => { void supabase.removeChannel(channel); };
   }, [id, remote, ready]);
 
-  const savePatch = (patch: Partial<ProjectState>) => {
+  const savePatch = (patch: ProjectStatePatch) => {
     if (!remote || !uid || ready !== id) return;
     const databasePatch = patch.deliverable
       ? { ...patch, deliverable: withoutNotes(patch.deliverable) }
