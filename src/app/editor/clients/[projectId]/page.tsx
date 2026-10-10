@@ -1,5 +1,7 @@
 import EditorClientWorkspace from './EditorClientWorkspace';
 
+export const instant = false;
+
 interface EditorClientPageProps {
   params: Promise<{ projectId: string }>;
 }
