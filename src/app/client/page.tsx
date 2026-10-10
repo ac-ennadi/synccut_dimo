@@ -13,6 +13,7 @@ export default function ClientPage() {
     project,
     brief,
     deliverable,
+    isProjectLoaded,
     addNote,
     approveCut,
     uploadSuccess,
@@ -24,7 +25,7 @@ export default function ClientPage() {
     }
   }, [currentUser, isLoading, router]);
 
-  if (isLoading || !currentUser || currentUser.role !== 'Client') {
+  if (isLoading || !currentUser || currentUser.role !== 'Client' || !isProjectLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-neutral-950">
         <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />

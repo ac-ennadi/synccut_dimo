@@ -1,234 +1,26 @@
 'use client';
-
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { Project, CreativeBrief, Deliverable, ProjectStatus, ActionRequiredBy, FeedbackNote } from '@/types';
-import { mockProject, mockBrief, mockDeliverable } from '@/lib/mock-data';
-import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import { useAuth } from '@/context/AuthContext';
-
-interface ProjectContextType {
-  project: Project;
-  brief: CreativeBrief;
-  deliverable: Deliverable;
-  updateStatus: (newStatus: ProjectStatus) => void;
-  postNewCut: (newCut: { version: string; videoUrl: string; duration: number }) => void;
-  setActionAlert: (actionBy: ActionRequiredBy, bannerText: string) => void;
-  updateScript: (updatedBrief: CreativeBrief) => void;
-  addNote: (newNote: Omit<FeedbackNote, 'id' | 'created_at'>) => void;
-  approveCut: () => void;
-  uploadSuccess: (fileName: string) => void;
-}
-
-const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
-
-interface PortalState {
-  project: Project;
-  brief: CreativeBrief;
-  deliverable: Deliverable;
-}
-
-// Remove the old demo note from state that may already have been saved remotely.
-const withoutDemoContent = (deliverable: Deliverable): Deliverable => ({
-  ...deliverable,
-  video_url: deliverable.video_url?.includes('sample-cut-guid') ? '' : deliverable.video_url,
-  feedback_notes: (deliverable.feedback_notes ?? []).filter((note) => note.id !== 'note_1'),
-});
-
-export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser } = useAuth();
-  const [project, setProject] = useState<Project>(mockProject);
-  const [brief, setBrief] = useState<CreativeBrief>(mockBrief);
-  const [deliverable, setDeliverable] = useState<Deliverable>(mockDeliverable);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const applyingRemoteState = useRef(false);
-  const currentUserId = currentUser?.user_id;
-  const canUseRemotePersistence =
-    isSupabaseConfigured &&
-    Boolean(currentUserId) &&
-    !currentUserId?.startsWith('usr_');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const restore = async () => {
-      setIsLoaded(false);
-      try {
-        if (canUseRemotePersistence) {
-          const { data, error } = await supabase
-            .from('project_portal_state')
-            .select('state')
-            .eq('project_id', mockProject.project_id)
-            .maybeSingle();
-
-          if (error) throw error;
-          const state = data?.state as Partial<PortalState> | null;
-          if (!cancelled && state) {
-            if (state.project) setProject(state.project);
-            if (state.brief) setBrief(state.brief);
-            if (state.deliverable) setDeliverable(withoutDemoContent(state.deliverable));
-          }
-        }
-      } catch (error) {
-        console.error('Failed to restore project state from Supabase.', error);
-      } finally {
-        if (!cancelled) setIsLoaded(true);
-      }
-    };
-
-    void restore();
-    return () => {
-      cancelled = true;
-    };
-  }, [canUseRemotePersistence]);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const state: PortalState = { project, brief, deliverable };
-    if (canUseRemotePersistence) {
-      if (applyingRemoteState.current) {
-        applyingRemoteState.current = false;
-        return;
-      }
-      void supabase
-        .from('project_portal_state')
-        .upsert(
-          {
-            project_id: project.project_id,
-            state,
-            updated_by: currentUserId,
-          },
-          { onConflict: 'project_id' },
-        )
-        .then(({ error }) => {
-          if (error) console.error('Failed to save project state to Supabase.', error);
-        });
-      return;
-    }
-
-  }, [project, brief, deliverable, isLoaded, canUseRemotePersistence, currentUserId]);
-
-  useEffect(() => {
-    if (!canUseRemotePersistence) return;
-
-    const channel = supabase
-      .channel(`project-portal-${mockProject.project_id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'project_portal_state',
-          filter: `project_id=eq.${mockProject.project_id}`,
-        },
-        (payload) => {
-          const state = (payload.new as { state?: Partial<PortalState> }).state;
-          applyingRemoteState.current = true;
-          if (state?.project) setProject(state.project);
-          if (state?.brief) setBrief(state.brief);
-          if (state?.deliverable) setDeliverable(withoutDemoContent(state.deliverable));
-        },
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.error('Supabase realtime subscription failed for project state.');
-        }
-      });
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [canUseRemotePersistence]);
-
-  const updateStatus = (newStatus: ProjectStatus) => {
-    setProject((prev) => ({ ...prev, status: newStatus }));
-  };
-
-  const postNewCut = (newCut: { version: string; videoUrl: string; duration: number }) => {
-    setDeliverable((prev) => ({
-      ...prev,
-      version_number: newCut.version,
-      video_url: newCut.videoUrl,
-      duration_seconds: newCut.duration,
-      uploaded_at: 'Just now by Editor',
-      approval_status: 'Pending',
-      action_required_by: 'Client',
-      action_banner_text: `Review ${newCut.version} and leave your notes below`,
-    }));
-    if (project.status === 'Scripting' || project.status === 'Pre-Production' || project.status === 'Shooting') {
-      setProject((prev) => ({ ...prev, status: 'Editing' }));
-    }
-  };
-
-  const setActionAlert = (actionBy: ActionRequiredBy, bannerText: string) => {
-    setDeliverable((prev) => ({
-      ...prev,
-      action_required_by: actionBy,
-      action_banner_text: bannerText,
-    }));
-  };
-
-  const updateScript = (updatedBrief: CreativeBrief) => {
-    setBrief(updatedBrief);
-  };
-
-  const addNote = (newNote: Omit<FeedbackNote, 'id' | 'created_at'>) => {
-    const note: FeedbackNote = {
-      ...newNote,
-      id: `note_${Date.now()}`,
-      created_at: 'Just now',
-    };
-    setDeliverable((prev) => ({
-      ...prev,
-      feedback_notes: [note, ...prev.feedback_notes],
-    }));
-  };
-
-  const uploadSuccess = (fileName: string) => {
-    setDeliverable((prev) => ({
-      ...prev,
-      action_required_by: 'None',
-      action_banner_text: `Asset received (${fileName}). Ball is in Editor's court.`,
-    }));
-  };
-
-  const approveCut = () => {
-    setDeliverable((prev) => ({
-      ...prev,
-      approval_status: 'Approved',
-      action_required_by: 'None',
-    }));
-    setProject((prev) => ({
-      ...prev,
-      status: 'Final Review',
-    }));
-  };
-
-  return (
-    <ProjectContext.Provider
-      value={{
-        project,
-        brief,
-        deliverable,
-        updateStatus,
-        postNewCut,
-        setActionAlert,
-        updateScript,
-        addNote,
-        approveCut,
-        uploadSuccess,
-      }}
-    >
-      {children}
-    </ProjectContext.Provider>
-  );
+import React,{createContext,useContext,useState,useEffect}from'react';
+import{Project,CreativeBrief,Deliverable,ProjectStatus,ActionRequiredBy,FeedbackNote}from'@/types';
+import{mockProject,mockBrief,mockDeliverable}from'@/lib/mock-data';
+import{isSupabaseConfigured,supabase}from'@/lib/supabase';
+import{useAuth}from'@/context/AuthContext';
+interface Ctx{project:Project;brief:CreativeBrief;deliverable:Deliverable;isProjectLoaded:boolean;updateStatus:(s:ProjectStatus)=>void;postNewCut:(c:{version:string;videoUrl:string;duration:number})=>void;setActionAlert:(a:ActionRequiredBy,t:string)=>void;updateScript:(b:CreativeBrief)=>void;addNote:(n:Omit<FeedbackNote,'id'|'created_at'>)=>void;approveCut:()=>void;uploadSuccess:(f:string)=>void}
+const Context=createContext<Ctx|undefined>(undefined);interface State{project:Project;brief:CreativeBrief;deliverable:Deliverable}
+const clean=(d:Deliverable)=>({...d,video_url:d.video_url?.includes('sample-cut-guid')?'':d.video_url,feedback_notes:(d.feedback_notes??[]).filter(n=>n.id!=='note_1')});
+function initial(id:string,u:ReturnType<typeof useAuth>['currentUser']):State{return{project:{...mockProject,project_id:id,client_id:u?.user_id??mockProject.client_id,title:u?.company_name?`Project: ${u.company_name}`:mockProject.title},brief:{...mockBrief,brief_id:`brief_${id}`,project_id:id,script_scenes:mockBrief.script_scenes.map(s=>({...s})),references:mockBrief.references.map(r=>({...r}))},deliverable:{...mockDeliverable,deliverable_id:`deliverable_${id}`,project_id:id,video_url:'',feedback_notes:[],uploaded_at:'No video uploaded yet'}}}
+export const ProjectProvider:React.FC<{children:React.ReactNode;projectId?:string}>=({children,projectId:propId})=>{
+ const{currentUser}=useAuth();const id=propId??currentUser?.project_id??mockProject.project_id;const uid=currentUser?.user_id;const remote=isSupabaseConfigured&&Boolean(uid)&&Boolean(propId??currentUser?.project_id)&&!uid?.startsWith('usr_');
+ const[project,setProject]=useState(()=>initial(id,currentUser).project);const[brief,setBrief]=useState(()=>initial(id,currentUser).brief);const[deliverable,setDeliverable]=useState(()=>initial(id,currentUser).deliverable);const[ready,setReady]=useState<string|null>(null);
+ useEffect(()=>{let cancelled=false;const seed=initial(id,currentUser);setReady(null);const restore=async()=>{if(!remote){setProject(seed.project);setBrief(seed.brief);setDeliverable(seed.deliverable);setReady(id);return}try{const{data,error}=await supabase.from('project_portal_state').select('state').eq('project_id',id).maybeSingle();if(error)throw error;if(cancelled)return;setProject(data?.state?.project??seed.project);setBrief(data?.state?.brief??seed.brief);setDeliverable(data?.state?.deliverable?clean(data.state.deliverable as Deliverable):seed.deliverable);setReady(id)}catch(e){console.error('Failed to restore project state from Supabase.',e)}};void restore();return()=>{cancelled=true}},[id,uid,currentUser?.company_name,remote]);
+ useEffect(()=>{if(ready!==id||!remote||!uid)return;void supabase.from('project_portal_state').upsert({project_id:id,state:{project,brief,deliverable},updated_by:uid},{onConflict:'project_id'}).then(({error})=>{if(error)console.error('Failed to save project state to Supabase.',error)})},[project,brief,deliverable,ready,id,remote,uid]);
+ useEffect(()=>{if(!remote||ready!==id)return;const ch=supabase.channel(`portal-${id}`).on('postgres_changes',{event:'UPDATE',schema:'public',table:'project_portal_state',filter:`project_id=eq.${id}`},p=>{const s=(p.new as{state?:Partial<State>}).state;if(s?.project)setProject(s.project);if(s?.brief)setBrief(s.brief);if(s?.deliverable)setDeliverable(clean(s.deliverable))}).subscribe();return()=>{void supabase.removeChannel(ch)}},[id,remote,ready]);
+ const updateStatus=(status:ProjectStatus)=>setProject(p=>({...p,status}));
+ const postNewCut=(c:{version:string;videoUrl:string;duration:number})=>{setDeliverable(d=>({...d,version_number:c.version,video_url:c.videoUrl,duration_seconds:c.duration,uploaded_at:'Just now by Editor',approval_status:'Pending',action_required_by:'Client',action_banner_text:`Review ${c.version} and leave your notes below`}));if(['Scripting','Pre-Production','Shooting'].includes(project.status))setProject(p=>({...p,status:'Editing'}))};
+ const setActionAlert=(actionBy:ActionRequiredBy,text:string)=>setDeliverable(d=>({...d,action_required_by:actionBy,action_banner_text:text}));
+ const updateScript=(updated:CreativeBrief)=>setBrief(updated);
+ const addNote=(n:Omit<FeedbackNote,'id'|'created_at'>)=>{const note:FeedbackNote={...n,id:`note_${Date.now()}`,created_at:new Date().toISOString()};setDeliverable(d=>({...d,feedback_notes:[note,...d.feedback_notes]}))};
+ const uploadSuccess=(f:string)=>setDeliverable(d=>({...d,action_required_by:'None',action_banner_text:`Asset received (${f}). Ball is in Editor's court.`}));
+ const approveCut=()=>{setDeliverable(d=>({...d,approval_status:'Approved',action_required_by:'None'}));setProject(p=>({...p,status:'Final Review'}))};
+ return <Context.Provider value={{project,brief,deliverable,isProjectLoaded:ready===id,updateStatus,postNewCut,setActionAlert,updateScript,addNote,approveCut,uploadSuccess}}>{children}</Context.Provider>
 };
-
-export const useProject = (): ProjectContextType => {
-  const context = useContext(ProjectContext);
-  if (!context) {
-    throw new Error('useProject must be used within a ProjectProvider');
-  }
-  return context;
-};
-
+export const useProject=()=>{const c=useContext(Context);if(!c)throw new Error('useProject must be used within a ProjectProvider');return c};
