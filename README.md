@@ -7,7 +7,7 @@ A single-page, friction-free client dashboard designed specifically for commerci
 ## 🌟 Key Features
 
 1. **Top Bar — Pizza Delivery Progress Tracker**:
-   - Stages: `Scripting` ➔ `Pre-Production` ➔ `Production` (filming, animation, or motion graphics) ➔ `Editing` ➔ `Final Review`.
+   - Premiere Pro projects use `Scripting` ➔ `Pre-Production` ➔ `Shooting` ➔ `Editing` ➔ `Final Review`; After Effects projects skip `Shooting`.
    - Live stage switcher & visual progress ring.
 2. **Left Column (Laptop) / Second on Mobile — The Script & Brief**:
    - **Script Box**: Clean, scrollable text container with scene numbers, visual prompts, and voiceover text (with locked version badge).

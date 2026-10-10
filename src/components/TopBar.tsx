@@ -1,28 +1,30 @@
 'use client';
 
 import React from 'react';
-import { Project, ProjectStatus } from '@/types';
+import { Project, ProjectStatus, ProjectType } from '@/types';
 import { Check, Mail } from 'lucide-react';
 
 interface TopBarProps {
   project: Project;
   onStatusChange?: (newStatus: ProjectStatus) => void;
   isStatusSaving?: boolean;
+  onProjectTypeChange?: (projectType: ProjectType) => void;
 }
 
 const STAGES: { key: ProjectStatus; label: string }[] = [
   { key: 'Scripting', label: 'Script' },
   { key: 'Pre-Production', label: 'Pre-production' },
-  { key: 'Production', label: 'Production' },
+  { key: 'Shooting', label: 'Shoot' },
   { key: 'Editing', label: 'Edit' },
   { key: 'Final Review', label: 'Final review' },
   { key: 'Completed', label: 'Complete' },
 ];
 
-export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatusSaving = false }) => {
-  const currentStageIndex = STAGES.findIndex((stage) => stage.key === project.status);
+export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatusSaving = false, onProjectTypeChange }) => {
+  const stages = project.project_type === 'after_effects' ? STAGES.filter((stage) => stage.key !== 'Shooting') : STAGES;
+  const currentStageIndex = stages.findIndex((stage) => stage.key === project.status);
   const stageIndex = Math.max(currentStageIndex, 0);
-  const currentStageLabel = STAGES[stageIndex]?.label ?? project.status;
+  const currentStageLabel = stages[stageIndex]?.label ?? project.status;
 
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-5" aria-labelledby="project-title">
@@ -36,9 +38,24 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
             Producer {project.producer_name}
           </p>
         </div>
-        <a href={`mailto:${project.producer_email}`} className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-neutral-300 dark:border-neutral-700 px-3.5 text-sm font-medium text-neutral-800 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-          <Mail className="h-4 w-4" /> Contact producer
-        </a>
+        <div className="flex flex-wrap items-center gap-2 self-start">
+          {onProjectTypeChange ? (
+            <label className="flex min-h-10 items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-xs dark:border-neutral-700 dark:bg-neutral-950">
+              <span className="text-neutral-500">Project type</span>
+              <select value={project.project_type} onChange={(event) => onProjectTypeChange(event.target.value as ProjectType)} className="bg-transparent font-semibold text-neutral-900 outline-none dark:text-neutral-100">
+                <option value="premiere_pro">Premiere Pro · filming</option>
+                <option value="after_effects">After Effects · animation</option>
+              </select>
+            </label>
+          ) : (
+            <span className="inline-flex min-h-10 items-center rounded-lg border border-neutral-300 px-3 text-xs font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-300">
+              {project.project_type === 'after_effects' ? 'After Effects · animation' : 'Premiere Pro · filming'}
+            </span>
+          )}
+          <a href={`mailto:${project.producer_email}`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 dark:border-neutral-700 px-3.5 text-sm font-medium text-neutral-800 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+            <Mail className="h-4 w-4" /> Contact producer
+          </a>
+        </div>
       </div>
 
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4">
@@ -47,7 +64,7 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
           <span className="text-xs text-neutral-500 dark:text-neutral-400" aria-live="polite">{isStatusSaving ? 'Saving status…' : currentStageLabel}</span>
         </div>
         <ol className="grid grid-cols-2 sm:grid-cols-6 gap-2" aria-label="Project stages">
-          {STAGES.map((stage, index) => {
+          {stages.map((stage, index) => {
             const isPast = index < stageIndex;
             const isCurrent = index === stageIndex;
             const stageClass = isCurrent

@@ -33,7 +33,7 @@ const DashboardContent: React.FC = () => {
       action_banner_text: `Review ${newCut.version} and leave your notes below`,
     }));
     // Advance progress tracker to Editing or Final Review if earlier
-    if (project.status === 'Scripting' || project.status === 'Pre-Production' || project.status === 'Production') {
+    if (project.status === 'Scripting' || project.status === 'Pre-Production' || project.status === 'Shooting') {
       setProject((prev) => ({ ...prev, status: 'Editing' }));
     }
   };

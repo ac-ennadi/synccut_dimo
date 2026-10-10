@@ -1,9 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus } from '@/types';
+import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
 import { normalizeProjectStatus } from '@/lib/project-status';
+import { normalizeProjectType } from '@/lib/project-type';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 
@@ -17,6 +18,7 @@ interface ContextValue extends ProjectState {
   isProjectLoaded: boolean;
   isStatusSaving: boolean;
   updateStatus: (status: ProjectStatus) => void;
+  updateProjectType: (projectType: ProjectType) => void;
   postNewCut: (cut: { version: string; videoUrl: string; duration: number }) => void;
   setActionAlert: (actionBy: ActionRequiredBy, text: string) => void;
   updateScript: (brief: CreativeBrief) => void;
@@ -96,7 +98,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         const state = row?.state as Partial<ProjectState> | null;
         const restoredDeliverable = state?.deliverable ?? seed.deliverable;
         const restoredProject = state?.project ?? seed.project;
-        setProject({ ...restoredProject, status: normalizeProjectStatus(restoredProject.status) });
+        const projectType = normalizeProjectType(restoredProject.project_type);
+        setProject({ ...restoredProject, project_type: projectType, status: normalizeProjectStatus(restoredProject.status, projectType) });
         setBrief(state?.brief ?? seed.brief);
         setDeliverable({
           ...restoredDeliverable,
@@ -129,7 +132,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       .channel(`portal-${id}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_portal_state', filter: `project_id=eq.${id}` }, (event) => {
         const state = (event.new as { state?: Partial<ProjectState> }).state;
-        if (state?.project) setProject({ ...state.project, status: normalizeProjectStatus(state.project.status) });
+        if (state?.project) {
+          const projectType = normalizeProjectType(state.project.project_type);
+          setProject({ ...state.project, project_type: projectType, status: normalizeProjectStatus(state.project.status, projectType) });
+        }
         if (state?.brief) setBrief(state.brief);
         if (state?.deliverable) {
           setDeliverable((current) => ({
@@ -164,16 +170,24 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     return request;
   };
 
-  const saveStatus = (status: ProjectStatus) => {
+  const saveProjectFields = (patch: Partial<Project>) => {
     setPendingStatusSaves((count) => count + 1);
-    void savePatch({ project: { status } }).finally(() => {
+    void savePatch({ project: patch }).finally(() => {
       setPendingStatusSaves((count) => Math.max(0, count - 1));
     });
   };
 
+  const saveStatus = (status: ProjectStatus) => saveProjectFields({ status });
+
   const updateStatus = (status: ProjectStatus) => {
     setProject((current) => ({ ...current, status }));
     saveStatus(status);
+  };
+
+  const updateProjectType = (projectType: ProjectType) => {
+    const status = projectType === 'after_effects' && project.status === 'Shooting' ? 'Editing' : project.status;
+    setProject((current) => ({ ...current, project_type: projectType, status }));
+    saveProjectFields({ project_type: projectType, status });
   };
 
   const postNewCut = (cut: { version: string; videoUrl: string; duration: number }) => {
@@ -188,7 +202,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     };
     setDeliverable((current) => ({ ...current, ...patch }));
     savePatch({ deliverable: patch });
-    if (['Scripting', 'Pre-Production', 'Production'].includes(project.status)) {
+    if (['Scripting', 'Pre-Production', 'Shooting'].includes(project.status)) {
       setProject((current) => ({ ...current, status: 'Editing' }));
       saveStatus('Editing');
     }
@@ -237,7 +251,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   };
 
   return (
-    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
+    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
       {children}
     </Context.Provider>
   );
