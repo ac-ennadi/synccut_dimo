@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Deliverable } from '@/types';
-import { Film, Copy, Check, CheckCircle, Play, Pause, Maximize2, Volume2, VolumeX } from 'lucide-react';
+import { Film, Copy, Check, CheckCircle, Play, Pause, Maximize2, Volume2, VolumeX, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface VideoPlayerProps {
@@ -28,6 +28,18 @@ function getGoogleDrivePreviewUrl(rawUrl: string): string | null {
   }
 }
 
+function getGoogleDriveViewUrl(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl);
+    if (!['drive.google.com', 'www.drive.google.com'].includes(url.hostname.toLowerCase())) return null;
+    const fileId = url.pathname.match(/\/file\/d\/([^/]+)/)?.[1] || url.searchParams.get('id');
+    if (!fileId || !/^[a-zA-Z0-9_-]+$/.test(fileId)) return null;
+    return `https://drive.google.com/file/d/${fileId}/view`;
+  } catch {
+    return null;
+  }
+}
+
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecodeSelected, onApproveCut }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerFrameRef = useRef<HTMLDivElement>(null);
@@ -43,6 +55,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
   const videoUrl = deliverable.video_url?.trim() || signedVideoUrl;
   const isDirectVideo = /\.(mp4|webm|ogg|mov|m4v)(?:$|[?#])/i.test(videoUrl);
   const googleDrivePreviewUrl = getGoogleDrivePreviewUrl(videoUrl);
+  const googleDriveViewUrl = getGoogleDriveViewUrl(videoUrl);
   const isApproved = deliverable.approval_status === 'Approved';
 
   useEffect(() => {
@@ -130,6 +143,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
         {videoUrl ? (
           isDirectVideo ? (
             <video ref={videoRef} src={videoUrl} muted={isMuted} playsInline preload="metadata" className="h-full w-full bg-black object-contain" onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />
+          ) : googleDrivePreviewUrl ? (
+            <>
+              <iframe src={googleDrivePreviewUrl} title={`${deliverable.version_number} video`} className="hidden h-full w-full border-0 sm:block" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+              <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center text-white sm:hidden">
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-white/10"><Play className="h-6 w-6"/></span>
+                <div><p className="text-sm font-semibold">Open this video in Google Drive</p><p className="mt-1 text-xs leading-relaxed text-neutral-400">Drive’s embedded controls are difficult to use on a phone. Open the video directly for full mobile playback controls.</p></div>
+                <a href={googleDriveViewUrl ?? videoUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-neutral-950 active:scale-[0.98]"><ExternalLink className="h-4 w-4"/>Open video</a>
+              </div>
+            </>
           ) : (
             <iframe src={googleDrivePreviewUrl ?? videoUrl} title={`${deliverable.version_number} video`} className="h-full w-full border-0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
           )

@@ -7,7 +7,6 @@ import {
   ArrowDown,
   ArrowRight,
   Check,
-  CheckCircle2,
   Clapperboard,
   MessageSquareText,
   Play,
@@ -15,39 +14,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
-const steps = [
-  {
-    number: '01',
-    eyebrow: 'One cut. One place.',
-    title: 'Watch the latest cut.',
-    description:
-      'Clients open the latest cut and its related notes in one secure workspace.',
-    bullets: ['One home for every version', 'Private client access'],
-    icon: Play,
-    label: 'Your video preview will live here',
-  },
-  {
-    number: '02',
-    eyebrow: 'Feedback stays with the cut.',
-    title: 'Feedback that makes sense.',
-    description:
-      'Clients leave notes as they watch. Every comment stays connected to its moment, so your next edit starts with clear direction.',
-    bullets: ['Timecoded client notes', 'A shared conversation'],
-    icon: MessageSquareText,
-    label: 'See how timecoded notes work',
-  },
-  {
-    number: '03',
-    eyebrow: 'Keep the project moving.',
-    title: 'Review, revise, approve.',
-    description:
-      'Track revisions and approval in one place. Your team and client can see where the project stands and what happens next.',
-    bullets: ['Version history in one place', 'Clear approval status'],
-    icon: CheckCircle2,
-    label: 'See how clients approve a cut',
-  },
-];
+import { LandingScrollStory } from '@/components/LandingScrollStory';
 
 export default function HomePage() {
   const router = useRouter();
@@ -134,37 +101,7 @@ export default function HomePage() {
         <div className="step-indicators"><span>01</span><i /><span>02</span><i /><span>03</span></div>
       </section>
 
-      <div className="feature-list">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          return (
-            <section className={`feature-row ${index % 2 ? 'feature-reverse' : ''}`} key={step.number}>
-              <div className="feature-copy">
-                <div className="feature-progress"><b>{step.number}</b><span /><span className={index > 0 ? 'progress-done' : ''} /><span className={index > 1 ? 'progress-done' : ''} /></div>
-                <div className="feature-eyebrow"><Icon size={15} /> {step.eyebrow}</div>
-                <h2>{step.title}</h2>
-                <p>{step.description}</p>
-                <ul>{step.bullets.map((bullet) => <li key={bullet}><CheckCircle2 size={16} /> {bullet}</li>)}</ul>
-              </div>
-              <div className="feature-visual">
-                <div className="visual-window">
-                  <div className="visual-topbar"><div className="window-dots"><i /><i /><i /></div><span>SYNC CUT <b>/</b> {step.number} — {step.eyebrow.toUpperCase()}</span><span className="visual-live"><i /> PRIVATE</span></div>
-                  <div className="visual-placeholder">
-                    <div className="placeholder-wash" />
-                    <div className="placeholder-icon"><Icon size={22} /></div>
-                    <strong>{step.label}</strong>
-                    <span>VIDEO PREVIEW</span>
-                    <div className="placeholder-bar"><i /></div>
-                    <div className="placeholder-corner">SYNC CUT&nbsp; · &nbsp;{step.number}</div>
-                  </div>
-                  <div className="visual-footer"><span><i /> VIDEO PREVIEW</span><span>{step.number} <b>/</b> 03</span></div>
-                </div>
-                <div className="visual-halo" />
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      <LandingScrollStory />
 
       <section className="editor-callout" id="for-editors">
         <div className="callout-icon"><Clapperboard size={20} /></div>

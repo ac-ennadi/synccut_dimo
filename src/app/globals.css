@@ -101,6 +101,18 @@ a { color: inherit; text-decoration: none; }
 .step-indicators i { width: 23px; height: 1px; background: #343741; }
 
 .feature-list { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+.scroll-story { max-width: 1180px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: .8fr 1.2fr; align-items: start; gap: clamp(50px, 8vw, 118px); }
+.scroll-story-copy { min-width: 0; }
+.scroll-story-card { min-height: min(78vh, 800px); padding: 70px 0; display: flex; flex-direction: column; justify-content: center; opacity: .56; transition: opacity .3s ease; }
+.scroll-story-card.is-active { opacity: 1; }
+.scroll-story-stage { min-width: 0; align-self: stretch; }
+.scroll-story-player-wrap { position: sticky; top: max(88px, calc(50vh - 230px)); z-index: 2; }
+.scroll-story-player { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: #06070a; }
+.scroll-story-player iframe { width: 100%; height: 100%; position: absolute; inset: 0; border: 0; }
+.scroll-story-loading { display: inline-flex; align-items: center; gap: 10px; color: #b5bac7; font-size: 12px; }
+.scroll-story-step-indicator { position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.15); border-radius: 7px; background: rgba(8,9,12,.78); color: #a7acb8; font-family: var(--font-geist-mono), monospace; font-size: 9px; backdrop-filter: blur(8px); }
+.scroll-story-step-indicator span:first-child { color: var(--emerald-bright); }
+.scroll-story-step-indicator i { width: 18px; height: 1px; background: #5b606c; }
 .feature-row { min-height: 545px; padding: 84px 0; display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; gap: clamp(50px, 8vw, 118px); border-bottom: 1px solid rgba(255,255,255,.075); }
 .feature-reverse { grid-template-columns: 1.2fr .8fr; }
 .feature-reverse .feature-copy { order: 2; }
@@ -168,6 +180,11 @@ a { color: inherit; text-decoration: none; }
   .step-indicators { gap: 6px; }
   .step-indicators i { width: 14px; }
   .feature-list { padding: 0 23px; }
+  .scroll-story { padding: 0 23px; grid-template-columns: 1fr; gap: 0; }
+  .scroll-story-stage { grid-row: 1; z-index: 2; }
+  .scroll-story-player-wrap { top: 74px; }
+  .scroll-story-player { aspect-ratio: 16 / 9; }
+  .scroll-story-card { min-height: 58vh; padding: 52px 0; }
   .feature-row, .feature-reverse { min-height: 0; padding: 64px 0; grid-template-columns: 1fr; gap: 32px; }
   .feature-reverse .feature-copy, .feature-reverse .feature-visual { order: initial; }
   .feature-progress { margin-bottom: 26px; }
