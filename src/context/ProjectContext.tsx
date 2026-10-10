@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import type { ActionRequiredBy, ColorGrade, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
+import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
 import { normalizeProjectStatus } from '@/lib/project-status';
 import { normalizeProjectType } from '@/lib/project-type';
@@ -22,7 +22,6 @@ interface ContextValue extends ProjectState {
   postNewCut: (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => void;
   setActionAlert: (actionBy: ActionRequiredBy, text: string) => void;
   updateScript: (brief: CreativeBrief) => void;
-  updateColorGrade: (colorGrade: ColorGrade) => void;
   addNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => Promise<void>;
   approveCut: () => void;
   uploadSuccess: (fileName: string) => void;
@@ -221,12 +220,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     savePatch({ brief: updated });
   };
 
-  const updateColorGrade = (colorGrade: ColorGrade) => {
-    const patch = { color_grade: colorGrade };
-    setDeliverable((current) => ({ ...current, ...patch }));
-    savePatch({ deliverable: patch });
-  };
-
   const addNote = async (note: Omit<FeedbackNote, 'id' | 'created_at'>) => {
     const newNote: FeedbackNote = { ...note, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     if (!remote) {
@@ -259,7 +252,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   };
 
   return (
-    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, updateColorGrade, addNote, approveCut, uploadSuccess }}>
+    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
       {children}
     </Context.Provider>
   );

@@ -11,7 +11,7 @@ function Workspace() {
   const { currentUser, isLoading } = useAuth();
   const {
     project, brief, deliverable, isProjectLoaded, isStatusSaving, updateProjectType, updateStatus, postNewCut,
-    setActionAlert, updateScript, updateColorGrade, addNote, approveCut, uploadSuccess,
+    setActionAlert, updateScript, addNote, approveCut, uploadSuccess,
   } = useProject();
 
   useEffect(() => {
@@ -23,7 +23,7 @@ function Workspace() {
   }
 
   return <EditorDashboard project={project} brief={brief} deliverable={deliverable} isStatusSaving={isStatusSaving} onProjectTypeChange={updateProjectType} onStatusChange={updateStatus}
-    onPostNewCut={postNewCut} onSetActionAlert={setActionAlert} onUpdateScript={updateScript} onUpdateColorGrade={updateColorGrade}
+    onPostNewCut={postNewCut} onSetActionAlert={setActionAlert} onUpdateScript={updateScript}
     onAddNote={addNote} onApproveCut={approveCut} onUploadSuccess={uploadSuccess} />;
 }
 

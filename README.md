@@ -11,10 +11,10 @@ A single-page client dashboard for commercial and video production teams. Built 
    - Live stage switcher & visual progress ring.
 2. **Left Column (Laptop) / Second on Mobile — The Script & Brief**:
    - **Script Box**: Editors can add and revise scenes, titles, timecodes, visual direction, voiceover, and extra script sections.
-   - **Mood Board**: 3 visual reference targets (Lighting, Motion, Color Grade) to maintain creative alignment.
+   - **Mood Board**: Editors can add, edit, and remove reference cards with uploaded images or image links and notes; saved cards are shared with the client portal.
 3. **Right Column (Laptop) / First on Mobile — Action Items & Deliverables**:
    - **Action Required Alert**: High-contrast amber card when waiting on client assets (e.g. vector logos).
-   - **Video Cut Player**: Upload private video cuts, scrub playback timecodes, apply a saved color-grade preview, and approve cuts.
+   - **Video Cut Player**: Upload private video cuts, scrub playback timecodes, and approve cuts.
    - **Timecoded Feedback Box**: Instant note submission directly tagged to playback timecode (`+ Stamp Timecode 00:18`) with real-time optimistic feed.
 4. **Device Viewport Simulator**:
    - Header toggle button lets you instantly preview both **Laptop (2-Column)** and **Mobile (Stacked)** layouts on the fly.

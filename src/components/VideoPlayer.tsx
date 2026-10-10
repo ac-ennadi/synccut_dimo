@@ -1,31 +1,26 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ColorGrade, Deliverable } from '@/types';
-import { Film, Copy, Check, CheckCircle, Play, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { Deliverable } from '@/types';
+import { Film, Copy, Check, CheckCircle, Play } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface VideoPlayerProps {
   deliverable: Deliverable;
   onTimecodeSelected?: (timecode: string) => void;
   onApproveCut?: () => void;
-  onColorGradeChange?: (grade: ColorGrade) => void;
 }
-
-const neutralGrade: ColorGrade = { brightness: 100, contrast: 100, saturation: 100, warmth: 0 };
 
 const formatTime = (seconds: number) => {
   const wholeSeconds = Math.max(0, Math.floor(seconds));
   return `${String(Math.floor(wholeSeconds / 60)).padStart(2, '0')}:${String(wholeSeconds % 60).padStart(2, '0')}`;
 };
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecodeSelected, onApproveCut, onColorGradeChange }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecodeSelected, onApproveCut }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const gradeTimer = useRef<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(deliverable.duration_seconds || 0);
-  const [grade, setGrade] = useState<ColorGrade>(deliverable.color_grade ?? neutralGrade);
   const [signedVideoUrl, setSignedVideoUrl] = useState('');
   const [videoLoadError, setVideoLoadError] = useState('');
   const videoUrl = deliverable.video_url?.trim() || signedVideoUrl;
@@ -61,19 +56,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
     return () => { cancelled = true; };
   }, [deliverable.project_id, deliverable.video_storage_path]);
 
-  useEffect(() => {
-    if (deliverable.color_grade) setGrade(deliverable.color_grade);
-  }, [deliverable.color_grade?.brightness, deliverable.color_grade?.contrast, deliverable.color_grade?.saturation, deliverable.color_grade?.warmth]);
-
-  useEffect(() => () => { if (gradeTimer.current !== null) window.clearTimeout(gradeTimer.current); }, []);
-
-  const changeGrade = (next: ColorGrade) => {
-    setGrade(next);
-    if (!onColorGradeChange) return;
-    if (gradeTimer.current !== null) window.clearTimeout(gradeTimer.current);
-    gradeTimer.current = window.setTimeout(() => onColorGradeChange(next), 250);
-  };
-
   const handleCopyLink = async () => {
     if (!videoUrl || !navigator.clipboard) return;
     await navigator.clipboard.writeText(videoUrl);
@@ -106,9 +88,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
       <div className="relative aspect-video overflow-hidden rounded-xl bg-neutral-950">
         {videoUrl ? (
           isDirectVideo ? (
-            <video ref={videoRef} src={videoUrl} controls playsInline style={{ filter: `brightness(${grade.brightness}%) contrast(${grade.contrast}%) saturate(${grade.saturation}%) sepia(${grade.warmth}%)` }} className="h-full w-full bg-black object-contain" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />
+            <video ref={videoRef} src={videoUrl} controls playsInline className="h-full w-full bg-black object-contain" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />
           ) : (
-            <iframe src={videoUrl} title={`${deliverable.version_number} video`} style={{ filter: `brightness(${grade.brightness}%) contrast(${grade.contrast}%) saturate(${grade.saturation}%) sepia(${grade.warmth}%)` }} className="h-full w-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+            <iframe src={videoUrl} title={`${deliverable.version_number} video`} className="h-full w-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
           )
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-neutral-300">
@@ -117,8 +99,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
           </div>
         )}
       </div>
-
-      {onColorGradeChange && <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/50"><div className="mb-3 flex items-center justify-between"><div className="flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal className="h-4 w-4 text-amber-500"/>Color grade preview</div><button type="button" onClick={() => changeGrade(neutralGrade)} className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white"><RotateCcw className="h-3 w-3"/>Reset</button></div><p className="mb-3 text-xs text-neutral-500">Adjust the client preview look. Values save with this project and appear in both portals.</p><div className="grid grid-cols-2 gap-x-5 gap-y-3">{([['brightness','Exposure',50,150],['contrast','Contrast',50,150],['saturation','Saturation',0,200],['warmth','Warmth',0,60]] as const).map(([key,label,min,max])=><label key={key} className="text-xs text-neutral-600 dark:text-neutral-300">{label}<span className="float-right font-mono">{grade[key]}{key==='warmth'?'':'%'}</span><input type="range" min={min} max={max} value={grade[key]} onChange={(event) => changeGrade({ ...grade, [key]: Number(event.target.value) })} className="mt-1 w-full accent-amber-500" aria-label={label}/></label>)}</div><p className="mt-3 text-[11px] text-neutral-500">This adjusts the in-browser review preview; it does not render or alter the original uploaded file.</p></div>}
 
       {videoUrl && isDirectVideo && <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400"><span className="w-12 shrink-0 font-mono tabular-nums">{formatTime(currentTime)}</span><input aria-label="Seek video and set feedback timecode" type="range" min={0} max={duration || 0} step={0.1} value={Math.min(currentTime, duration || 0)} onChange={handleSeek} disabled={!duration} className="h-1.5 w-full cursor-pointer accent-emerald-600 disabled:cursor-not-allowed" /><span className="w-12 shrink-0 text-right font-mono tabular-nums">{duration ? formatTime(duration) : '--:--'}</span><span className="hidden sm:inline">Seeking sets the note timecode</span></div>}
 

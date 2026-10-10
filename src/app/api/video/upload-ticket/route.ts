@@ -26,8 +26,8 @@ export async function POST(request: Request) {
   const projectId = body.projectId?.trim();
   const fileName = body.fileName?.replace(/[^\w.-]+/g, '_').slice(-120);
   const contentType = body.contentType?.toLowerCase() ?? '';
-  if (!projectId || !fileName || !contentType.startsWith('video/')) {
-    return Response.json({ error: 'Choose a video file for this project.' }, { status: 400 });
+  if (!projectId || !fileName || (!contentType.startsWith('video/') && !contentType.startsWith('image/'))) {
+    return Response.json({ error: 'Choose a video or image file for this project.' }, { status: 400 });
   }
 
   const { data: membership, error: membershipError } = await admin.from('project_members')
@@ -36,7 +36,8 @@ export async function POST(request: Request) {
     return Response.json({ error: 'You do not have editor access to this project.' }, { status: 403 });
   }
 
-  const path = `${projectId}/${crypto.randomUUID()}-${fileName}`;
+  const folder = contentType.startsWith('image/') ? 'references' : 'videos';
+  const path = `${projectId}/${folder}/${crypto.randomUUID()}-${fileName}`;
   const { data, error } = await admin.storage.from(bucket).createSignedUploadUrl(path);
   if (error || !data) {
     return Response.json({ error: error?.message ?? 'Could not prepare the video upload.' }, { status: 500 });
