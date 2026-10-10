@@ -219,10 +219,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   type="text"
                   value={cutUrl}
                   onChange={(e) => setCutUrl(e.target.value)}
-                  placeholder="MP4, WebM, or video embed link"
+                  placeholder="Google Drive share link, MP4, WebM, or embed link"
                   disabled={Boolean(videoFile)}
                   className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono text-[11px] focus:outline-none focus:border-indigo-500"
                 />
+                <p className="mt-1 text-[11px] text-neutral-500">For Google Drive, set the file’s General access to “Anyone with the link” and Viewer.</p>
               </div>
 
               {uploadError && <p role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-2.5 text-red-300">{uploadError}</p>}

@@ -14,7 +14,7 @@ A single-page client dashboard for commercial and video production teams. Built 
    - **Mood Board**: Editors can add, edit, and remove reference cards with uploaded images or image links and notes; saved cards are shared with the client portal.
 3. **Right Column (Laptop) / First on Mobile — Action Items & Deliverables**:
    - **Action Required Alert**: High-contrast amber card when waiting on client assets (e.g. vector logos).
-   - **Video Cut Player**: Upload private video cuts, scrub playback timecodes, and approve cuts.
+   - **Video Cut Player**: Upload private video cuts or paste a Google Drive share link, scrub direct-video playback timecodes, and approve cuts.
    - **Timecoded Feedback Box**: Instant note submission directly tagged to playback timecode (`+ Stamp Timecode 00:18`) with real-time optimistic feed.
 4. **Device Viewport Simulator**:
    - Header toggle button lets you instantly preview both **Laptop (2-Column)** and **Mobile (Stacked)** layouts on the fly.

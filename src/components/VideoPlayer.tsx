@@ -16,6 +16,18 @@ const formatTime = (seconds: number) => {
   return `${String(Math.floor(wholeSeconds / 60)).padStart(2, '0')}:${String(wholeSeconds % 60).padStart(2, '0')}`;
 };
 
+function getGoogleDrivePreviewUrl(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl);
+    if (!['drive.google.com', 'www.drive.google.com'].includes(url.hostname.toLowerCase())) return null;
+    const fileId = url.pathname.match(/\/file\/d\/([^/]+)/)?.[1] || url.searchParams.get('id');
+    if (!fileId || !/^[a-zA-Z0-9_-]+$/.test(fileId)) return null;
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  } catch {
+    return null;
+  }
+}
+
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecodeSelected, onApproveCut }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [copied, setCopied] = useState(false);
@@ -24,7 +36,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
   const [signedVideoUrl, setSignedVideoUrl] = useState('');
   const [videoLoadError, setVideoLoadError] = useState('');
   const videoUrl = deliverable.video_url?.trim() || signedVideoUrl;
-  const isDirectVideo = /\.(mp4|webm|ogg)(?:$|[?#])/i.test(videoUrl);
+  const isDirectVideo = /\.(mp4|webm|ogg|mov|m4v)(?:$|[?#])/i.test(videoUrl);
+  const googleDrivePreviewUrl = getGoogleDrivePreviewUrl(videoUrl);
   const isApproved = deliverable.approval_status === 'Approved';
 
   useEffect(() => {
@@ -90,7 +103,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
           isDirectVideo ? (
             <video ref={videoRef} src={videoUrl} controls playsInline className="h-full w-full bg-black object-contain" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />
           ) : (
-            <iframe src={videoUrl} title={`${deliverable.version_number} video`} className="h-full w-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+            <iframe src={googleDrivePreviewUrl ?? videoUrl} title={`${deliverable.version_number} video`} className="h-full w-full border-0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
           )
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-neutral-300">
