@@ -122,11 +122,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, demoCode };
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
+      const normalizedMessage = message.toLowerCase();
       return {
         success: false,
-        error: message.toLowerCase().includes('rate limit')
+        error: normalizedMessage.includes('rate limit')
           ? 'Supabase email limit reached. Wait for the limit to reset or configure custom SMTP in Supabase.'
-          : message || 'Failed to send magic link.',
+          : normalizedMessage.includes('confirmation email') ||
+              normalizedMessage.includes('email address not authorized') ||
+              normalizedMessage.includes('smtp')
+            ? 'Supabase could not deliver the verification email. Check Authentication → SMTP Settings and the Auth logs in your Supabase dashboard. Without custom SMTP, Supabase only sends to project team addresses and limits delivery to 2 emails per hour.'
+            : message || 'Failed to send magic link.',
       };
     }
   };
