@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Deliverable } from '@/types';
-import { Play, Pause, Film, Copy, Check, CheckCircle } from 'lucide-react';
+import { Film, Copy, Check, CheckCircle, Play } from 'lucide-react';
 
 interface VideoPlayerProps {
   deliverable: Deliverable;
@@ -10,158 +10,79 @@ interface VideoPlayerProps {
   onApproveCut?: () => void;
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({
-  deliverable,
-  onTimecodeSelected,
-  onApproveCut,
-}) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSeconds, setCurrentSeconds] = useState(18);
-  const totalSeconds = deliverable.duration_seconds || 65;
+const formatTime = (seconds: number) => {
+  const wholeSeconds = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(wholeSeconds / 60)).padStart(2, '0')}:${String(wholeSeconds % 60).padStart(2, '0')}`;
+};
+
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecodeSelected, onApproveCut }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [copied, setCopied] = useState(false);
-  const [isApproved, setIsApproved] = useState(deliverable.approval_status === 'Approved');
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(deliverable.duration_seconds || 0);
+  const videoUrl = deliverable.video_url?.trim() || '';
+  const isDirectVideo = /\.(mp4|webm|ogg)(?:$|[?#])/i.test(videoUrl);
+  const isApproved = deliverable.approval_status === 'Approved';
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlaying) {
-      timer = setInterval(() => {
-        setCurrentSeconds((prev) => (prev >= totalSeconds ? 0 : prev + 1));
-      }, 500);
-    }
-    return () => clearInterval(timer);
-  }, [isPlaying, totalSeconds]);
+    setCurrentTime(0);
+    setDuration(deliverable.duration_seconds || 0);
+  }, [videoUrl, deliverable.duration_seconds]);
 
-  const formatTime = (sec: number) => {
-    const mins = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${mins < 10 ? '0' : ''}${mins}:${s < 10 ? '0' : ''}${s}`;
+  const handleCopyLink = async () => {
+    if (!videoUrl || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(videoUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
   };
 
-  const formattedCurrentTime = formatTime(currentSeconds);
-  const formattedTotalTime = formatTime(totalSeconds);
-
-  const handleScrub = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const newSec = Math.round(ratio * totalSeconds);
-    setCurrentSeconds(newSec);
-    if (onTimecodeSelected) {
-      onTimecodeSelected(formatTime(newSec));
-    }
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    setCurrentTime(video.currentTime);
+    onTimecodeSelected?.(formatTime(video.currentTime));
+    if (Number.isFinite(video.duration)) setDuration(video.duration);
   };
 
-  const handleCopyLink = () => {
-    if (typeof window !== 'undefined') {
-      navigator.clipboard?.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleApprove = () => {
-    setIsApproved(true);
-    if (onApproveCut) onApproveCut();
+  const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextTime = Number(event.target.value);
+    if (videoRef.current) videoRef.current.currentTime = nextTime;
+    setCurrentTime(nextTime);
+    onTimecodeSelected?.(formatTime(nextTime));
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800">
-        <div className="flex items-center gap-2">
-          <Film className="w-4 h-4 text-indigo-500" />
-          <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-neutral-100">
-            Recent Uploads & Cut Preview
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60">
-            {deliverable.version_number}
-          </span>
-          {isApproved && (
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
-              <Check className="w-3 h-3" /> Approved
-            </span>
-          )}
-        </div>
+    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-4" aria-labelledby="video-title">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2"><Film className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /><h2 id="video-title" className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Video review</h2></div>
+        <div className="flex items-center gap-2"><span className="text-xs text-neutral-600 dark:text-neutral-300">{deliverable.version_number}</span>{isApproved && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><Check className="h-3.5 w-3.5" /> Approved</span>}</div>
       </div>
 
-      {/* Player Frame */}
-      <div className="relative rounded-xl border border-neutral-800 bg-neutral-950 overflow-hidden group aspect-video flex flex-col justify-between p-4 select-none shadow-md">
-        {/* Background Simulated Film Canvas */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-900 to-indigo-950/70 -z-10" />
-        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#818cf8_1px,transparent_1px)] [background-size:16px_16px] -z-10" />
-
-        {/* Top Badges */}
-        <div className="flex items-center justify-between z-10">
-          <span className="px-2.5 py-1 rounded bg-black/75 text-white font-mono text-[11px] backdrop-blur-xs">
-            BUNNY HLS • 4K PRORES PROXY
-          </span>
-          <span className="px-2 py-0.5 rounded bg-amber-500/90 text-neutral-950 font-bold text-[10px] uppercase">
-            Work in Progress
-          </span>
-        </div>
-
-        {/* Center Simple Play / Pause Button */}
-        <div className="flex items-center justify-center z-10 my-auto">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 group-hover:ring-4 group-hover:ring-indigo-500/25"
-            aria-label={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? (
-              <Pause className="w-6 h-6" />
-            ) : (
-              <Play className="w-6 h-6 translate-x-0.5" fill="currentColor" />
-            )}
-          </button>
-        </div>
-
-        {/* Bottom Scrub Bar & Timecodes */}
-        <div className="space-y-1.5 z-10 pt-2">
-          <div
-            className="w-full bg-white/20 hover:bg-white/30 h-2 rounded-full overflow-hidden cursor-pointer transition-colors"
-            onClick={handleScrub}
-          >
-            <div
-              className="bg-indigo-500 h-full rounded-full transition-all duration-150"
-              style={{ width: `${(currentSeconds / totalSeconds) * 100}%` }}
-            />
+      <div className="relative aspect-video overflow-hidden rounded-xl bg-neutral-950">
+        {videoUrl ? (
+          isDirectVideo ? (
+            <video ref={videoRef} src={videoUrl} controls playsInline className="h-full w-full bg-black object-contain" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />
+          ) : (
+            <iframe src={videoUrl} title={`${deliverable.version_number} video`} className="h-full w-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+          )
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-neutral-300">
+            <span className="grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-white/5 text-neutral-400"><Play className="h-5 w-5" /></span>
+            <div><p className="text-sm font-medium text-white">Video coming soon</p><p className="mt-1 text-xs text-neutral-400">The editor will add the first cut here.</p></div>
           </div>
-
-          <div className="flex items-center justify-between text-[11px] text-neutral-300 font-mono">
-            <span className="font-semibold">
-              {formattedCurrentTime} / {formattedTotalTime}
-            </span>
-            <span className="text-[10px] text-neutral-400">
-              Click scrub bar to tag timecode for notes
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Controls & Metadata Strip */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-500 dark:text-neutral-400 px-1">
-        <span>{deliverable.uploaded_at}</span>
+      {videoUrl && isDirectVideo && <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400"><span className="w-12 shrink-0 font-mono tabular-nums">{formatTime(currentTime)}</span><input aria-label="Seek video and set feedback timecode" type="range" min={0} max={duration || 0} step={0.1} value={Math.min(currentTime, duration || 0)} onChange={handleSeek} disabled={!duration} className="h-1.5 w-full cursor-pointer accent-emerald-600 disabled:cursor-not-allowed" /><span className="w-12 shrink-0 text-right font-mono tabular-nums">{duration ? formatTime(duration) : '--:--'}</span><span className="hidden sm:inline">Seeking sets the note timecode</span></div>}
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleCopyLink}
-            className="inline-flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-neutral-100 font-medium transition-colors"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Link Copied!' : 'Copy direct link'}</span>
-          </button>
-
-          {!isApproved && (
-            <button
-              onClick={handleApprove}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-xs transition-colors"
-            >
-              <CheckCircle className="w-3.5 h-3.5" />
-              <span>Approve This Cut</span>
-            </button>
-          )}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-3 text-sm dark:border-neutral-800">
+        <span className="text-xs text-neutral-500 dark:text-neutral-400">{deliverable.uploaded_at}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={handleCopyLink} disabled={!videoUrl} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-neutral-300 px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">{copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}{copied ? 'Copied' : 'Copy video link'}</button>
+          {!isApproved && <button type="button" onClick={onApproveCut} disabled={!videoUrl} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-xs font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"><CheckCircle className="h-3.5 w-3.5" /> Approve cut</button>}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
+

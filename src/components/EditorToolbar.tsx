@@ -1,31 +1,26 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ProjectStatus, Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
+import { Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
 import { 
   Settings2, 
   Upload, 
   AlertCircle, 
   FileEdit, 
-  Layers, 
   X
 } from 'lucide-react';
 
 interface EditorToolbarProps {
-  currentStatus: ProjectStatus;
   deliverable: Deliverable;
   brief: CreativeBrief;
-  onUpdateStatus: (status: ProjectStatus) => void;
   onPostNewCut: (cut: { version: string; videoUrl: string; duration: number }) => void;
   onSetActionAlert: (actionBy: ActionRequiredBy, bannerText: string) => void;
   onUpdateScript: (newScript: CreativeBrief) => void;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
-  currentStatus,
   deliverable,
   brief,
-  onUpdateStatus,
   onPostNewCut,
   onSetActionAlert,
   onUpdateScript,
@@ -33,9 +28,9 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   const [activeModal, setActiveModal] = useState<'none' | 'newCut' | 'actionAlert' | 'editScript'>('none');
 
   // New Cut Form state
-  const [cutVersion, setCutVersion] = useState('Rough Cut v2');
-  const [cutUrl, setCutUrl] = useState('https://iframe.mediadelivery.net/embed/14298/cut-v2-guid');
-  const [cutDuration, setCutDuration] = useState(72);
+  const [cutVersion, setCutVersion] = useState('');
+  const [cutUrl, setCutUrl] = useState('');
+  const [cutDuration, setCutDuration] = useState(0);
 
   // Action Banner state
   const [alertText, setAlertText] = useState(
@@ -45,15 +40,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
   // Script Edit state
   const [editingBrief, setEditingBrief] = useState(brief);
-
-  const STAGES: ProjectStatus[] = [
-    'Scripting',
-    'Pre-Production',
-    'Shooting',
-    'Editing',
-    'Final Review',
-    'Completed',
-  ];
 
   const handlePublishCut = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +64,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   };
 
   return (
-    <div className="rounded-2xl border-2 border-indigo-500/50 bg-indigo-950/20 backdrop-blur-md p-4 mb-6 shadow-md space-y-4">
+    <div className="rounded-2xl border border-indigo-500/25 bg-indigo-950/10 p-5 mb-6 shadow-sm space-y-4">
       {/* Editor Header & Role Banner */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-indigo-500/20">
         <div className="flex items-center gap-2.5">
@@ -87,13 +73,13 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           </div>
           <div>
             <div className="text-xs font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-              <span>Editor Admin Cockpit</span>
+              <span>Editor workspace</span>
               <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">
-                Full Control
+                Editor tools
               </span>
             </div>
             <div className="text-[11px] text-neutral-400">
-              Changes you make here immediately update the client dashboard in real-time.
+              Changes are saved to this project and shared with the client portal.
             </div>
           </div>
         </div>
@@ -126,34 +112,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         </div>
       </div>
 
-      {/* Live Stage Stepper Controller */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-neutral-300 font-semibold">
-          <Layers className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Move Pizza Tracker Stage:</span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {STAGES.map((stage) => {
-            const isActive = currentStatus === stage;
-            return (
-              <button
-                key={stage}
-                onClick={() => onUpdateStatus(stage)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                  isActive
-                    ? 'bg-amber-500 text-neutral-950 shadow-xs ring-2 ring-amber-500/30 scale-102'
-                    : 'bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
-                }`}
-              >
-                {stage}
-                {isActive && ' (Live)'}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* MODAL 1: Publish New Cut */}
       {activeModal === 'newCut' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
@@ -183,23 +141,24 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
               <div>
                 <label className="block text-neutral-300 font-semibold mb-1">
-                  Bunny Stream Embed URL / Video Link
+                  Video URL
                 </label>
                 <input
                   type="text"
                   value={cutUrl}
                   onChange={(e) => setCutUrl(e.target.value)}
-                  placeholder="https://iframe.mediadelivery.net/embed/..."
+                  placeholder="MP4, WebM, or video embed link"
                   required
                   className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono text-[11px] focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-neutral-300 font-semibold mb-1">Duration (Seconds)</label>
+                <label className="block text-neutral-300 font-semibold mb-1">Duration in seconds</label>
                 <input
                   type="number"
                   value={cutDuration}
+                  min={1}
                   onChange={(e) => setCutDuration(Number(e.target.value))}
                   required
                   className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white focus:outline-none focus:border-indigo-500"
@@ -207,7 +166,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </div>
 
               <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-neutral-300 leading-relaxed text-[11px]">
-                💡 <strong>What happens:</strong> The video player on the client's screen will update immediately with this version. Approval will reset to &ldquo;Pending Review&rdquo; and an unread notification will show.
+                💡 <strong>What happens:</strong> Publishing replaces the current video in the client portal, where the client can review it and leave notes.
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -391,3 +350,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     </div>
   );
 };
+
+
+
+
+
+
+
+

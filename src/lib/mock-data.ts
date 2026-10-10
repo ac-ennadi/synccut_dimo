@@ -94,19 +94,12 @@ export const mockDeliverable: Deliverable = {
   deliverable_id: 'deliv_assembly_01',
   project_id: 'proj_promo_2026',
   version_number: 'Assembly v0.8',
-  video_url: 'https://iframe.mediadelivery.net/embed/14298/sample-cut-guid',
+  video_url: '',
   duration_seconds: 65,
   uploaded_at: 'Today at 9:45 AM by DP Marcus',
   action_required_by: 'Client',
   action_banner_text: 'Waiting on Client: Please upload your vector logo (.SVG or .AI)',
   approval_status: 'Pending',
-  feedback_notes: [
-    {
-      id: 'note_1',
-      author_name: 'Sarah (Client)',
-      timecode: '00:08',
-      content: 'Loved the lighting on the barista sequence in Scene 1! Perfect vibe.',
-      created_at: 'Yesterday',
-    },
-  ],
+  feedback_notes: [],
 };
+

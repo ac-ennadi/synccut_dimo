@@ -16,6 +16,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   onAddNote,
 }) => {
   const [content, setContent] = useState('');
+  const [manualTimecode, setManualTimecode] = useState('');
   const [timecodeTag, setTimecodeTag] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -29,11 +30,13 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
     });
 
     setContent('');
+    setManualTimecode('');
     setTimecodeTag(null);
   };
 
   const handleStampTimecode = () => {
-    setTimecodeTag(currentTimecode);
+    const timecode = manualTimecode.trim() || currentTimecode;
+    if (timecode) setTimecodeTag(timecode);
   };
 
   return (
@@ -45,11 +48,11 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
             Feedback & Notes
           </h2>
         </div>
-        <span className="text-[11px] text-neutral-500">Directly syncs to editing bay</span>
+        <span className="text-[11px] text-neutral-500">Shared with your editor</span>
       </div>
 
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Type your notes below. No need to send an email—our editors receive these immediately with frame timestamps:
+        Tell us what you think about the video, why it works or doesn’t, and what you’d like changed. Add a timecode to point to a specific moment.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -58,7 +61,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
             rows={3}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="e.g., At 00:15, loved the barista espresso shot! Please ensure the background sign is in focus."
+            placeholder="What do you think about this moment, and why? What would you like changed?"
             required
             className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 p-3 text-xs leading-relaxed text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
           />
@@ -79,20 +82,22 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400"><span>Timecode</span><input type="text" inputMode="numeric" pattern="[0-9]{2}:[0-9]{2}" maxLength={5} value={manualTimecode} onChange={(event) => setManualTimecode(event.target.value)} placeholder={currentTimecode || "00:00"} aria-label="Enter a video timecode in minutes and seconds" className="w-20 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 font-mono text-neutral-900 placeholder:text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100" /></label>
           <button
             type="button"
             onClick={handleStampTimecode}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors"
+            disabled={!currentTimecode && !manualTimecode.trim()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Clock className="w-3.5 h-3.5 text-indigo-500" />
-            <span>+ Stamp Timecode ({currentTimecode})</span>
+            <span>{manualTimecode ? "Stamp entered timecode" : currentTimecode ? "Stamp current moment (" + currentTimecode + ")" : "Add a timecode"}</span>
           </button>
 
           <button
             type="submit"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-xs transition-transform active:scale-98"
           >
-            <span>Send Note</span>
+            <span>Post feedback</span>
             <Send className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -102,15 +107,19 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
       <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800 space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-            Logged Feedback ({notes.length})
+            Feedback ({notes.length})
           </span>
           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-            <CheckCheck className="w-3 h-3" /> Real-time active
+            <CheckCheck className="w-3 h-3" /> Shared feedback
           </span>
         </div>
 
         <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-          {notes.map((note) => (
+          {notes.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
+              No feedback yet. Your notes about the video will appear here.
+            </p>
+          ) : notes.map((note) => (
             <div
               key={note.id}
               className="p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 text-xs space-y-1"
@@ -138,3 +147,11 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
     </div>
   );
 };
+
+
+
+
+
+
+
+

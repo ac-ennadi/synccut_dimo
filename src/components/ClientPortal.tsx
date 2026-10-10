@@ -10,7 +10,7 @@ import { VisualReferences } from './VisualReferences';
 import { ActionAlert } from './ActionAlert';
 import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
-import { Clapperboard, Radio, LogOut, UserCheck } from 'lucide-react';
+import { Clapperboard, LogOut, UserCheck } from 'lucide-react';
 
 interface ClientPortalProps {
   project: Project;
@@ -31,7 +31,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 }) => {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
-  const [currentTimecode, setCurrentTimecode] = useState('00:18');
+  const [currentTimecode, setCurrentTimecode] = useState('');
 
   const handleLogout = () => {
     logout();
@@ -53,17 +53,12 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 Client Review Portal
               </div>
               <div className="text-xs sm:text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                Luminary Film Studio × {currentUser?.company_name || 'Client Project'}
+                {currentUser?.company_name || 'Client workspace'}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Live Sync Badge */}
-            <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/40">
-              <Radio className="w-3 h-3 animate-pulse" />
-              <span className="font-medium">Live Sync Active</span>
-            </div>
 
             {/* Client User Info */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-300">
@@ -122,10 +117,13 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 
         {/* Footer */}
         <footer className="pt-6 pb-2 text-center text-xs text-neutral-400">
-          Main Street Co-Working Promo • Direct Studio Review Channel
+          Shared project review
         </footer>
 
       </div>
     </div>
   );
 };
+
+
+

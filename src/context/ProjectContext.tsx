@@ -27,6 +27,13 @@ interface PortalState {
   deliverable: Deliverable;
 }
 
+// Remove the old demo note from state that may already have been saved remotely.
+const withoutDemoContent = (deliverable: Deliverable): Deliverable => ({
+  ...deliverable,
+  video_url: deliverable.video_url?.includes('sample-cut-guid') ? '' : deliverable.video_url,
+  feedback_notes: (deliverable.feedback_notes ?? []).filter((note) => note.id !== 'note_1'),
+});
+
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
   const [project, setProject] = useState<Project>(mockProject);
@@ -58,7 +65,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (!cancelled && state) {
             if (state.project) setProject(state.project);
             if (state.brief) setBrief(state.brief);
-            if (state.deliverable) setDeliverable(state.deliverable);
+            if (state.deliverable) setDeliverable(withoutDemoContent(state.deliverable));
           }
         }
       } catch (error) {
@@ -119,7 +126,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           applyingRemoteState.current = true;
           if (state?.project) setProject(state.project);
           if (state?.brief) setBrief(state.brief);
-          if (state?.deliverable) setDeliverable(state.deliverable);
+          if (state?.deliverable) setDeliverable(withoutDemoContent(state.deliverable));
         },
       )
       .subscribe((status) => {
@@ -224,3 +231,4 @@ export const useProject = (): ProjectContextType => {
   }
   return context;
 };
+

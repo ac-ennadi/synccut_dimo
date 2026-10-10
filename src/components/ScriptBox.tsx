@@ -15,7 +15,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-indigo-500" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-neutral-100">
-            The Final Script & Voiceover
+            Creative brief
           </h2>
         </div>
         <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
@@ -25,7 +25,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
       </div>
 
       <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-        The agreed-upon creative backbone. All shooting blocks, camera movements, and audio timings follow this sequence:
+        The current script, scene notes, and voiceover.
       </p>
 
       {/* Scrollable Text Area */}
@@ -56,3 +56,4 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
     </div>
   );
 };
+

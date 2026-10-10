@@ -42,7 +42,7 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
 }) => {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
-  const [currentTimecode, setCurrentTimecode] = useState('00:18');
+  const [currentTimecode, setCurrentTimecode] = useState('');
   const [showClientPreviewModal, setShowClientPreviewModal] = useState(false);
   const [clientDetails, setClientDetails] = useState({ name: '', companyName: '', email: '', password: '' });
   const [clientMessage, setClientMessage] = useState<{ error: boolean; text: string } | null>(null);
@@ -85,7 +85,7 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 p-4 sm:p-6 lg:p-8 transition-colors">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Navigation Bar: Editor Cockpit */}
+        {/* Navigation Bar: Project workspace */}
         <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-sm">
@@ -94,12 +94,12 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] uppercase font-black tracking-wider text-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800/50">
-                  Studio Admin
+                  Editor
                 </span>
-                <span className="text-xs text-neutral-400">Editor Cockpit</span>
+                <span className="text-xs text-neutral-400">Project workspace</span>
               </div>
               <div className="text-xs sm:text-sm font-semibold text-neutral-800 dark:text-neutral-200 mt-0.5">
-                {currentUser?.company_name || 'Luminary Film Studio'} • Production Manager
+                {currentUser?.company_name || 'Luminary Film Studio'}
               </div>
             </div>
           </div>
@@ -115,7 +115,7 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
             <button
               onClick={() => setShowClientPreviewModal(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shadow-2xs"
-              title="Preview clean view exactly as the client sees it"
+              title="Preview the client portal"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Preview Client Portal</span>
@@ -135,10 +135,8 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
 
         {/* Editor Quick Command Toolbar */}
         <EditorToolbar
-          currentStatus={project.status}
           deliverable={deliverable}
           brief={brief}
-          onUpdateStatus={onStatusChange}
           onPostNewCut={onPostNewCut}
           onSetActionAlert={onSetActionAlert}
           onUpdateScript={onUpdateScript}
@@ -159,7 +157,7 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
           {clientMessage && <p role="status" className={`mt-3 flex items-center gap-2 text-sm ${clientMessage.error ? 'text-rose-600' : 'text-emerald-600'}`}>{clientMessage.error ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}{clientMessage.text}</p>}
         </section>
 
-        {/* Top Status Bar with Interactive Pizza Tracker */}
+        {/* Project progress */}
         <TopBar project={project} onStatusChange={onStatusChange} />
 
         {/* Responsive Dual Column Workspace (Works seamlessly on Phone and PC) */}
@@ -201,7 +199,7 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-300">
-                    Live Client View Simulator (Zero Editor Controls)
+                    Client preview
                   </span>
                 </div>
                 <button
@@ -229,3 +227,9 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
     </div>
   );
 };
+
+
+
+
+
+

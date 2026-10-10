@@ -12,7 +12,6 @@ import {
   MessageSquareText,
   Play,
   ShieldCheck,
-  Sparkles,
   UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -23,30 +22,30 @@ const steps = [
     eyebrow: 'One cut. One place.',
     title: 'Watch the latest cut.',
     description:
-      'Your client opens one clear, secure review space with the latest version front and center. No hunting through links or old exports.',
+      'Clients open the latest cut and its related notes in one secure workspace.',
     bullets: ['One home for every version', 'Private client access'],
     icon: Play,
     label: 'Your video preview will live here',
   },
   {
     number: '02',
-    eyebrow: 'Good notes, right on time.',
+    eyebrow: 'Feedback stays with the cut.',
     title: 'Feedback that makes sense.',
     description:
       'Clients leave notes as they watch. Every comment stays connected to its moment, so your next edit starts with clear direction.',
     bullets: ['Timecoded client notes', 'A shared conversation'],
     icon: MessageSquareText,
-    label: 'A feedback walkthrough will live here',
+    label: 'See how timecoded notes work',
   },
   {
     number: '03',
-    eyebrow: 'Everyone knows what’s next.',
-    title: 'From first cut to approved.',
+    eyebrow: 'Keep the project moving.',
+    title: 'Review, revise, approve.',
     description:
       'Track revisions and approval in one place. Your team and client can see where the project stands and what happens next.',
-    bullets: ['A clear revision history', 'Simple, confident sign-off'],
+    bullets: ['Version history in one place', 'Clear approval status'],
     icon: CheckCircle2,
-    label: 'An approval walkthrough will live here',
+    label: 'See how clients approve a cut',
   },
 ];
 
@@ -88,10 +87,10 @@ export default function HomePage() {
         <div className="hero-glow hero-glow-left" />
         <div className="hero-glow hero-glow-right" />
         <div className="hero-copy">
-          <div className="hero-kicker"><span className="kicker-dot" /> A better way to finish together</div>
-          <h1>Great edits deserve<br />a <span>clearer review.</span></h1>
+          <div className="hero-kicker"><span className="kicker-dot" /> Video feedback, all in one place</div>
+          <h1>Review the cut.<br /><span>Make the next one better.</span></h1>
           <p className="hero-description">
-            Watch the cut. Leave notes at the right moment. Get to the final yes, together.
+            Watch the latest cut, share feedback, and keep every revision in one place.
           </p>
           <div className="hero-actions">
             <Link className="button-primary" href="/client/login">
@@ -109,22 +108,22 @@ export default function HomePage() {
         <div className="hero-showcase" aria-label="Video preview placeholder">
           <div className="showcase-topbar">
             <div className="window-dots"><i /><i /><i /></div>
-            <span className="showcase-project"><span className="project-pulse" /> SUMMER CAMPAIGN <b>·</b> CLIENT REVIEW</span>
-            <span className="showcase-version">CUT 04</span>
+            <span className="showcase-project"><span className="project-pulse" /> PROJECT REVIEW <b>·</b> LATEST CUT</span>
+            <span className="showcase-version">PREVIEW</span>
           </div>
           <div className="showcase-screen">
-            <div className="screen-orbit orbit-one" /><div className="screen-orbit orbit-two" />
-            <div className="screen-copy"><span>SYNC CUT · PREVIEW SPACE</span><strong>Your next<br />great cut.</strong><small>Your video preview will live here</small></div>
-            <div className="screen-play"><Play size={19} fill="currentColor" /></div>
-            <div className="screen-time">00:34 <span>/ 02:18</span></div>
-            <div className="screen-progress"><span /></div>
+            
+            <div className="screen-copy"><span>VIDEO REVIEW</span><strong>Your video<br />will appear here.</strong></div>
+            
+            
+            
           </div>
           <div className="showcase-controls">
-            <div className="control-user"><span>J</span><b>Jordan left a note</b><small>00:34</small></div>
-            <div className="control-comment">“Love this moment. Can we hold the shot just a little longer?”</div>
-            <div className="control-tag">REVISION 04</div>
+            <div className="control-user"><span><MessageSquareText size={14} /></span><b>Feedback</b></div>
+            <div className="control-comment">Leave notes on specific moments in the cut.</div>
+            <div className="control-tag">VIDEO NOTES</div>
           </div>
-          <span className="showcase-caption"><Sparkles size={13} /> Replace this preview with your video when it’s ready</span>
+          
         </div>
         <a className="scroll-cue" href="#how-it-works"><span>SCROLL TO EXPLORE</span><ArrowDown size={14} /></a>
       </section>
@@ -154,11 +153,11 @@ export default function HomePage() {
                     <div className="placeholder-wash" />
                     <div className="placeholder-icon"><Icon size={22} /></div>
                     <strong>{step.label}</strong>
-                    <span>VIDEO PREVIEW PLACEHOLDER</span>
+                    <span>VIDEO PREVIEW</span>
                     <div className="placeholder-bar"><i /></div>
                     <div className="placeholder-corner">SYNC CUT&nbsp; · &nbsp;{step.number}</div>
                   </div>
-                  <div className="visual-footer"><span><i /> READY FOR YOUR VIDEO</span><span>{step.number} <b>/</b> 03</span></div>
+                  <div className="visual-footer"><span><i /> VIDEO PREVIEW</span><span>{step.number} <b>/</b> 03</span></div>
                 </div>
                 <div className="visual-halo" />
               </div>
@@ -182,3 +181,13 @@ export default function HomePage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
