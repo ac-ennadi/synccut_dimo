@@ -4,14 +4,51 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
+  ArrowDown,
   ArrowRight,
+  Check,
   CheckCircle2,
   Clapperboard,
-  LockKeyhole,
-  Shield,
+  MessageSquareText,
+  Play,
+  ShieldCheck,
+  Sparkles,
   UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
+const steps = [
+  {
+    number: '01',
+    eyebrow: 'One cut. One place.',
+    title: 'Watch the latest cut.',
+    description:
+      'Your client opens one clear, secure review space with the latest version front and center. No hunting through links or old exports.',
+    bullets: ['One home for every version', 'Private client access'],
+    icon: Play,
+    label: 'Your video preview will live here',
+  },
+  {
+    number: '02',
+    eyebrow: 'Good notes, right on time.',
+    title: 'Feedback that makes sense.',
+    description:
+      'Clients leave notes as they watch. Every comment stays connected to its moment, so your next edit starts with clear direction.',
+    bullets: ['Timecoded client notes', 'A shared conversation'],
+    icon: MessageSquareText,
+    label: 'A feedback walkthrough will live here',
+  },
+  {
+    number: '03',
+    eyebrow: 'Everyone knows what’s next.',
+    title: 'From first cut to approved.',
+    description:
+      'Track revisions and approval in one place. Your team and client can see where the project stands and what happens next.',
+    bullets: ['A clear revision history', 'Simple, confident sign-off'],
+    icon: CheckCircle2,
+    label: 'An approval walkthrough will live here',
+  },
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,106 +62,123 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-neutral-950">
-        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      <main className="landing-loading">
+        <div className="landing-spinner" aria-label="Loading" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 flex items-center justify-center p-4 sm:p-6">
-      <div className="w-full max-w-4xl">
-        <section className="overflow-hidden rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl">
-          <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="p-7 sm:p-10 lg:p-14">
-              <div className="flex items-center gap-2 text-sm font-bold text-neutral-500 dark:text-neutral-400">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                  <Clapperboard className="h-5 w-5" />
-                </span>
-                SyncCut
-              </div>
+    <main className="landing-page">
+      <header className="landing-header">
+        <a className="landing-brand" href="#home" aria-label="SyncCut home">
+          <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
+          <span>SyncCut</span>
+        </a>
+        <nav className="landing-nav" aria-label="Main navigation">
+          <a href="#how-it-works">How it works</a>
+          <a href="#for-editors">For editors</a>
+          <span className="nav-divider" />
+          <Link className="nav-login" href="/client/login">Sign in</Link>
+          <Link className="nav-cta" href="/client/login">Open your workspace <ArrowRight size={15} /></Link>
+        </nav>
+      </header>
 
-              <div className="mt-12 max-w-xl">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
-                  Your project, in one place
-                </p>
-                <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-                  Review your video with confidence.
-                </h1>
-                <p className="mt-5 text-sm leading-6 text-neutral-500 dark:text-neutral-400 sm:text-base">
-                  Sign in to watch the latest cut, leave timecoded feedback, and
-                  approve your production from one simple client workspace.
-                </p>
-
-                <Link
-                  href="/client/login"
-                  className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 sm:w-auto"
-                >
-                  <UserCheck className="h-4 w-4" />
-                  Log in as client
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-
-                <p className="mt-4 text-xs text-neutral-500 dark:text-neutral-400">
-                  New to SyncCut?{' '}
-                  <Link href="/signup" className="font-bold text-emerald-600 hover:underline">
-                    Create a client account
-                  </Link>
-                </p>
-              </div>
-
-              <div className="mt-12 grid gap-3 border-t border-neutral-200 pt-6 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400 sm:grid-cols-3">
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  Review cuts
-                </span>
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  Add feedback
-                </span>
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  Approve delivery
-                </span>
-              </div>
-            </div>
-
-            <aside className="flex flex-col justify-between bg-neutral-950 p-7 text-white sm:p-10">
-              <div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-400">
-                  <Shield className="h-5 w-5" />
-                </div>
-                <p className="mt-8 text-xs font-bold uppercase tracking-[0.2em] text-indigo-400">
-                  Studio access
-                </p>
-                <h2 className="mt-3 text-2xl font-bold">Are you an editor?</h2>
-                <p className="mt-3 text-sm leading-6 text-neutral-400">
-                  Open the private cockpit to publish cuts, update stages, and
-                  manage client requests.
-                </p>
-              </div>
-
-              <div className="mt-10">
-                <Link
-                  href="/editor/login"
-                  className="inline-flex items-center gap-2 text-sm font-bold text-indigo-300 transition hover:text-white"
-                >
-                  Editor login
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <div className="mt-8 flex items-center gap-2 text-[11px] text-neutral-500">
-                  <LockKeyhole className="h-3.5 w-3.5" />
-                  Supabase-secured access
-                </div>
-              </div>
-            </aside>
+      <section className="hero-section" id="home">
+        <div className="hero-glow hero-glow-left" />
+        <div className="hero-glow hero-glow-right" />
+        <div className="hero-copy">
+          <div className="hero-kicker"><span className="kicker-dot" /> A better way to finish together</div>
+          <h1>Great edits deserve<br />a <span>clearer review.</span></h1>
+          <p className="hero-description">
+            Watch the cut. Leave notes at the right moment. Get to the final yes, together.
+          </p>
+          <div className="hero-actions">
+            <Link className="button-primary" href="/client/login">
+              <UserCheck size={17} /> Log in as client <ArrowRight size={17} />
+            </Link>
+            <a className="button-secondary" href="#how-it-works"><span className="button-play"><Play size={13} fill="currentColor" /></span> See how it works</a>
           </div>
-        </section>
+          <div className="hero-trust">
+            <span><ShieldCheck size={16} /> Private client review</span>
+            <i />
+            <span><Check size={15} /> Every note stays in context</span>
+          </div>
+        </div>
 
-        <p className="mt-5 text-center text-xs text-neutral-400">
-          Secure video review for modern production teams.
-        </p>
+        <div className="hero-showcase" aria-label="Video preview placeholder">
+          <div className="showcase-topbar">
+            <div className="window-dots"><i /><i /><i /></div>
+            <span className="showcase-project"><span className="project-pulse" /> SUMMER CAMPAIGN <b>·</b> CLIENT REVIEW</span>
+            <span className="showcase-version">CUT 04</span>
+          </div>
+          <div className="showcase-screen">
+            <div className="screen-orbit orbit-one" /><div className="screen-orbit orbit-two" />
+            <div className="screen-copy"><span>SYNC CUT · PREVIEW SPACE</span><strong>Your next<br />great cut.</strong><small>Your video preview will live here</small></div>
+            <div className="screen-play"><Play size={19} fill="currentColor" /></div>
+            <div className="screen-time">00:34 <span>/ 02:18</span></div>
+            <div className="screen-progress"><span /></div>
+          </div>
+          <div className="showcase-controls">
+            <div className="control-user"><span>J</span><b>Jordan left a note</b><small>00:34</small></div>
+            <div className="control-comment">“Love this moment. Can we hold the shot just a little longer?”</div>
+            <div className="control-tag">REVISION 04</div>
+          </div>
+          <span className="showcase-caption"><Sparkles size={13} /> Replace this preview with your video when it’s ready</span>
+        </div>
+        <a className="scroll-cue" href="#how-it-works"><span>SCROLL TO EXPLORE</span><ArrowDown size={14} /></a>
+      </section>
+
+      <section className="intro-strip" id="how-it-works">
+        <span className="section-label">THE SYNC CUT FLOW</span>
+        <p>From the first watch to the final approval, the whole conversation stays together.</p>
+        <div className="step-indicators"><span>01</span><i /><span>02</span><i /><span>03</span></div>
+      </section>
+
+      <div className="feature-list">
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <section className={`feature-row ${index % 2 ? 'feature-reverse' : ''}`} key={step.number}>
+              <div className="feature-copy">
+                <div className="feature-progress"><b>{step.number}</b><span /><span className={index > 0 ? 'progress-done' : ''} /><span className={index > 1 ? 'progress-done' : ''} /></div>
+                <div className="feature-eyebrow"><Icon size={15} /> {step.eyebrow}</div>
+                <h2>{step.title}</h2>
+                <p>{step.description}</p>
+                <ul>{step.bullets.map((bullet) => <li key={bullet}><CheckCircle2 size={16} /> {bullet}</li>)}</ul>
+              </div>
+              <div className="feature-visual">
+                <div className="visual-window">
+                  <div className="visual-topbar"><div className="window-dots"><i /><i /><i /></div><span>SYNC CUT <b>/</b> {step.number} — {step.eyebrow.toUpperCase()}</span><span className="visual-live"><i /> PRIVATE</span></div>
+                  <div className="visual-placeholder">
+                    <div className="placeholder-wash" />
+                    <div className="placeholder-icon"><Icon size={22} /></div>
+                    <strong>{step.label}</strong>
+                    <span>VIDEO PREVIEW PLACEHOLDER</span>
+                    <div className="placeholder-bar"><i /></div>
+                    <div className="placeholder-corner">SYNC CUT&nbsp; · &nbsp;{step.number}</div>
+                  </div>
+                  <div className="visual-footer"><span><i /> READY FOR YOUR VIDEO</span><span>{step.number} <b>/</b> 03</span></div>
+                </div>
+                <div className="visual-halo" />
+              </div>
+            </section>
+          );
+        })}
       </div>
+
+      <section className="editor-callout" id="for-editors">
+        <div className="callout-icon"><Clapperboard size={20} /></div>
+        <div><span className="section-label">MADE FOR THE WHOLE CREW</span><h2>One shared space.<br /><span>A smoother finish.</span></h2><p>Clients review. Editors take the lead. Everyone sees the next step.</p></div>
+        <div className="callout-actions"><Link className="button-primary" href="/client/login">Get started <ArrowRight size={17} /></Link><Link className="editor-link" href="/editor/login">Editor sign in <ArrowRight size={15} /></Link></div>
+      </section>
+
+      <footer className="landing-footer">
+        <a className="landing-brand" href="#home"><span className="brand-mark"><Clapperboard size={17} /></span><span>SyncCut</span></a>
+        <span className="footer-note">A clearer way to bring every cut across the finish line.</span>
+        <div className="footer-links"><Link href="/client/login">Client sign in</Link><Link href="/editor/login">Editor sign in</Link><Link href="/signup">Create account</Link></div>
+        <span className="footer-copy">© {new Date().getFullYear()} SyncCut</span>
+      </footer>
     </main>
   );
 }
