@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Deliverable } from '@/types';
 import { AlertTriangle, Upload, CheckCircle2 } from 'lucide-react';
 
@@ -13,15 +13,13 @@ export const ActionAlert: React.FC<ActionAlertProps> = ({
   deliverable,
   onUploadSuccess,
 }) => {
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
-
   if (deliverable.action_required_by !== 'Client') {
     return (
       <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-            No action required right now. The editor is actively working on the cut.
+            {deliverable.action_banner_text || 'No action required right now. The editor is actively working on the cut.'}
           </span>
         </div>
       </div>
@@ -31,7 +29,6 @@ export const ActionAlert: React.FC<ActionAlertProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const name = e.target.files[0].name;
-      setUploadedFile(name);
       if (onUploadSuccess) onUploadSuccess(name);
     }
   };
@@ -62,26 +59,19 @@ export const ActionAlert: React.FC<ActionAlertProps> = ({
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
-            {uploadedFile ? (
-              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Uploaded: {uploadedFile}</span>
-              </div>
-            ) : (
-              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-xs transition-all active:scale-98">
-                <Upload className="w-4 h-4" />
-                <span>Upload Vector Logo</span>
-                <input
-                  type="file"
-                  accept=".svg,.ai,.eps,.png"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
-            )}
+            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-xs transition-all active:scale-98">
+              <Upload className="w-4 h-4" />
+              <span>Choose Logo File</span>
+              <input
+                type="file"
+                accept=".svg,.ai,.eps,.png"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
 
             <span className="text-[11px] text-neutral-500">
-              Max file size: 50MB (.SVG, .AI, .EPS, .PNG)
+              Supported formats: .SVG, .AI, .EPS, .PNG
             </span>
           </div>
         </div>

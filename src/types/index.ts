@@ -1,4 +1,4 @@
-export type ProjectStatus='Scripting'|'Pre-Production'|'Shooting'|'Editing'|'Final Review'|'Completed';
+export type ProjectStatus='Scripting'|'Pre-Production'|'Production'|'Editing'|'Final Review'|'Completed';
 export type UserRole='Client'|'Editor'|'Producer'|'Admin';
 export type ActionRequiredBy='Client'|'Editor'|'None';
 export type ApprovalStatus='Pending'|'Approved'|'Revisions Requested';

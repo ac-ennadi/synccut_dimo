@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -14,6 +14,7 @@ interface ProjectStatePatch {
 }
 interface ContextValue extends ProjectState {
   isProjectLoaded: boolean;
+  isStatusSaving: boolean;
   updateStatus: (status: ProjectStatus) => void;
   postNewCut: (cut: { version: string; videoUrl: string; duration: number }) => void;
   setActionAlert: (actionBy: ActionRequiredBy, text: string) => void;
@@ -65,6 +66,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const [brief, setBrief] = useState(() => makeInitialState(id, currentUser).brief);
   const [deliverable, setDeliverable] = useState(() => makeInitialState(id, currentUser).deliverable);
   const [ready, setReady] = useState<string | null>(null);
+  const [pendingStatusSaves, setPendingStatusSaves] = useState(0);
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     let cancelled = false;
@@ -144,19 +147,31 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     return () => { void supabase.removeChannel(channel); };
   }, [id, remote, ready]);
 
-  const savePatch = (patch: ProjectStatePatch) => {
-    if (!remote || !uid || ready !== id) return;
+  const savePatch = (patch: ProjectStatePatch): Promise<void> => {
+    if (!remote || !uid || ready !== id) return Promise.resolve();
     const databasePatch = patch.deliverable
       ? { ...patch, deliverable: withoutNotes(patch.deliverable) }
       : patch;
-    void supabase.rpc('merge_project_portal_state', { p_project_id: id, p_patch: databasePatch }).then(({ error }) => {
+    const request = saveQueue.current.then(async () => {
+      const { error } = await supabase.rpc('merge_project_portal_state', { p_project_id: id, p_patch: databasePatch });
       if (error) console.error('Failed to save project changes to Supabase.', error);
+    });
+    saveQueue.current = request.catch((error) => {
+      console.error('Failed to save project changes to Supabase.', error);
+    });
+    return request;
+  };
+
+  const saveStatus = (status: ProjectStatus) => {
+    setPendingStatusSaves((count) => count + 1);
+    void savePatch({ project: { status } }).finally(() => {
+      setPendingStatusSaves((count) => Math.max(0, count - 1));
     });
   };
 
   const updateStatus = (status: ProjectStatus) => {
     setProject((current) => ({ ...current, status }));
-    savePatch({ project: { status } as Project });
+    saveStatus(status);
   };
 
   const postNewCut = (cut: { version: string; videoUrl: string; duration: number }) => {
@@ -173,7 +188,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     savePatch({ deliverable: patch });
     if (['Scripting', 'Pre-Production', 'Shooting'].includes(project.status)) {
       setProject((current) => ({ ...current, status: 'Editing' }));
-      savePatch({ project: { status: 'Editing' } as Project });
+      saveStatus('Editing');
     }
   };
 
@@ -206,20 +221,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   };
 
   const uploadSuccess = (fileName: string) => {
-    const patch = { action_required_by: 'None' as const, action_banner_text: `Asset received (${fileName}). Ball is in Editor's court.` };
+    const patch = { action_required_by: 'None' as const, action_banner_text: `Logo file selected: ${fileName}. The editor has been notified.` };
     setDeliverable((current) => ({ ...current, ...patch }));
     savePatch({ deliverable: patch });
   };
 
   const approveCut = () => {
-    const deliverablePatch = { approval_status: 'Approved' as const, action_required_by: 'None' as const };
+    const deliverablePatch = { approval_status: 'Approved' as const, action_required_by: 'None' as const, action_banner_text: 'The client approved this cut.' };
     setDeliverable((current) => ({ ...current, ...deliverablePatch }));
     setProject((current) => ({ ...current, status: 'Final Review' }));
-    savePatch({ deliverable: deliverablePatch, project: { status: 'Final Review' } as Project });
+    savePatch({ deliverable: deliverablePatch });
+    saveStatus('Final Review');
   };
 
   return (
-    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, updateStatus, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
+    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
       {children}
     </Context.Provider>
   );

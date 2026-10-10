@@ -7,6 +7,7 @@ import { Check, Mail } from 'lucide-react';
 interface TopBarProps {
   project: Project;
   onStatusChange?: (newStatus: ProjectStatus) => void;
+  isStatusSaving?: boolean;
 }
 
 const STAGES: { key: ProjectStatus; label: string }[] = [
@@ -18,7 +19,7 @@ const STAGES: { key: ProjectStatus; label: string }[] = [
   { key: 'Completed', label: 'Complete' },
 ];
 
-export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange }) => {
+export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatusSaving = false }) => {
   const currentStageIndex = STAGES.findIndex((stage) => stage.key === project.status);
   const stageIndex = Math.max(currentStageIndex, 0);
 
@@ -42,7 +43,7 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange }) => {
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="text-sm font-medium text-neutral-800 dark:text-neutral-200">Project progress</h2>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">{project.status}</span>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400" aria-live="polite">{isStatusSaving ? 'Saving status…' : project.status}</span>
         </div>
         <ol className="grid grid-cols-2 sm:grid-cols-6 gap-2" aria-label="Project stages">
           {STAGES.map((stage, index) => {
