@@ -101,12 +101,12 @@ a { color: inherit; text-decoration: none; }
 .step-indicators i { width: 23px; height: 1px; background: #343741; }
 
 .feature-list { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
-.scroll-story { max-width: 1180px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: .8fr 1.2fr; align-items: start; gap: clamp(50px, 8vw, 118px); }
+.scroll-story { max-width: 1536px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: .72fr 1.5fr; align-items: start; gap: clamp(40px, 5vw, 84px); }
 .scroll-story-copy { min-width: 0; }
 .scroll-story-card { min-height: min(78vh, 800px); padding: 70px 0; display: flex; flex-direction: column; justify-content: center; opacity: .56; transition: opacity .3s ease; }
 .scroll-story-card.is-active { opacity: 1; }
 .scroll-story-stage { min-width: 0; align-self: stretch; }
-.scroll-story-player-wrap { position: sticky; top: max(88px, calc(50vh - 230px)); z-index: 2; }
+.scroll-story-player-wrap { position: sticky; top: max(88px, calc(50vh - 275px)); z-index: 2; }
 .scroll-story-player { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: #06070a; }
 .scroll-story-player iframe { width: 100%; height: 100%; position: absolute; inset: 0; border: 0; }
 .scroll-story-loading { display: inline-flex; align-items: center; gap: 10px; color: #b5bac7; font-size: 12px; }
