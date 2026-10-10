@@ -3,26 +3,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { User, UserRole } from '@/types';
-import { isSupabaseConfigured, sendMagicLink, supabase, verifyOtpCode } from '@/lib/supabase';
-
-export interface SignupProfile {
-  name: string;
-  companyName: string;
-}
+import { isSupabaseConfigured, signInWithPassword, supabase } from '@/lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
   isLoading: boolean;
-  requestMagicLink: (
+  signIn: (
     email: string,
+    password: string,
     role: UserRole,
-    profile?: SignupProfile,
-  ) => Promise<{ success: boolean; demoCode?: string | null; error?: string }>;
-  verifyCode: (
-    email: string,
-    code: string,
-    role: UserRole,
-    profile?: SignupProfile,
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isEditor: boolean;
@@ -100,50 +89,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const requestMagicLink = async (
+  const signIn = async (
     email: string,
+    password: string,
     role: UserRole,
-    profile?: SignupProfile,
-  ): Promise<{ success: boolean; demoCode?: string | null; error?: string }> => {
-    try {
-      const redirectUrl =
-        typeof window !== 'undefined'
-          ? `${window.location.origin}/${role.toLowerCase()}`
-          : `/${role.toLowerCase()}`;
-
-      const { demoCode } = await sendMagicLink(
-        email.trim(),
-        redirectUrl,
-        profile
-          ? { name: profile.name, company_name: profile.companyName }
-          : undefined,
-      );
-
-      return { success: true, demoCode };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      const normalizedMessage = message.toLowerCase();
-      return {
-        success: false,
-        error: normalizedMessage.includes('rate limit')
-          ? 'Supabase email limit reached. Wait for the limit to reset or configure custom SMTP in Supabase.'
-          : normalizedMessage.includes('confirmation email') ||
-              normalizedMessage.includes('email address not authorized') ||
-              normalizedMessage.includes('smtp')
-            ? 'Supabase could not deliver the verification email. Check Authentication → SMTP Settings and the Auth logs in your Supabase dashboard. Without custom SMTP, Supabase only sends to project team addresses and limits delivery to 2 emails per hour.'
-            : message || 'Failed to send magic link.',
-      };
-    }
-  };
-
-  const verifyCode = async (
-    email: string,
-    code: string,
-    role: UserRole,
-    profile?: SignupProfile,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { user: authUser } = await verifyOtpCode(email.trim(), code.trim());
+      const { user: authUser } = await signInWithPassword(email.trim(), password);
       if (!authUser) throw new Error('Supabase did not return an authenticated user.');
 
       const user = await buildAppUser(authUser);
@@ -157,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Invalid or expired verification code.',
+        error: error instanceof Error ? error.message : 'Could not sign in with those credentials.',
       };
     }
   };
@@ -174,8 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         currentUser,
         isLoading,
-        requestMagicLink,
-        verifyCode,
+        signIn,
         logout,
         isEditor: currentUser?.role === 'Editor',
         isClient: currentUser?.role === 'Client',

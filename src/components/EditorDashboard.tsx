@@ -12,7 +12,8 @@ import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
 import { EditorToolbar } from './EditorToolbar';
 import { ClientPortal } from './ClientPortal';
-import { Clapperboard, LogOut, Shield, Eye, X } from 'lucide-react';
+import { Clapperboard, LogOut, Shield, Eye, X, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface EditorDashboardProps {
   project: Project;
@@ -43,6 +44,37 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('00:18');
   const [showClientPreviewModal, setShowClientPreviewModal] = useState(false);
+  const [clientDetails, setClientDetails] = useState({ name: '', companyName: '', email: '', password: '' });
+  const [clientMessage, setClientMessage] = useState<{ error: boolean; text: string } | null>(null);
+  const [isAddingClient, setIsAddingClient] = useState(false);
+
+  const handleAddClient = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsAddingClient(true);
+    setClientMessage(null);
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setClientMessage({ error: true, text: 'Your session expired. Sign in again.' });
+      setIsAddingClient(false);
+      return;
+    }
+    try {
+      const response = await fetch('/api/editor/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(clientDetails),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not add this client.');
+      setClientMessage({ error: false, text: `Client account created for ${result.email}.` });
+      setClientDetails({ name: '', companyName: '', email: '', password: '' });
+    } catch (error) {
+      setClientMessage({ error: true, text: error instanceof Error ? error.message : 'Could not add this client.' });
+    } finally {
+      setIsAddingClient(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -111,6 +143,21 @@ export const EditorDashboard: React.FC<EditorDashboardProps> = ({
           onSetActionAlert={onSetActionAlert}
           onUpdateScript={onUpdateScript}
         />
+
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 sm:p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-xl bg-emerald-100 p-2 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"><UserPlus size={18} /></div>
+            <div><h2 className="font-bold">Add a client account</h2><p className="text-xs text-neutral-500">Only the configured editor can create client logins. No email verification is sent.</p></div>
+          </div>
+          <form onSubmit={handleAddClient} className="grid gap-3 sm:grid-cols-2">
+            <input aria-label="Client name" placeholder="Client name" value={clientDetails.name} onChange={(e) => setClientDetails({ ...clientDetails, name: e.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <input aria-label="Company name" placeholder="Company name" value={clientDetails.companyName} onChange={(e) => setClientDetails({ ...clientDetails, companyName: e.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <input aria-label="Client email" type="email" placeholder="Client email" value={clientDetails.email} onChange={(e) => setClientDetails({ ...clientDetails, email: e.target.value })} required className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <input aria-label="Temporary password" type="password" placeholder="Temporary password (12+ characters)" value={clientDetails.password} onChange={(e) => setClientDetails({ ...clientDetails, password: e.target.value })} required minLength={12} autoComplete="new-password" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <button disabled={isAddingClient} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60 sm:col-span-2">{isAddingClient ? 'Adding…' : 'Create client login'}</button>
+          </form>
+          {clientMessage && <p role="status" className={`mt-3 flex items-center gap-2 text-sm ${clientMessage.error ? 'text-rose-600' : 'text-emerald-600'}`}>{clientMessage.error ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}{clientMessage.text}</p>}
+        </section>
 
         {/* Top Status Bar with Interactive Pizza Tracker */}
         <TopBar project={project} onStatusChange={onStatusChange} />

@@ -176,7 +176,7 @@ export default function HomePage() {
       <footer className="landing-footer">
         <a className="landing-brand" href="#home"><span className="brand-mark"><Clapperboard size={17} /></span><span>SyncCut</span></a>
         <span className="footer-note">A clearer way to bring every cut across the finish line.</span>
-        <div className="footer-links"><Link href="/client/login">Client sign in</Link><Link href="/editor/login">Editor sign in</Link><Link href="/signup">Create account</Link></div>
+        <div className="footer-links"><Link href="/client/login">Client sign in</Link><Link href="/editor/login">Editor sign in</Link></div>
         <span className="footer-copy">© {new Date().getFullYear()} SyncCut</span>
       </footer>
     </main>

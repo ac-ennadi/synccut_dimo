@@ -16,38 +16,14 @@ export const isSupabaseConfigured = Boolean(
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
-export async function sendMagicLink(
-  email: string,
-  redirectTo: string,
-  metadata?: Record<string, string>,
-): Promise<{ demoCode: string | null }> {
+export async function signInWithPassword(email: string, password: string) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase authentication is not configured.');
   }
 
-  const { error } = await supabase.auth.signInWithOtp({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
-    options: {
-      emailRedirectTo: redirectTo,
-      data: metadata,
-    },
-  });
-  if (error) throw error;
-  return { demoCode: null };
-}
-
-export async function verifyOtpCode(
-  email: string,
-  token: string,
-): Promise<Awaited<ReturnType<typeof supabase.auth.verifyOtp>>['data']> {
-  if (!isSupabaseConfigured) {
-    throw new Error('Supabase authentication is not configured.');
-  }
-
-  const { data, error } = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: 'email',
+    password,
   });
   if (error) throw error;
   return data;

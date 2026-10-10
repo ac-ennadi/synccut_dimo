@@ -17,9 +17,7 @@ export const LoginPage: React.FC = () => (
         <Link href="/editor/login" className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-500">
           Editor login
         </Link>
-        <Link href="/signup" className="text-sm font-semibold text-emerald-600 hover:underline">
-          Create a client account
-        </Link>
+        <p className="text-sm text-neutral-500">Client accounts are created by the editor.</p>
       </div>
     </div>
   </main>

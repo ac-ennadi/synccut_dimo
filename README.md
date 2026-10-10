@@ -31,6 +31,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 2. Connect Your Backend Services
 Copy `.env.example` to `.env.local` and provide your API keys:
-- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (recommended) or `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Then run [`schema.sql`](./schema.sql) in the Supabase SQL editor and add each permitted email to `project_members`. The app uses Supabase Auth for passwordless email OTP and only permits assigned members to load the project state.
-- **Email code**: In Supabase Dashboard → Authentication → Email Templates → Magic Link, replace the default template with one that includes `{{ .Token }}`. Keep the token visible in the email, for example: `Your SyncCut verification code is {{ .Token }}`. The app's 6-digit form validates this token with `verifyOtp`. If you keep the default template, Supabase sends a magic link instead; clicking it should still establish the session and open the assigned portal.
+- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), and `EDITOR_EMAIL`. Run [`schema.sql`](./schema.sql). Create the editor's email/password account in Supabase Auth, set that email as `EDITOR_EMAIL`, and add a matching `Editor` row to `project_members` for `proj_promo_2026`. In Supabase Auth settings, disable public sign-ups and turn off email confirmation. Client accounts are created from the editor dashboard; the server marks them confirmed and records their project membership. Clients then sign in with the password supplied by the editor. Never expose the service role key in a `NEXT_PUBLIC_` variable or browser code.
+
+For the first setup, create the editor user in **Supabase → Authentication → Users**, then add its matching membership row in the SQL editor (use the s  ame lowercase email):
+
+```sql
+insert into public.project_members (project_id, email, role, display_name, company_name)
+values ('proj_promo_2026', 'editor@example.com', 'Editor', 'Editor', 'SyncCut');
+```
+
+Replace `editor@example.com` with the chosen editor email, use it as `EDITOR_EMAIL`, and restart/redeploy the app after changing environment variables. Keep custom SMTP disabled; this login and account creation flow does not send verification emails.
 - **Bunny Stream**: Add your `BUNNY_STREAM_LIBRARY_ID` and `BUNNY_STREAM_API_KEY`.
