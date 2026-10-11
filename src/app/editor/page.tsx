@@ -89,7 +89,9 @@ export default function EditorPage() {
       <div className="mx-auto max-w-6xl space-y-7">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
           <div className="flex min-w-0 items-center gap-4">
-            <BrandLogo variant="dark" className="h-10 w-[170px] shrink-0 object-contain object-left" />
+            <Link href="/" aria-label="SyncCut home" className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+              <BrandLogo variant="dark" className="h-10 w-[170px] object-contain object-left" />
+            </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-200 pl-4 dark:border-neutral-800">
               <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-indigo-500">Editor</p>
               <h1 className="text-2xl font-bold leading-7">Projects</h1>

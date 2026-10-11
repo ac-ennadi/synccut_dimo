@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Project, CreativeBrief, Deliverable, FeedbackNote } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -46,10 +47,10 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         {/* Navigation Bar: Pure Client Identity */}
         <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-neutral-800">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-10 w-[170px] shrink-0 items-center">
+            <Link href="/" aria-label="SyncCut home" className="flex h-10 w-[170px] shrink-0 items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
               <BrandLogo variant="light" className="h-8 w-full object-contain object-left dark:hidden" />
               <BrandLogo variant="dark" className="hidden h-8 w-full object-contain object-left dark:block" />
-            </div>
+            </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-200 pl-4 dark:border-neutral-800">
               <div className="text-[10px] uppercase font-bold leading-4 tracking-wider text-neutral-400">
                 Client Review Portal
@@ -127,5 +128,4 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
     </div>
   );
 };
-
 

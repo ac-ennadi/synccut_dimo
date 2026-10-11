@@ -46,7 +46,9 @@ export default function EditorLoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
       <div className="w-full max-w-md space-y-6">
         <header className="space-y-3 text-center">
-          <div className="flex justify-center"><BrandLogo variant="dark" className="h-9 w-auto" /></div>
+          <Link href="/" aria-label="SyncCut home" className="flex justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <BrandLogo variant="dark" className="h-9 w-auto" />
+          </Link>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase text-indigo-300"><Shield size={14} /> Editor access only</div>
           <h1 className="text-2xl font-black">Editor dashboard</h1>
           <p className="text-sm text-neutral-400">Sign in with the editor account configured in Supabase.</p>
