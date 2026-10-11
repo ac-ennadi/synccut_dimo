@@ -15,24 +15,24 @@ const videoId = 'nVmXsBNfwHY';
 const steps = [
   {
     number: '01',
-    label: 'One cut. One place.',
-    title: 'Watch the latest cut.',
-    description: 'Clients open the latest cut and its related notes in one secure workspace.',
-    bullets: ['One home for every version', 'Private client access'],
+    label: 'Script & review',
+    title: 'Watch the latest cut alongside the script.',
+    description: 'Give clients full context. Review video drafts directly next to the approved script, scene breakdown, and voiceovers.',
+    bullets: ['Script and video on one screen', 'Secure, private client portals'],
   },
   {
     number: '02',
-    label: 'Feedback stays with the cut.',
-    title: 'Feedback that makes sense.',
-    description: 'Clients leave notes as they watch. Every comment stays connected to its moment, so your next edit starts with clear direction.',
-    bullets: ['Timecoded client notes', 'A shared conversation'],
+    label: 'Frame-accurate feedback',
+    title: 'Feedback pinned to the exact frame.',
+    description: 'Stop decoding vague emails like "fix that part in the middle." Clients click to drop timecoded notes right where edits are needed.',
+    bullets: ['Frame-accurate timestamped notes', 'Color & visual style references'],
   },
   {
     number: '03',
-    label: 'Keep the project moving.',
-    title: 'Review, revise, approve.',
-    description: 'Track revisions and approval in one place. Your team and client can see where the project stands and what happens next.',
-    bullets: ['Version history in one place', 'Clear approval status'],
+    label: 'Progress & approval',
+    title: 'Track stages, revise, approve.',
+    description: 'Eliminate status update messages. Show clients exact project progress—from Script to Shoot to Final Cut—so everyone stays on schedule.',
+    bullets: ['Real-time stage pipeline', 'One-click final cut approval'],
   },
 ];
 
@@ -159,16 +159,16 @@ export function LandingScrollStory() {
       <div className="relative mx-auto h-full w-full max-w-7xl">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
         <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:top-[4%]">
-          <div className="mb-5 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-100">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
-            Video feedback, all in one place
+            Video collaboration, all on one page
           </div>
           <h1 className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl">
-            Your team points at it.<br />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Your agent ships it.</span>
+            Clients review it. Editors cut it.<br />
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Projects ship.</span>
           </h1>
           <p className="box-border mx-auto mt-5 max-w-md text-xs leading-7 text-white/65 sm:text-sm md:max-w-xl md:text-base">
-            Watch the latest cut, share feedback, and keep every revision in one place.
+            Unify script notes, project stages, timecoded feedback, and style references into one clean workspace.
           </p>
           <div ref={heroDetailsRef} className="box-border w-full">
           <div className="box-border mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -180,10 +180,9 @@ export function LandingScrollStory() {
               View the demo
             </a>
           </div>
-          <div className="mt-5 flex items-center justify-center gap-4 text-[11px] text-white/50">
-            <span className="inline-flex items-center gap-1.5"><ShieldCheck size={15} className="text-emerald-300" /> Private client review</span>
-            <span className="h-3 w-px bg-white/15" />
-            <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-300" /> Every note stays in context</span>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[11px] text-white/60">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5"><ShieldCheck size={15} className="text-emerald-300" /> No client login required</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5"><CheckCircle2 size={15} className="text-emerald-300" /> Every note stays in context</span>
           </div>
           <div className="mt-5 inline-flex items-center gap-2 text-[9px] tracking-[0.14em] text-white/45">
             SCROLL TO EXPLORE <ArrowDown size={13} className="text-emerald-300" />
