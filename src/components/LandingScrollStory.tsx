@@ -145,7 +145,18 @@ export function LandingScrollStory() {
       return () => triggers.forEach((trigger) => trigger.kill());
     });
 
-    return () => mm.revert();
+    let resizeTimer: number | undefined;
+    const refreshAfterResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+    };
+    window.addEventListener('resize', refreshAfterResize);
+
+    return () => {
+      window.removeEventListener('resize', refreshAfterResize);
+      window.clearTimeout(resizeTimer);
+      mm.revert();
+    };
   }, { scope: sectionRef });
 
   return (
@@ -160,12 +171,12 @@ export function LandingScrollStory() {
       {/* All animation geometry is measured against this centered, full-height frame. */}
       <div className="relative mx-auto h-full w-full max-w-7xl max-lg:flex max-lg:h-auto max-lg:flex-col max-lg:gap-8 max-lg:px-5 max-lg:pb-10 motion-reduce:flex motion-reduce:h-auto motion-reduce:flex-col motion-reduce:gap-8 motion-reduce:px-5 motion-reduce:pb-10">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
-        <div ref={heroRef} id="home" className="absolute left-1/2 top-[7%] z-20 w-[92%] -translate-x-1/2 text-center max-lg:relative max-lg:left-auto max-lg:top-auto max-lg:order-0 max-lg:w-full max-lg:translate-x-0 max-lg:pt-16 motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:order-0 motion-reduce:w-full motion-reduce:translate-x-0 motion-reduce:pt-16">
+        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 w-full max-w-xl px-4 md:px-8 -translate-x-1/2 text-center max-lg:relative max-lg:left-auto max-lg:top-auto max-lg:order-0 max-lg:translate-x-0 max-lg:pt-16 motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:order-0 motion-reduce:translate-x-0 motion-reduce:pt-16">
           <div className="mb-5 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
             Video feedback, all in one place
           </div>
-          <h1 className="text-[clamp(2.7rem,7.2vw,6.1rem)] font-extrabold leading-[0.98] tracking-[-0.075em] text-[#f5f6fa]">
+          <h1 className="text-3xl font-extrabold leading-[0.98] tracking-[-0.075em] text-[#f5f6fa] md:text-5xl lg:text-6xl">
             Your team points at it.<br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Your agent ships it.</span>
           </h1>
@@ -201,10 +212,10 @@ export function LandingScrollStory() {
                 ref={(node) => { stepRefs.current[index] = node; }}
                 key={step.number}
                 aria-hidden={index !== 0}
-                className="pointer-events-none absolute inset-0 flex flex-col justify-center max-lg:relative max-lg:inset-auto max-lg:mb-12 max-lg:min-h-[45vh] motion-reduce:relative motion-reduce:inset-auto motion-reduce:mb-12 motion-reduce:min-h-[45vh]"
+                className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8 max-lg:relative max-lg:inset-auto max-lg:mb-12 max-lg:min-h-[45vh] motion-reduce:relative motion-reduce:inset-auto motion-reduce:mb-12 motion-reduce:min-h-[45vh]"
               >
                 <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
-                <h2 className="mt-4 max-w-lg text-[clamp(2.25rem,4.3vw,4rem)] font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa]">{step.title}</h2>
+                <h2 className="mt-4 max-w-lg text-3xl font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa] md:text-5xl lg:text-6xl">{step.title}</h2>
                 <p className="mt-4 max-w-md text-sm leading-7 text-white/65">{step.description}</p>
                 <ul className="mt-6 grid gap-3 text-[13px] text-white/80">
                   {step.bullets.map((bullet) => <li className="flex items-center gap-2.5" key={bullet}><CheckCircle2 size={15} className="shrink-0 text-emerald-300" />{bullet}</li>)}
@@ -218,7 +229,7 @@ export function LandingScrollStory() {
         <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:relative max-lg:order-1 max-lg:inset-auto max-lg:h-[56vw] max-lg:min-h-[260px] max-lg:w-full max-lg:rounded-2xl motion-reduce:relative motion-reduce:order-1 motion-reduce:inset-auto motion-reduce:h-[56vw] motion-reduce:min-h-[260px] motion-reduce:w-full">
           <div className="flex h-full flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
-              <div className="relative flex min-w-0 flex-1 items-center gap-1.5">
+              <div className="relative flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
                 {steps.map((step, index) => (
                   <button
                     ref={(node) => { tabRefs.current[index] = node; }}
@@ -227,7 +238,7 @@ export function LandingScrollStory() {
                     role="tab"
                     aria-selected={index === 0}
                     aria-controls="sync-cut-demo-video"
-                    className={`max-w-[40%] truncate rounded-full px-2.5 py-2 text-[10px] font-semibold transition-colors sm:px-3 ${index === 0 ? 'bg-white/10 text-white' : 'text-white/45'}`}
+                    className={`shrink-0 whitespace-nowrap truncate rounded-full px-2.5 py-2 text-xs font-semibold transition-colors md:text-sm sm:px-3 ${index === 0 ? 'bg-white/10 text-white' : 'text-white/45'}`}
                   >
                     <span className="mr-1.5 font-mono text-emerald-300">{step.number}</span>{step.label}
                   </button>
