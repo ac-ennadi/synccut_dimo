@@ -88,7 +88,13 @@ export default function EditorPage() {
     <main className="min-h-screen bg-neutral-100 p-4 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-7">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
-          <div className="flex items-center gap-3"><BrandLogo variant="dark" className="h-8 w-auto" /><div><p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Editor</p><h1 className="text-2xl font-bold">Projects</h1></div></div>
+          <div className="flex min-w-0 items-center gap-4">
+            <BrandLogo variant="dark" className="h-10 w-[170px] shrink-0 object-contain object-left" />
+            <div className="flex min-h-10 flex-col justify-center border-l border-neutral-200 pl-4 dark:border-neutral-800">
+              <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-indigo-500">Editor</p>
+              <h1 className="text-2xl font-bold leading-7">Projects</h1>
+            </div>
+          </div>
           <div className="flex items-center gap-2"><span className="hidden text-sm text-neutral-500 sm:inline">Signed in as {currentUser.name}</span><button onClick={() => { logout(); router.push('/editor/login'); }} className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900"><LogOut size={15} />Sign out</button></div>
         </header>
 
