@@ -171,20 +171,20 @@ export function LandingScrollStory() {
       {/* All animation geometry is measured against this centered, full-height frame. */}
       <div className="relative mx-auto h-full w-full max-w-7xl max-lg:flex max-lg:h-auto max-lg:flex-col max-lg:gap-8 max-lg:px-5 max-lg:pb-10 motion-reduce:flex motion-reduce:h-auto motion-reduce:flex-col motion-reduce:gap-8 motion-reduce:px-5 motion-reduce:pb-10">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
-        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 w-full max-w-xl px-4 md:px-8 -translate-x-1/2 text-center max-lg:relative max-lg:left-auto max-lg:top-auto max-lg:order-0 max-lg:translate-x-0 max-lg:pt-16 motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:order-0 motion-reduce:translate-x-0 motion-reduce:pt-16">
+        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:relative max-lg:left-auto max-lg:top-auto max-lg:order-0 max-lg:translate-x-0 max-lg:pt-16 motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:order-0 motion-reduce:translate-x-0 motion-reduce:pt-16">
           <div className="mb-5 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
             Video feedback, all in one place
           </div>
-          <h1 className="text-3xl font-extrabold leading-[0.98] tracking-[-0.075em] text-[#f5f6fa] md:text-5xl lg:text-6xl">
+          <h1 className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
             Your team points at it.<br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Your agent ships it.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-[clamp(0.95rem,1.5vw,1.125rem)] leading-7 text-white/65">
+          <p className="box-border mx-auto mt-5 max-w-md text-xs leading-7 text-white/65 sm:text-sm md:max-w-xl md:text-base">
             Watch the latest cut, share feedback, and keep every revision in one place.
           </p>
-          <div ref={heroDetailsRef}>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div ref={heroDetailsRef} className="box-border w-full">
+          <div className="box-border mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/client/login" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-blue-500 px-5 text-sm font-bold text-[#06110d] shadow-[0_8px_26px_rgba(16,185,129,0.18)] transition hover:-translate-y-0.5">
               <UserCheck size={17} /> Log in as client <ArrowRight size={17} />
             </Link>
