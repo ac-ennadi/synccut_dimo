@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Check,
   Clapperboard,
-  MessageSquareText,
   Play,
   ShieldCheck,
   UserCheck,
@@ -72,30 +71,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="hero-showcase" aria-label="Video preview placeholder">
-          <div className="showcase-topbar">
-            <div className="window-dots"><i /><i /><i /></div>
-            <span className="showcase-project"><span className="project-pulse" /> PROJECT REVIEW <b>·</b> LATEST CUT</span>
-            <span className="showcase-version">PREVIEW</span>
-          </div>
-          <div className="showcase-screen">
-            
-            <div className="screen-copy"><span>VIDEO REVIEW</span><strong>Your video<br />will appear here.</strong></div>
-            
-            
-            
-          </div>
-          <div className="showcase-controls">
-            <div className="control-user"><span><MessageSquareText size={14} /></span><b>Feedback</b></div>
-            <div className="control-comment">Leave notes on specific moments in the cut.</div>
-            <div className="control-tag">VIDEO NOTES</div>
-          </div>
-          
-        </div>
         <a className="scroll-cue" href="#how-it-works"><span>SCROLL TO EXPLORE</span><ArrowDown size={14} /></a>
       </section>
 
-      <section className="intro-strip" id="how-it-works">
+      <section className="intro-strip">
         <span className="section-label">THE SYNC CUT FLOW</span>
         <p>From the first watch to the final approval, the whole conversation stays together.</p>
         <div className="step-indicators"><span>01</span><i /><span>02</span><i /><span>03</span></div>

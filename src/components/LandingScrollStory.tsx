@@ -83,12 +83,12 @@ export function LandingScrollStory() {
   const currentStep = steps[activeStep] ?? steps[0];
 
   return (
-    <section ref={storyRef} className="scroll-story" aria-label="See how SyncCut works">
+    <section ref={storyRef} id="how-it-works" className={`scroll-story is-step-${activeStep + 1}`} aria-label="See how SyncCut works">
       <div className="scroll-story-copy">
         {steps.map((step, index) => {
           const Icon = step.icon;
           return (
-            <article className={`scroll-story-card ${activeStep === index ? 'is-active' : ''}`} data-story-step key={step.number}>
+            <article className={`scroll-story-card story-step-${index + 1} ${activeStep === index ? 'is-active' : ''}`} data-story-step key={step.number}>
               <div className="feature-progress"><b>{step.number}</b><span /><span className={index > 0 ? 'progress-done' : ''} /><span className={index > 1 ? 'progress-done' : ''} /></div>
               <div className="feature-eyebrow"><Icon size={15} /> {step.eyebrow}</div>
               <h2>{step.title}</h2>
