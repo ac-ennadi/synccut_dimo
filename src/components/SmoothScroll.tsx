@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -8,7 +9,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 export function SmoothScroll() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    // Keep the editor workspace on native scrolling so nested panels and the
+    // client preview modal receive mouse-wheel events normally.
+    if (pathname.startsWith('/editor')) return;
+
     const lenis = new Lenis({
       autoRaf: false,
       anchors: true,
@@ -29,7 +36,7 @@ export function SmoothScroll() {
       gsap.ticker.remove(onTick);
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }
