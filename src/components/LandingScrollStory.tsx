@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowDown, ArrowRight, CheckCircle2, Play, ShieldCheck, UserCheck } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 const videoId = 'nVmXsBNfwHY';
 
@@ -68,85 +69,68 @@ export function LandingScrollStory() {
       section.dataset.activeStep = String(index + 1);
     };
 
-    const mm = gsap.matchMedia();
-    mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
-    const timeline = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: '+=400%',
-        scrub: 0.8,
-        pin: section,
-        pinSpacing: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      },
-    });
+    const buildTimeline = (isMobile: boolean) => {
+      const timeline = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: '+=400%',
+          scrub: 0.8,
+          pin: section,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
 
-    gsap.set(hero, { autoAlpha: 1, y: 0 });
-    gsap.set(stepsColumn, { autoAlpha: 0 });
-    gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
-    gsap.set(media, {
-      left: '10%',
-      // Start below the hero details; the first scroll phase lifts the frame into place.
-      top: '78%',
-      bottom: 'auto',
-      width: '80%',
-      height: '70vh',
-      xPercent: 0,
-      yPercent: 0,
-      borderRadius: 16,
-    });
-    updateActiveStep(0);
-
-    // Phase 1: lift the headline and explicitly move the frame out of its clipped hero position.
-    timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
-    timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
-    timeline.to(media, {
-      top: '50%',
-      left: '55%',
-      width: '45%',
-      height: '60vh',
-      yPercent: -50,
-      borderRadius: 24,
-      duration: 1,
-    }, 0);
-
-    // Phase 2: the text column and first step arrive after the frame reaches its right-hand position.
-    timeline.to(stepsColumn, { autoAlpha: 1, duration: 0.18 }, 1);
-    timeline.to(stepPanels[0], { autoAlpha: 1, y: 0, duration: 0.24 }, 1.08);
-
-    // Phase 3 and 4: each copy change and tab highlight share one scroll threshold.
-    timeline.to(stepPanels[0], { autoAlpha: 0, y: -28, duration: 0.2 }, 2);
-    timeline.to(stepPanels[1], { autoAlpha: 1, y: 0, duration: 0.2 }, 2.12);
-    timeline.to(stepPanels[1], { autoAlpha: 0, y: -28, duration: 0.2 }, 3);
-    timeline.to(stepPanels[2], { autoAlpha: 1, y: 0, duration: 0.2 }, 3.12);
-    timeline.to({}, { duration: 0.68 }, 3.32);
-
-    let activeIndex = -1;
-    timeline.eventCallback('onUpdate', () => {
-      const time = timeline.time();
-      const nextIndex = time < 2.12 ? 0 : time < 3.12 ? 1 : 2;
-      if (nextIndex !== activeIndex) {
-        activeIndex = nextIndex;
-        updateActiveStep(nextIndex);
-      }
-    });
-
-    return () => timeline.scrollTrigger?.kill();
-    });
-
-    mm.add('(max-width: 1023px), (prefers-reduced-motion: reduce)', () => {
+      gsap.set(hero, { autoAlpha: 1, y: 0 });
+      gsap.set(stepsColumn, {
+        autoAlpha: 0,
+        ...(isMobile ? { top: '5%', left: '0%', width: '100%', height: '30vh', yPercent: 0 } : {}),
+      });
+      gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
+      gsap.set(media, isMobile ? {
+        left: '5%', top: '70%', bottom: 'auto', width: '90%', height: '40vh',
+        xPercent: 0, yPercent: 0, borderRadius: 16,
+      } : {
+        left: '10%', top: '78%', bottom: 'auto', width: '80%', height: '70vh',
+        xPercent: 0, yPercent: 0, borderRadius: 16,
+      });
       updateActiveStep(0);
-      const triggers = stepPanels.map((panel, index) => ScrollTrigger.create({
-        trigger: panel,
-        start: 'top 60%',
-        end: 'bottom 60%',
-        onToggle: ({ isActive }) => { if (isActive) updateActiveStep(index); },
-      }));
-      return () => triggers.forEach((trigger) => trigger.kill());
-    });
+
+      timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
+      timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
+      timeline.to(media, isMobile ? {
+        top: '38%', left: '4%', width: '92%', height: '45vh', borderRadius: 24, duration: 1,
+      } : {
+        top: '50%', left: '55%', width: '45%', height: '60vh', yPercent: -50, borderRadius: 24, duration: 1,
+      }, 0);
+
+      timeline.to(stepsColumn, { autoAlpha: 1, duration: 0.18 }, 1);
+      timeline.to(stepPanels[0], { autoAlpha: 1, y: 0, duration: 0.24 }, 1.08);
+      timeline.to(stepPanels[0], { autoAlpha: 0, y: -28, duration: 0.2 }, 2);
+      timeline.to(stepPanels[1], { autoAlpha: 1, y: 0, duration: 0.2 }, 2.12);
+      timeline.to(stepPanels[1], { autoAlpha: 0, y: -28, duration: 0.2 }, 3);
+      timeline.to(stepPanels[2], { autoAlpha: 1, y: 0, duration: 0.2 }, 3.12);
+      timeline.to({}, { duration: 0.68 }, 3.32);
+
+      let activeIndex = -1;
+      timeline.eventCallback('onUpdate', () => {
+        const time = timeline.time();
+        const nextIndex = time < 2.12 ? 0 : time < 3.12 ? 1 : 2;
+        if (nextIndex !== activeIndex) {
+          activeIndex = nextIndex;
+          updateActiveStep(nextIndex);
+        }
+      });
+
+      return () => timeline.scrollTrigger?.kill();
+    };
+
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 1024px)', () => buildTimeline(false));
+    mm.add('(max-width: 1023px)', () => buildTimeline(true));
 
     let resizeTimer: number | undefined;
     const refreshAfterResize = () => {
@@ -167,19 +151,19 @@ export function LandingScrollStory() {
       ref={sectionRef}
       id="how-it-works"
       aria-label="See how SyncCut works"
-      className="relative h-screen w-full overflow-hidden bg-[#08090c] text-white max-lg:h-auto max-lg:min-h-screen max-lg:overflow-visible motion-reduce:h-auto motion-reduce:min-h-screen motion-reduce:overflow-visible"
+      className="relative h-screen h-[100dvh] w-full overflow-hidden bg-[#08090c] text-white"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_76%_45%,rgba(99,102,241,0.12),transparent_42%),radial-gradient(ellipse_at_12%_62%,rgba(16,185,129,0.09),transparent_38%)]" />
 
       {/* All animation geometry is measured against this centered, full-height frame. */}
-      <div className="relative mx-auto h-full w-full max-w-7xl max-lg:flex max-lg:h-auto max-lg:flex-col max-lg:gap-8 max-lg:px-5 max-lg:pb-10 motion-reduce:flex motion-reduce:h-auto motion-reduce:flex-col motion-reduce:gap-8 motion-reduce:px-5 motion-reduce:pb-10">
+      <div className="relative mx-auto h-full w-full max-w-7xl">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
-        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:relative max-lg:left-auto max-lg:top-auto max-lg:order-0 max-lg:translate-x-0 max-lg:pt-16 motion-reduce:relative motion-reduce:left-auto motion-reduce:top-auto motion-reduce:order-0 motion-reduce:translate-x-0 motion-reduce:pt-16">
+        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:top-[4%]">
           <div className="mb-5 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
             Video feedback, all in one place
           </div>
-          <h1 className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+          <h1 className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl">
             Your team points at it.<br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Your agent ships it.</span>
           </h1>
@@ -208,14 +192,14 @@ export function LandingScrollStory() {
         </div>
 
         {/* Step content is stacked in one left-hand column and revealed by the same scrubbed timeline. */}
-        <div ref={stepsColumnRef} className="absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:relative max-lg:order-2 max-lg:left-auto max-lg:top-auto max-lg:h-auto max-lg:w-full max-lg:translate-y-0 max-lg:opacity-100 motion-reduce:relative motion-reduce:order-2 motion-reduce:left-auto motion-reduce:top-auto motion-reduce:h-auto motion-reduce:w-full motion-reduce:translate-y-0 motion-reduce:opacity-100">
+        <div ref={stepsColumnRef} className="absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:left-0 max-lg:top-[5%] max-lg:h-[30vh] max-lg:w-full max-lg:translate-y-0">
           {steps.map((step, index) => {
             return (
               <div
                 ref={(node) => { stepRefs.current[index] = node; }}
                 key={step.number}
                 aria-hidden={index !== activeStep}
-                className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8 max-lg:relative max-lg:inset-auto max-lg:mb-12 max-lg:min-h-[45vh] motion-reduce:relative motion-reduce:inset-auto motion-reduce:mb-12 motion-reduce:min-h-[45vh]"
+                className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8"
               >
                 <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
                 <h2 className="mt-4 max-w-lg text-3xl font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa] md:text-5xl lg:text-6xl">{step.title}</h2>
@@ -229,7 +213,7 @@ export function LandingScrollStory() {
         </div>
 
         {/* The window starts wide and low, then GSAP moves it into the right column. */}
-        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:relative max-lg:order-1 max-lg:inset-auto max-lg:h-[56vw] max-lg:min-h-[260px] max-lg:w-full max-lg:rounded-2xl motion-reduce:relative motion-reduce:order-1 motion-reduce:inset-auto motion-reduce:h-[56vw] motion-reduce:min-h-[260px] motion-reduce:w-full">
+        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:bottom-[-10%] max-lg:left-[5%] max-lg:top-auto max-lg:h-[40vh] max-lg:w-[90%] max-lg:rounded-2xl">
           <div className="flex h-full flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <div ref={tabContainerRef} className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scroll-smooth pr-4 no-scrollbar">
