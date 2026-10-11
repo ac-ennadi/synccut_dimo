@@ -120,13 +120,15 @@ async function buildAppUser(authUser:SupabaseUser):Promise<User>{
  const email=authUser.email?.trim().toLowerCase();
  if(!email)throw new Error('Your Supabase account does not have an email address.');
 
- const{data:editor,error:ee}=await supabase.from('project_members')
-  .select('project_id,role,display_name,company_name').eq('email',email).eq('role','Editor').limit(1).maybeSingle();
+ const membershipQuery=(role:UserRole)=>supabase.from('project_members')
+  .select('project_id,role,display_name,company_name').eq('email',email).eq('role',role).limit(1).maybeSingle();
+ // Both role checks run together so restoring a session or signing in only
+ // waits for one network round trip instead of two sequential requests.
+ const[{data:editor,error:ee},{data:client,error:ce}]=await Promise.all([
+  membershipQuery('Editor'),
+  membershipQuery('Client'),
+ ]);
  if(ee)throw ee;
- // Only the editor result short-circuits: a client membership is still resolved
- // so someone who is both stays an Editor first.
- const{data:client,error:ce}=editor?{data:null,error:null}:await supabase.from('project_members')
-  .select('project_id,role,display_name,company_name').eq('email',email).eq('role','Client').limit(1).maybeSingle();
  if(ce)throw ce;
 
  const membership=editor??client;
