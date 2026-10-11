@@ -19,9 +19,9 @@ export const metadata: Metadata = {
   title: "SyncCut | Video Production & Client Review Portal",
   description: "Single-page video production review, real-time progress tracker, and feedback portal",
   icons: {
-    icon: '/logo-dark.svg',
-    shortcut: '/logo-dark.svg',
-    apple: '/logo-dark.svg',
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
   },
 };
 
