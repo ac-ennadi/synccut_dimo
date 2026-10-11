@@ -45,13 +45,16 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         
         {/* Navigation Bar: Pure Client Identity */}
         <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <BrandLogo variant="light" className="h-7 w-auto" />
-            <div>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex h-10 w-[170px] shrink-0 items-center">
+              <BrandLogo variant="light" className="h-8 w-full object-contain object-left dark:hidden" />
+              <BrandLogo variant="dark" className="hidden h-8 w-full object-contain object-left dark:block" />
+            </div>
+            <div className="flex min-h-10 flex-col justify-center border-l border-neutral-200 pl-4 dark:border-neutral-800">
+              <div className="text-[10px] uppercase font-bold leading-4 tracking-wider text-neutral-400">
                 Client Review Portal
               </div>
-              <div className="text-xs sm:text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+              <div className="text-xs font-semibold leading-5 text-neutral-800 dark:text-neutral-200 sm:text-sm">
                 {currentUser?.company_name || 'Client workspace'}
               </div>
             </div>
@@ -124,6 +127,5 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
     </div>
   );
 };
-
 
 
