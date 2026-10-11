@@ -10,59 +10,75 @@ interface ScriptBoxProps {
 
 export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs flex flex-col">
-      <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800 mb-3">
-        <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-indigo-500" />
-          <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-neutral-100">
-            Creative brief
-          </h2>
+    <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+      <header className="border-b border-neutral-200 px-6 py-5 dark:border-neutral-800">
+        <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+          <FileText className="h-4 w-4 text-indigo-500" />
+          <span>Creative brief</span>
+          <span className="text-neutral-300 dark:text-neutral-700">/</span>
+          <span>Script</span>
         </div>
-        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
-          <Lock className="w-3 h-3" />
-          {brief.version_label}
-        </span>
-      </div>
-
-      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-        The current script, scene notes, and voiceover.
-      </p>
-
-      {/* Scrollable Text Area */}
-      <div className="max-h-[380px] overflow-y-auto space-y-3.5 pr-2 rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5 bg-neutral-50 dark:bg-neutral-950/50">
-        {brief.script_scenes.map((scene) => (
-          <div
-            key={scene.scene_number}
-            className="p-3.5 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2 shadow-2xs"
-          >
-            <div className="flex items-center justify-between text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-              <span>
-                SCENE {scene.scene_number}: {scene.title}
-              </span>
-              <span className="font-mono text-neutral-500">{scene.timecode}</span>
-            </div>
-
-            <p className="text-xs text-neutral-600 dark:text-neutral-400 italic">
-              <strong>Visual:</strong> {scene.visual_description}
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              {brief.version_label || 'Untitled script'}
+            </h2>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              Script, scene notes, and voiceover
             </p>
-
-            <div className="p-2.5 rounded-md bg-neutral-100 dark:bg-neutral-800/80 border-l-2 border-indigo-500 font-mono text-xs text-neutral-900 dark:text-neutral-100">
-              <span className="text-neutral-500 font-sans font-bold text-[10px] block mb-0.5">VOICEOVER:</span>
-              &ldquo;{scene.voiceover}&rdquo;
-            </div>
           </div>
+          {brief.is_locked && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <Lock className="h-3 w-3" />
+              Locked
+            </span>
+          )}
+        </div>
+      </header>
+
+      <div className="max-h-[560px] overflow-y-auto px-6 py-3">
+        {brief.script_scenes.map((scene) => (
+          <section
+            key={scene.scene_number}
+            className="group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 border-b border-neutral-100 py-6 last:border-0 dark:border-neutral-800/80"
+          >
+            <div className="pt-1 text-center font-mono text-xs font-semibold text-indigo-500 dark:text-indigo-400">
+              {String(scene.scene_number).padStart(2, '0')}
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                  {scene.title || 'Untitled scene'}
+                </h3>
+                {scene.timecode && <span className="font-mono text-[11px] text-neutral-400">{scene.timecode}</span>}
+              </div>
+              {scene.visual_description && (
+                <p className="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-300">
+                  {scene.visual_description}
+                </p>
+              )}
+              {scene.voiceover && (
+                <blockquote className="mt-4 border-l-2 border-indigo-400/70 pl-4 text-sm leading-6 text-neutral-700 dark:text-neutral-200">
+                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Voiceover</span>
+                  <span className="italic">&ldquo;{scene.voiceover}&rdquo;</span>
+                </blockquote>
+              )}
+            </div>
+          </section>
         ))}
         {(brief.script_sections ?? []).filter((section) => section.title.trim() || section.content.trim()).map((section) => (
-          <article key={section.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/40">
-            {section.title.trim() && <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{section.title}</h3>}
-            {section.content.trim() && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">{section.content}</p>}
+          <article key={section.id} className="border-b border-neutral-100 py-6 last:border-0 dark:border-neutral-800/80">
+            {section.title.trim() && <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">{section.title}</h3>}
+            {section.content.trim() && <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-600 dark:text-neutral-300">{section.content}</p>}
           </article>
         ))}
         {brief.script_scenes.length === 0 && !(brief.script_sections ?? []).some((section) => section.title.trim() || section.content.trim()) && (
-          <p className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">The script hasn’t been added yet.</p>
+          <div className="px-8 py-14 text-center">
+            <FileText className="mx-auto h-8 w-8 text-neutral-300 dark:text-neutral-700" />
+            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">The script hasn’t been added yet.</p>
+          </div>
         )}
       </div>
-    </div>
+    </article>
   );
 };
-
