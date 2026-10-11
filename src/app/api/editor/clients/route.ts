@@ -1,7 +1,10 @@
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
-import { authorizeEditor } from '@/lib/editor-admin';
+import { authorizeEditor, hasProjectAccess, listProjectFiles } from '@/lib/editor-admin';
+import { PROJECT_VIDEO_BUCKET } from '@/lib/project-storage';
 import { normalizeProjectStatus } from '@/lib/project-status';
 import { normalizeProjectType } from '@/lib/project-type';
+
+interface MemberRow { email: string; display_name: string; company_name: string }
 
 export async function GET(request: Request) {
   let auth: Awaited<ReturnType<typeof authorizeEditor>>;
@@ -14,17 +17,28 @@ export async function GET(request: Request) {
   const projectIds = [...new Set((editorRows ?? []).map((row) => row.project_id))];
   if (!projectIds.length) return Response.json({ projects: [] });
 
-  const [{ data: members, error: membersError }, { data: states, error: statesError }] = await Promise.all([
-    auth.admin.from('project_members').select('project_id,email,display_name,company_name,role').in('project_id', projectIds).eq('role', 'Client').order('display_name'),
+  // Members and project states are fetched together in one stage, so the
+  // dashboard costs a fixed number of round trips instead of one per project.
+  const [{ data: memberRows, error: membersError }, { data: states, error: statesError }] = await Promise.all([
+    auth.admin.from('project_members')
+      .select('project_id,email,display_name,company_name,role')
+      .in('project_id', projectIds)
+      .order('display_name'),
     auth.admin.from('project_portal_state').select('project_id,state').in('project_id', projectIds),
   ]);
   if (membersError || statesError) return Response.json({ error: membersError?.message ?? statesError?.message }, { status: 500 });
+
   const stateByProject = new Map((states ?? []).map((row) => [row.project_id, row.state as {
     project?: { title?: string; status?: string; project_type?: string };
     deliverable?: { version_number?: string };
   }]));
-  const membersByProject = new Map<string, typeof members>();
-  for (const member of members ?? []) membersByProject.set(member.project_id, [...(membersByProject.get(member.project_id) ?? []), member]);
+  const membersByProject = new Map<string, MemberRow[]>();
+  for (const member of memberRows ?? []) {
+    if (member.role !== 'Client') continue;
+    membersByProject.set(member.project_id, [...(membersByProject.get(member.project_id) ?? []), {
+      email: member.email, display_name: member.display_name, company_name: member.company_name,
+    }]);
+  }
 
   const projects = projectIds.map((projectId) => {
     const state = stateByProject.get(projectId);
@@ -75,4 +89,39 @@ export async function POST(request: Request) {
     return Response.json({ error: memberError.message }, { status: 500 });
   }
   return Response.json({ success: true, projectId }, { status: 201 });
+}
+
+export async function DELETE(request: Request) {
+  let auth: Awaited<ReturnType<typeof authorizeEditor>>;
+  try { auth = await authorizeEditor(request); } catch { return Response.json({ error: 'Server setup is incomplete.' }, { status: 500 }); }
+  if ('error' in auth) return Response.json({ error: auth.error }, { status: auth.status });
+
+  let body: { projectId?: string };
+  try { body = await request.json(); } catch { return Response.json({ error: 'Invalid request.' }, { status: 400 }); }
+  const projectId = body.projectId?.trim();
+  if (!projectId || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+    return Response.json({ error: 'Project not found.' }, { status: 404 });
+  }
+
+  // Uploaded files live outside the database, so the state row cascade cannot
+  // reach them. Storage is cleared first: an orphaned state row is far worse
+  // than an orphaned file, so we stop before touching the database if this fails.
+  const files = await listProjectFiles(auth.admin, projectId);
+  if (files.length) {
+    const { error: storageError } = await auth.admin.storage.from(PROJECT_VIDEO_BUCKET).remove(files);
+    if (storageError) return Response.json({ error: `Could not delete this project's uploaded files: ${storageError.message}` }, { status: 500 });
+  }
+
+  const { error: notesError } = await auth.admin.from('project_feedback_notes').delete().eq('project_id', projectId);
+  if (notesError) return Response.json({ error: notesError.message }, { status: 500 });
+
+  // Client sign-in accounts are intentionally left in place so they can be added
+  // to another project later; only this project's membership rows are removed.
+  const { error: membersError } = await auth.admin.from('project_members').delete().eq('project_id', projectId);
+  if (membersError) return Response.json({ error: membersError.message }, { status: 500 });
+
+  const { error: stateError } = await auth.admin.from('project_portal_state').delete().eq('project_id', projectId);
+  if (stateError) return Response.json({ error: stateError.message }, { status: 500 });
+
+  return Response.json({ success: true, projectId, removedFiles: files.length });
 }

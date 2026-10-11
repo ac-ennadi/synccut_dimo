@@ -3,13 +3,48 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Deliverable } from '@/types';
 import { Film, Copy, Check, CheckCircle, Play, Pause, Maximize2, Volume2, VolumeX, ExternalLink } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { onSignOut, supabase } from '@/lib/supabase';
 
 interface VideoPlayerProps {
   deliverable: Deliverable;
   onTimecodeSelected?: (timecode: string) => void;
   onApproveCut?: () => void;
 }
+
+/**
+ * Signed playback links stay valid for an hour, so minting one on every render
+ * or navigation is wasted latency in front of the video. In-flight requests are
+ * cached too, which stops a second player for the same cut from asking twice.
+ */
+const playbackTicketCache = new Map<string, { url: string; expiresAt: number }>();
+const playbackTicketRequests = new Map<string, Promise<string>>();
+const PLAYBACK_TICKET_SAFETY_MS = 5 * 60 * 1000;
+
+function getPlaybackTicket(projectId: string, path: string): Promise<string> {
+  const key = `${projectId}:${path}`;
+  const cached = playbackTicketCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.url);
+  const inFlight = playbackTicketRequests.get(key);
+  if (inFlight) return inFlight;
+  const request = (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Sign in again to view this project video.');
+    const response = await fetch('/api/video/playback-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ projectId, path }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not load this video.');
+    playbackTicketCache.set(key, { url: result.url, expiresAt: Date.now() + 60 * 60 * 1000 - PLAYBACK_TICKET_SAFETY_MS });
+    return result.url as string;
+  })();
+  playbackTicketRequests.set(key, request);
+  return request.finally(() => playbackTicketRequests.delete(key));
+}
+
+// A cached link must never outlive the session that asked for it.
+onSignOut(() => { playbackTicketCache.clear(); playbackTicketRequests.clear(); });
 
 const formatTime = (seconds: number) => {
   const wholeSeconds = Math.max(0, Math.floor(seconds));
@@ -76,16 +111,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
       if (!deliverable.video_storage_path) { setSignedVideoUrl(''); setVideoLoadError(''); return; }
       setVideoLoadError('');
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) throw new Error('Sign in again to view this project video.');
-        const response = await fetch('/api/video/playback-ticket', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ projectId: deliverable.project_id, path: deliverable.video_storage_path }),
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Could not load this video.');
-        if (!cancelled) setSignedVideoUrl(result.url);
+        const url = await getPlaybackTicket(deliverable.project_id, deliverable.video_storage_path);
+        if (!cancelled) setSignedVideoUrl(url);
       } catch (error) {
         if (!cancelled) setVideoLoadError(error instanceof Error ? error.message : 'Could not load this video.');
       }

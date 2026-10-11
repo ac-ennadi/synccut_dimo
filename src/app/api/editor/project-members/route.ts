@@ -1,9 +1,12 @@
-import { authorizeEditor, getEditorAdmin } from '@/lib/editor-admin';
+import { authorizeEditor, getEditorAdmin, hasProjectAccess } from '@/lib/editor-admin';
 
-async function requireProjectAccess(admin: ReturnType<typeof getEditorAdmin>['admin'], editorEmail: string, projectId: string) {
-  const { data, error } = await admin.from('project_members').select('project_id')
-    .eq('project_id', projectId).eq('email', editorEmail).eq('role', 'Editor').maybeSingle();
-  return !error && Boolean(data);
+async function findAuthUser(admin: ReturnType<typeof getEditorAdmin>['admin'], email: string) {
+  for (let page = 1; ; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) return { error: error.message } as const;
+    const user = data.users.find((entry) => entry.email?.trim().toLowerCase() === email);
+    if (user || data.users.length < 1000) return { user } as const;
+  }
 }
 
 export async function GET(request: Request) {
@@ -11,7 +14,7 @@ export async function GET(request: Request) {
   try { auth = await authorizeEditor(request); } catch { return Response.json({ error: 'Server setup is incomplete.' }, { status: 500 }); }
   if ('error' in auth) return Response.json({ error: auth.error }, { status: auth.status });
   const projectId = new URL(request.url).searchParams.get('projectId')?.trim();
-  if (!projectId || !await requireProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project not found.' }, { status: 404 });
   }
   const { data, error } = await auth.admin.from('project_members').select('email,display_name,company_name')
@@ -32,21 +35,17 @@ export async function POST(request: Request) {
   const name = body.name?.trim();
   const companyName = body.companyName?.trim();
   const password = body.password ?? '';
-  if (!projectId || !await requireProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project not found.' }, { status: 404 });
   }
   if (!email || !name || !companyName || email === auth.editorEmail) {
     return Response.json({ error: 'Enter the user’s name, email, and company.' }, { status: 400 });
   }
 
-  let authUser: { id: string; email?: string } | undefined;
-  for (let page = 1; !authUser; page += 1) {
-    const { data, error } = await auth.admin.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) return Response.json({ error: error.message }, { status: 500 });
-    authUser = data.users.find((user) => user.email?.trim().toLowerCase() === email);
-    if (authUser || data.users.length < 1000) break;
-  }
-  const wasCreated = !authUser;
+  const lookup = await findAuthUser(auth.admin, email);
+  if ('error' in lookup) return Response.json({ error: lookup.error }, { status: 500 });
+  const wasCreated = !lookup.user;
+  let authUser = lookup.user;
   if (!authUser) {
     if (password.length < 12) return Response.json({ error: 'New users need a password of at least 12 characters.' }, { status: 400 });
     const { data, error } = await auth.admin.auth.admin.createUser({
@@ -85,7 +84,7 @@ export async function DELETE(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: 'Invalid request.' }, { status: 400 }); }
   const projectId = body.projectId?.trim();
   const email = body.email?.trim().toLowerCase();
-  if (!projectId || !email || email === auth.editorEmail || !await requireProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !email || email === auth.editorEmail || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project member not found.' }, { status: 404 });
   }
   const { data: membership, error: lookupError } = await auth.admin.from('project_members')
@@ -104,16 +103,12 @@ export async function DELETE(request: Request) {
   if (remainingError) return Response.json({ error: 'Access was removed, but the account cleanup check failed.' }, { status: 500 });
   let accountDeleted = false;
   if (!remaining?.length) {
-    for (let page = 1; !accountDeleted; page += 1) {
-      const { data, error } = await auth.admin.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) return Response.json({ error: 'Access was removed, but the account could not be checked for deletion.' }, { status: 500 });
-      const user = data.users.find((entry) => entry.email?.trim().toLowerCase() === email);
-      if (user) {
-        const { error: accountError } = await auth.admin.auth.admin.deleteUser(user.id);
-        if (accountError) return Response.json({ error: 'Project access was removed, but the user account could not be deleted.' }, { status: 500 });
-        accountDeleted = true;
-      }
-      if (user || data.users.length < 1000) break;
+    const lookup = await findAuthUser(auth.admin, email);
+    if ('error' in lookup) return Response.json({ error: 'Access was removed, but the account could not be checked for deletion.' }, { status: 500 });
+    if (lookup.user) {
+      const { error: accountError } = await auth.admin.auth.admin.deleteUser(lookup.user.id);
+      if (accountError) return Response.json({ error: 'Project access was removed, but the user account could not be deleted.' }, { status: 500 });
+      accountDeleted = true;
     }
   }
   return Response.json({ success: true, accountDeleted });

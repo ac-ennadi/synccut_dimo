@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
 import { normalizeProjectStatus } from '@/lib/project-status';
@@ -59,7 +59,9 @@ function makeInitialState(id: string, user: ReturnType<typeof useAuth>['currentU
   };
 }
 
+// Feedback never lives inside the shared blob, so every write strips it out.
 function withoutNotes(deliverable: Partial<Deliverable>): Partial<Omit<Deliverable, 'feedback_notes'>> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- named only to drop it
   const { feedback_notes: _feedbackNotes, ...data } = deliverable;
   return data;
 }
@@ -69,27 +71,37 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const id = projectId ?? currentUser?.project_id ?? mockProject.project_id;
   const uid = currentUser?.user_id;
   const remote = isSupabaseConfigured && Boolean(uid) && Boolean(projectId ?? currentUser?.project_id) && !uid?.startsWith('usr_');
-  const [project, setProject] = useState(() => makeInitialState(id, currentUser).project);
-  const [brief, setBrief] = useState(() => makeInitialState(id, currentUser).brief);
-  const [deliverable, setDeliverable] = useState(() => makeInitialState(id, currentUser).deliverable);
+  const seedKey = `${id}|${currentUser?.company_name ?? ''}|${uid ?? ''}`;
+  const [state, setState] = useState<ProjectState>(() => makeInitialState(id, currentUser));
   const [ready, setReady] = useState<string | null>(null);
   const [pendingStatusSaves, setPendingStatusSaves] = useState(0);
+  // Saves are chained so two quick edits can never be written out of order.
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const seededKey = useRef(seedKey);
+  // Mirrors the live stage so action callbacks never read a stale closure value.
+  const projectStatusRef = useRef(state.project.status);
+
+  useEffect(() => {
+    projectStatusRef.current = state.project.status;
+  }, [state.project.status]);
 
   useEffect(() => {
     let cancelled = false;
-    const seed = makeInitialState(id, currentUser);
+    // The initial render already seeded this project for this user, so the seed
+    // is only rebuilt when the project or the signed-in user actually changes.
+    const needsSeed = seededKey.current !== seedKey;
+    seededKey.current = seedKey;
+    const seed = needsSeed ? makeInitialState(id, currentUser) : null;
+    if (seed) setState(seed);
     setReady(null);
 
     const restore = async () => {
       if (!remote) {
-        setProject(seed.project);
-        setBrief(seed.brief);
-        setDeliverable(seed.deliverable);
+        if (seed) setState(seed);
         setReady(id);
         return;
       }
-
+      const base = seed ?? makeInitialState(id, currentUser);
       try {
         const [{ data: row, error }, { data: notes, error: notesError }] = await Promise.all([
           supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle(),
@@ -99,23 +111,25 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         if (notesError) throw notesError;
         if (cancelled) return;
 
-        const state = row?.state as Partial<ProjectState> | null;
-        const restoredDeliverable = state?.deliverable ?? seed.deliverable;
-        const restoredProject = state?.project ?? seed.project;
-        const projectType = normalizeProjectType(restoredProject.project_type);
-        setProject({ ...restoredProject, project_type: projectType, status: normalizeProjectStatus(restoredProject.status, projectType) });
-        setBrief(state?.brief ?? seed.brief);
-        setDeliverable({
-          ...restoredDeliverable,
-          video_url: restoredDeliverable.video_url?.includes('sample-cut-guid') ? '' : restoredDeliverable.video_url,
-          feedback_notes: (notes ?? []).filter((note) => note.id !== 'note_1') as FeedbackNote[],
+        const saved = row?.state as Partial<ProjectState> | null;
+        const projectType = normalizeProjectType(saved?.project?.project_type);
+        const restoredProject = { ...(saved?.project ?? base.project) };
+        setState({
+          project: { ...restoredProject, project_type: projectType, status: normalizeProjectStatus(restoredProject.status, projectType) },
+          brief: saved?.brief ?? base.brief,
+          deliverable: {
+            ...(saved?.deliverable ?? base.deliverable),
+            // A demo placeholder from an early version is not a real cut.
+            video_url: saved?.deliverable?.video_url?.includes('sample-cut-guid') ? '' : saved?.deliverable?.video_url ?? '',
+            feedback_notes: (notes ?? []).filter((note) => note.id !== 'note_1') as FeedbackNote[],
+          },
         });
 
         // Newly created client workspaces already have a state row. This fallback
         // initializes older memberships without replacing an existing row.
         if (!row) {
           const { error: seedError } = await supabase.from('project_portal_state').upsert(
-            { project_id: id, state: { ...seed, deliverable: withoutNotes(seed.deliverable) }, updated_by: uid },
+            { project_id: id, state: { ...base, deliverable: withoutNotes(base.deliverable) }, updated_by: uid },
             { onConflict: 'project_id', ignoreDuplicates: true },
           );
           if (seedError) throw seedError;
@@ -128,38 +142,38 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
 
     void restore();
     return () => { cancelled = true; };
-  }, [id, uid, currentUser?.company_name, remote]);
+  }, [id, uid, currentUser, remote, seedKey]);
 
   useEffect(() => {
     if (!remote || ready !== id) return;
     const channel = supabase
       .channel(`portal-${id}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_portal_state', filter: `project_id=eq.${id}` }, (event) => {
-        const state = (event.new as { state?: Partial<ProjectState> }).state;
-        if (state?.project) {
-          const projectType = normalizeProjectType(state.project.project_type);
-          setProject({ ...state.project, project_type: projectType, status: normalizeProjectStatus(state.project.status, projectType) });
-        }
-        if (state?.brief) setBrief(state.brief);
-        if (state?.deliverable) {
-          setDeliverable((current) => ({
-            ...current,
-            ...state.deliverable,
-            feedback_notes: current.feedback_notes,
-          } as Deliverable));
-        }
+        const incoming = (event.new as { state?: Partial<ProjectState> }).state;
+        if (!incoming) return;
+        setState((current) => {
+          const projectType = normalizeProjectType(incoming.project?.project_type ?? current.project.project_type);
+          return {
+            project: incoming.project
+              ? { ...incoming.project, project_type: projectType, status: normalizeProjectStatus(incoming.project.status, projectType) }
+              : current.project,
+            brief: incoming.brief ?? current.brief,
+            // Realtime rows never carry notes, so the local list stays authoritative.
+            deliverable: incoming.deliverable ? { ...current.deliverable, ...incoming.deliverable } : current.deliverable,
+          };
+        });
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_feedback_notes', filter: `project_id=eq.${id}` }, (event) => {
         const note = event.new as FeedbackNote;
-        setDeliverable((current) => current.feedback_notes.some((existing) => existing.id === note.id)
+        setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === note.id)
           ? current
-          : { ...current, feedback_notes: [note, ...current.feedback_notes] });
+          : { ...current, deliverable: { ...current.deliverable, feedback_notes: [note, ...current.deliverable.feedback_notes] } });
       })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [id, remote, ready]);
 
-  const savePatch = (patch: ProjectStatePatch): Promise<void> => {
+  const savePatch = useCallback((patch: ProjectStatePatch): Promise<void> => {
     if (!remote || !uid || ready !== id) return Promise.resolve();
     const databasePatch = patch.deliverable
       ? { ...patch, deliverable: withoutNotes(patch.deliverable) }
@@ -172,30 +186,28 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       console.error('Failed to save project changes to Supabase.', error);
     });
     return request;
-  };
+  }, [id, remote, ready, uid]);
 
-  const saveProjectFields = (patch: Partial<Project>) => {
+  const saveProjectFields = useCallback((patch: Partial<Project>) => {
     setPendingStatusSaves((count) => count + 1);
     void savePatch({ project: patch }).finally(() => {
       setPendingStatusSaves((count) => Math.max(0, count - 1));
     });
-  };
+  }, [savePatch]);
 
-  const saveStatus = (status: ProjectStatus) => saveProjectFields({ status });
+  const updateStatus = useCallback((status: ProjectStatus) => {
+    setState((current) => ({ ...current, project: { ...current.project, status } }));
+    saveProjectFields({ status });
+  }, [saveProjectFields]);
 
-  const updateStatus = (status: ProjectStatus) => {
-    setProject((current) => ({ ...current, status }));
-    saveStatus(status);
-  };
-
-  const updateProjectType = (projectType: ProjectType) => {
-    const status = projectType === 'after_effects' && project.status === 'Shooting' ? 'Editing' : project.status;
-    setProject((current) => ({ ...current, project_type: projectType, status }));
+  const updateProjectType = useCallback((projectType: ProjectType) => {
+    const status = projectType === 'after_effects' && projectStatusRef.current === 'Shooting' ? 'Editing' : projectStatusRef.current;
+    setState((current) => ({ ...current, project: { ...current.project, project_type: projectType, status } }));
     saveProjectFields({ project_type: projectType, status });
-  };
+  }, [saveProjectFields]);
 
-  const postNewCut = (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => {
-    const patch = {
+  const postNewCut = useCallback((cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => {
+    const deliverablePatch = {
       version_number: cut.version,
       video_url: cut.videoUrl,
       video_storage_path: cut.videoStoragePath,
@@ -205,29 +217,33 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       action_required_by: 'Client' as const,
       action_banner_text: `Review ${cut.version} and leave your notes below`,
     };
-    setDeliverable((current) => ({ ...current, ...patch }));
-    savePatch({ deliverable: patch });
-    if (['Scripting', 'Pre-Production', 'Shooting'].includes(project.status)) {
-      setProject((current) => ({ ...current, status: 'Editing' }));
-      saveStatus('Editing');
-    }
-  };
+    const advances = ['Scripting', 'Pre-Production', 'Shooting'].includes(projectStatusRef.current);
+    const status = advances ? 'Editing' : projectStatusRef.current;
+    // The cut and the stage advance are written as one merged patch instead of
+    // one round trip per field.
+    setState((current) => ({
+      project: { ...current.project, status },
+      brief: current.brief,
+      deliverable: { ...current.deliverable, ...deliverablePatch },
+    }));
+    void savePatch({ deliverable: deliverablePatch, ...(advances ? { project: { status } } : {}) });
+  }, [savePatch]);
 
-  const setActionAlert = (actionBy: ActionRequiredBy, text: string) => {
+  const setActionAlert = useCallback((actionBy: ActionRequiredBy, text: string) => {
     const patch = { action_required_by: actionBy, action_banner_text: text };
-    setDeliverable((current) => ({ ...current, ...patch }));
-    savePatch({ deliverable: patch });
-  };
+    setState((current) => ({ ...current, deliverable: { ...current.deliverable, ...patch } }));
+    void savePatch({ deliverable: patch });
+  }, [savePatch]);
 
-  const updateScript = (updated: CreativeBrief) => {
-    setBrief(updated);
-    savePatch({ brief: updated });
-  };
+  const updateScript = useCallback((brief: CreativeBrief) => {
+    setState((current) => ({ ...current, brief }));
+    void savePatch({ brief });
+  }, [savePatch]);
 
-  const addNote = async (note: Omit<FeedbackNote, 'id' | 'created_at'>) => {
+  const addNote = useCallback(async (note: Omit<FeedbackNote, 'id' | 'created_at'>) => {
     const newNote: FeedbackNote = { ...note, author_email: currentUser?.email, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     if (!remote) {
-      setDeliverable((current) => ({ ...current, feedback_notes: [newNote, ...current.feedback_notes] }));
+      setState((current) => ({ ...current, deliverable: { ...current.deliverable, feedback_notes: [newNote, ...current.deliverable.feedback_notes] } }));
       return;
     }
     const { data, error } = await supabase.from('project_feedback_notes')
@@ -236,30 +252,42 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       .single();
     if (error) throw error;
     const savedNote = data as FeedbackNote;
-    setDeliverable((current) => current.feedback_notes.some((existing) => existing.id === savedNote.id)
+    setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === savedNote.id)
       ? current
-      : { ...current, feedback_notes: [savedNote, ...current.feedback_notes] });
-  };
+      : { ...current, deliverable: { ...current.deliverable, feedback_notes: [savedNote, ...current.deliverable.feedback_notes] } });
+  }, [currentUser?.email, id, remote]);
 
-  const uploadSuccess = (fileName: string, storagePath: string) => {
+  const uploadSuccess = useCallback((fileName: string, storagePath: string) => {
     const patch = { logo_file_name: fileName, logo_storage_path: storagePath, action_required_by: 'None' as const, action_banner_text: `Logo received: ${fileName}. The editor can download it from this project.` };
-    setDeliverable((current) => ({ ...current, ...patch }));
-    savePatch({ deliverable: patch });
-  };
+    setState((current) => ({ ...current, deliverable: { ...current.deliverable, ...patch } }));
+    void savePatch({ deliverable: patch });
+  }, [savePatch]);
 
-  const approveCut = () => {
+  const approveCut = useCallback(() => {
     const deliverablePatch = { approval_status: 'Approved' as const, action_required_by: 'None' as const, action_banner_text: 'The client approved this cut.' };
-    setDeliverable((current) => ({ ...current, ...deliverablePatch }));
-    setProject((current) => ({ ...current, status: 'Final Review' }));
-    savePatch({ deliverable: deliverablePatch });
-    saveStatus('Final Review');
-  };
+    setState((current) => ({
+      project: { ...current.project, status: 'Final Review' },
+      brief: current.brief,
+      deliverable: { ...current.deliverable, ...deliverablePatch },
+    }));
+    void savePatch({ deliverable: deliverablePatch, project: { status: 'Final Review' } });
+  }, [savePatch]);
 
-  return (
-    <Context.Provider value={{ project, brief, deliverable, isProjectLoaded: ready === id, isStatusSaving: pendingStatusSaves > 0, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess }}>
-      {children}
-    </Context.Provider>
-  );
+  const value = useMemo<ContextValue>(() => ({
+    ...state,
+    isProjectLoaded: ready === id,
+    isStatusSaving: pendingStatusSaves > 0,
+    updateStatus,
+    updateProjectType,
+    postNewCut,
+    setActionAlert,
+    updateScript,
+    addNote,
+    approveCut,
+    uploadSuccess,
+  }), [state, ready, id, pendingStatusSaves, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess]);
+
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 };
 
 export const useProject = () => {

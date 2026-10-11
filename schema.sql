@@ -1,4 +1,6 @@
   -- Run this in the Supabase SQL editor before using the shared project state.
+  -- This is the from-scratch setup. Existing databases should instead run the
+  -- files in supabase/migrations/ in order.
   -- Add one row per real email address that should access the project.
   create table if not exists public.project_members (
     project_id text not null,
@@ -9,6 +11,13 @@
     primary key (project_id, email)
   );
 
+  -- Lookups by email (sign-in, every row level security check) and by project
+  -- (the editor's project list and member list) both run on every request.
+  create index if not exists project_members_email_idx
+    on public.project_members (email);
+  create index if not exists project_members_project_id_idx
+    on public.project_members (project_id);
+
   alter table public.project_members enable row level security;
 
   drop policy if exists "Users can read their own project membership"
@@ -16,6 +25,16 @@
   create policy "Users can read their own project membership"
     on public.project_members
     for select
+    to authenticated
+    using (lower(email) = lower(auth.jwt() ->> 'email'));
+
+  -- Without this, a DELETE on project_members is filtered out silently by RLS
+  -- instead of raising an error.
+  drop policy if exists "Project members can delete their own membership"
+    on public.project_members;
+  create policy "Project members can delete their own membership"
+    on public.project_members
+    for delete
     to authenticated
     using (lower(email) = lower(auth.jwt() ->> 'email'));
 
@@ -83,6 +102,19 @@
 
   alter table public.project_portal_state replica identity full;
 
+  -- Deleting a project removes its membership rows too, so a removed project
+  -- cannot leave editor or client access behind. Declared here rather than
+  -- inline on project_members because that table is created first.
+  do $$
+  begin
+    if not exists (select 1 from pg_constraint where conname = 'project_members_project_id_fkey') then
+      alter table public.project_members
+        add constraint project_members_project_id_fkey
+        foreign key (project_id) references public.project_portal_state(project_id) on delete cascade;
+    end if;
+  end
+  $$;
+
   -- Store feedback independently so simultaneous comments cannot overwrite each other.
   create table if not exists public.project_feedback_notes (
     project_id text not null references public.project_portal_state(project_id) on delete cascade,
@@ -94,6 +126,13 @@
     created_at timestamptz not null default timezone('utc', now()),
     primary key (project_id, id)
   );
+
+  -- Removing a member deletes their notes by author, and every project load
+  -- reads the notes newest first.
+  create index if not exists project_feedback_notes_author_email_idx
+    on public.project_feedback_notes (author_email);
+  create index if not exists project_feedback_notes_project_created_idx
+    on public.project_feedback_notes (project_id, created_at desc);
 
   alter table public.project_feedback_notes enable row level security;
   drop policy if exists "Project members can read feedback notes" on public.project_feedback_notes;

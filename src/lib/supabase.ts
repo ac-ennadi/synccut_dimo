@@ -16,6 +16,22 @@ export const isSupabaseConfigured = Boolean(
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
+/**
+ * Short-lived signed URLs are cached for speed. Signing out must drop them so a
+ * later session cannot reuse a link minted for the previous user.
+ */
+const signOutListeners = new Set<() => void>();
+
+export function onSignOut(listener: () => void) {
+  signOutListeners.add(listener);
+  return () => { signOutListeners.delete(listener); };
+}
+
+export async function signOutAndClearCaches() {
+  for (const listener of signOutListeners) listener();
+  if (isSupabaseConfigured) await supabase.auth.signOut();
+}
+
 export async function signInWithPassword(email: string, password: string) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase authentication is not configured.');

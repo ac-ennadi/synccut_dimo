@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, FolderPlus, LogOut, ArrowUpRight, AlertCircle, CheckCircle2, Clapperboard, Users } from 'lucide-react';
+import { Search, FolderPlus, LogOut, ArrowUpRight, AlertCircle, CheckCircle2, Clapperboard, Users, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { DeleteProjectModal } from '@/components/DeleteProjectModal';
 
 interface ProjectRow {
   project_id: string;
@@ -27,6 +28,7 @@ export default function EditorPage() {
   const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro' });
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<ProjectRow | null>(null);
 
   const loadProjects = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
@@ -42,9 +44,14 @@ export default function EditorPage() {
     } finally { setLoading(false); }
   }, []);
 
+  // Guards the initial load so a token refresh cannot trigger a second fetch.
+  const loadedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!isLoading && (!currentUser || currentUser.role !== 'Editor')) router.replace('/editor/login');
-    if (currentUser?.role === 'Editor') void loadProjects();
+    if (isLoading) return;
+    if (!currentUser || currentUser.role !== 'Editor') { router.replace('/editor/login'); return; }
+    if (loadedFor.current === currentUser.user_id) return;
+    loadedFor.current = currentUser.user_id;
+    void loadProjects();
   }, [currentUser, isLoading, router, loadProjects]);
 
   const createProject = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -97,14 +104,29 @@ export default function EditorPage() {
         <label className="flex max-w-lg items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 dark:border-neutral-800 dark:bg-neutral-900"><Search size={17} className="text-neutral-400" /><input aria-label="Search projects and users" placeholder="Search projects or users" value={query} onChange={(event) => setQuery(event.target.value)} className="w-full bg-transparent py-3 text-sm outline-none" /></label>
 
         {loading ? <div className="py-16 text-center text-sm text-neutral-500">Loading projects…</div> : filtered.length === 0 ? <div className="rounded-2xl border border-dashed border-neutral-300 py-16 text-center dark:border-neutral-700"><h3 className="font-semibold">{projects.length ? 'No matching projects' : 'No projects yet'}</h3><p className="mt-1 text-sm text-neutral-500">{projects.length ? 'Try another search.' : 'Create a project, then add its users.'}</p></div> : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map((project) => <Link key={project.project_id} href={`/editor/clients/${encodeURIComponent(project.project_id)}`} className="group rounded-2xl border border-neutral-200 bg-white p-5 transition hover:border-indigo-400 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-medium uppercase tracking-wide text-neutral-500">{project.company_name || 'Project'}</p><h3 className="mt-1 truncate text-lg font-semibold">{project.title}</h3><p className="mt-2 text-xs font-semibold text-indigo-500">{project.projectType === 'after_effects' ? 'After Effects' : 'Premiere Pro'}</p></div><ArrowUpRight size={18} className="shrink-0 text-neutral-400 group-hover:text-indigo-500" /></div>
-            <div className="mt-4 flex items-center gap-2 text-sm text-neutral-500"><Users size={15} /><span>{project.members.length} {project.members.length === 1 ? 'user' : 'users'}</span></div>
-            <p className="mt-1 min-h-5 truncate text-xs text-neutral-500">{project.members.map((member) => member.display_name).join(', ') || 'No users added yet'}</p>
-            <div className="mt-5 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm dark:border-neutral-800"><span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs dark:bg-neutral-800">{project.status}</span><span className="max-w-[55%] truncate text-neutral-500">{project.latestCut}</span></div>
-          </Link>)}</section>
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map((project) => (
+            <article key={project.project_id} className="group relative rounded-2xl border border-neutral-200 bg-white transition hover:border-indigo-400 hover:shadow-md focus-within:border-indigo-400 dark:border-neutral-800 dark:bg-neutral-900">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(project)}
+                aria-label={`Delete project ${project.title}`}
+                title="Delete project"
+                className="absolute right-3 top-3 z-10 rounded-lg p-2 text-neutral-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+              >
+                <Trash2 size={16} />
+              </button>
+              <Link href={`/editor/clients/${encodeURIComponent(project.project_id)}`} className="block p-5 focus-visible:outline-none">
+                <div className="flex items-start justify-between gap-3"><div className="min-w-0 pr-8"><p className="text-xs font-medium uppercase tracking-wide text-neutral-500">{project.company_name || 'Project'}</p><h3 className="mt-1 truncate text-lg font-semibold">{project.title}</h3><p className="mt-2 text-xs font-semibold text-indigo-500">{project.projectType === 'after_effects' ? 'After Effects' : 'Premiere Pro'}</p></div><ArrowUpRight size={18} className="shrink-0 text-neutral-400 group-hover:text-indigo-500" /></div>
+                <div className="mt-4 flex items-center gap-2 text-sm text-neutral-500"><Users size={15} /><span>{project.members.length} {project.members.length === 1 ? 'user' : 'users'}</span></div>
+                <p className="mt-1 min-h-5 truncate text-xs text-neutral-500">{project.members.map((member) => member.display_name).join(', ') || 'No users added yet'}</p>
+                <div className="mt-5 flex items-center justify-between border-t border-neutral-100 pt-4 text-sm dark:border-neutral-800"><span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs dark:bg-neutral-800">{project.status}</span><span className="max-w-[55%] truncate text-neutral-500">{project.latestCut}</span></div>
+              </Link>
+            </article>
+          ))}</section>
         )}
       </div>
+
+      {pendingDelete && <DeleteProjectModal projectId={pendingDelete.project_id} projectTitle={pendingDelete.title} onClose={() => setPendingDelete(null)} onDeleted={(projectId) => { setProjects((current) => current.filter((project) => project.project_id !== projectId)); setPendingDelete(null); setMessage({ error: false, text: 'Project deleted. Client sign-in accounts were kept.' }); }} />}
     </main>
   );
 }
