@@ -87,11 +87,11 @@ export function LandingScrollStory() {
       gsap.set(hero, { autoAlpha: 1, y: 0 });
       gsap.set(stepsColumn, {
         autoAlpha: 0,
-        ...(isMobile ? { top: '5%', left: '0%', width: '100%', height: '30vh', yPercent: 0 } : {}),
+        ...(isMobile ? { top: '4%', left: '0%', width: '100%', height: '50vh', yPercent: 0 } : {}),
       });
       gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
       gsap.set(media, isMobile ? {
-        left: '5%', top: '70%', bottom: 'auto', width: '90%', height: '40vh',
+        left: '5%', top: '70%', bottom: 'auto', width: '90%', height: '38vh',
         xPercent: 0, yPercent: 0, borderRadius: 16,
       } : {
         left: '10%', top: '78%', bottom: 'auto', width: '80%', height: '70vh',
@@ -102,7 +102,7 @@ export function LandingScrollStory() {
       timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
       timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
       timeline.to(media, isMobile ? {
-        top: '38%', left: '4%', width: '92%', height: '45vh', borderRadius: 24, duration: 1,
+        top: '56%', left: '4%', width: '92%', height: '38vh', borderRadius: 24, duration: 1,
       } : {
         top: '50%', left: '55%', width: '45%', height: '60vh', yPercent: -50, borderRadius: 24, duration: 1,
       }, 0);
