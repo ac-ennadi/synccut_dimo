@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -36,6 +36,7 @@ const steps = [
 ];
 
 export function LandingScrollStory() {
+  const [activeStep, setActiveStep] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const heroDetailsRef = useRef<HTMLDivElement>(null);
@@ -43,6 +44,14 @@ export function LandingScrollStory() {
   const mediaRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const activeTab = tabRefs.current[activeStep];
+    if (!activeTab || !tabContainerRef.current) return;
+
+    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [activeStep]);
 
   useGSAP(() => {
     const section = sectionRef.current;
@@ -54,15 +63,9 @@ export function LandingScrollStory() {
     const tabs = tabRefs.current.filter(Boolean) as HTMLButtonElement[];
     if (!section || !hero || !heroDetails || !stepsColumn || !media || stepPanels.length !== 3 || tabs.length !== 3) return;
 
-    const setActiveStep = (index: number) => {
+    const updateActiveStep = (index: number) => {
+      setActiveStep(index);
       section.dataset.activeStep = String(index + 1);
-      stepPanels.forEach((panel, panelIndex) => panel.setAttribute('aria-hidden', String(panelIndex !== index)));
-      tabs.forEach((tab, tabIndex) => {
-        tab.classList.toggle('bg-white/10', tabIndex === index);
-        tab.classList.toggle('text-white', tabIndex === index);
-        tab.classList.toggle('text-white/45', tabIndex !== index);
-        tab.setAttribute('aria-selected', String(tabIndex === index));
-      });
     };
 
     const mm = gsap.matchMedia();
@@ -95,7 +98,7 @@ export function LandingScrollStory() {
       yPercent: 0,
       borderRadius: 16,
     });
-    setActiveStep(0);
+    updateActiveStep(0);
 
     // Phase 1: lift the headline and explicitly move the frame out of its clipped hero position.
     timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
@@ -124,10 +127,10 @@ export function LandingScrollStory() {
     let activeIndex = -1;
     timeline.eventCallback('onUpdate', () => {
       const time = timeline.time();
-      const nextIndex = time < 2 ? 0 : time < 3 ? 1 : 2;
+      const nextIndex = time < 2.12 ? 0 : time < 3.12 ? 1 : 2;
       if (nextIndex !== activeIndex) {
         activeIndex = nextIndex;
-        setActiveStep(nextIndex);
+        updateActiveStep(nextIndex);
       }
     });
 
@@ -135,12 +138,12 @@ export function LandingScrollStory() {
     });
 
     mm.add('(max-width: 1023px), (prefers-reduced-motion: reduce)', () => {
-      stepPanels.forEach((panel) => panel.setAttribute('aria-hidden', 'false'));
+      updateActiveStep(0);
       const triggers = stepPanels.map((panel, index) => ScrollTrigger.create({
         trigger: panel,
         start: 'top 60%',
         end: 'bottom 60%',
-        onToggle: ({ isActive }) => { if (isActive) setActiveStep(index); },
+        onToggle: ({ isActive }) => { if (isActive) updateActiveStep(index); },
       }));
       return () => triggers.forEach((trigger) => trigger.kill());
     });
@@ -211,7 +214,7 @@ export function LandingScrollStory() {
               <div
                 ref={(node) => { stepRefs.current[index] = node; }}
                 key={step.number}
-                aria-hidden={index !== 0}
+                aria-hidden={index !== activeStep}
                 className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8 max-lg:relative max-lg:inset-auto max-lg:mb-12 max-lg:min-h-[45vh] motion-reduce:relative motion-reduce:inset-auto motion-reduce:mb-12 motion-reduce:min-h-[45vh]"
               >
                 <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
@@ -229,16 +232,16 @@ export function LandingScrollStory() {
         <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:relative max-lg:order-1 max-lg:inset-auto max-lg:h-[56vw] max-lg:min-h-[260px] max-lg:w-full max-lg:rounded-2xl motion-reduce:relative motion-reduce:order-1 motion-reduce:inset-auto motion-reduce:h-[56vw] motion-reduce:min-h-[260px] motion-reduce:w-full">
           <div className="flex h-full flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
-              <div className="relative flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
+              <div ref={tabContainerRef} className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scroll-smooth pr-4 no-scrollbar">
                 {steps.map((step, index) => (
                   <button
                     ref={(node) => { tabRefs.current[index] = node; }}
                     key={step.number}
                     type="button"
                     role="tab"
-                    aria-selected={index === 0}
+                    aria-selected={index === activeStep}
                     aria-controls="sync-cut-demo-video"
-                    className={`shrink-0 whitespace-nowrap truncate rounded-full px-2.5 py-2 text-xs font-semibold transition-colors md:text-sm sm:px-3 ${index === 0 ? 'bg-white/10 text-white' : 'text-white/45'}`}
+                    className={`flex-shrink-0 whitespace-nowrap truncate rounded-full px-2.5 py-2 text-xs font-semibold transition-colors md:text-sm sm:px-3 ${index === activeStep ? 'bg-white/10 text-white' : 'text-white/45'}`}
                   >
                     <span className="mr-1.5 font-mono text-emerald-300">{step.number}</span>{step.label}
                   </button>
