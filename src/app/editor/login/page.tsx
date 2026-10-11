@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Clapperboard, Lock, RefreshCw, Shield } from 'lucide-react';
+import { AlertCircle, Lock, RefreshCw, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export default function EditorLoginPage() {
   const router = useRouter();
@@ -44,8 +45,8 @@ export default function EditorLoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
       <div className="w-full max-w-md space-y-6">
-        <header className="space-y-2 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white"><Clapperboard /></div>
+        <header className="space-y-3 text-center">
+          <div className="flex justify-center"><BrandLogo variant="dark" className="h-9 w-auto" /></div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase text-indigo-300"><Shield size={14} /> Editor access only</div>
           <h1 className="text-2xl font-black">Editor dashboard</h1>
           <p className="text-sm text-neutral-400">Sign in with the editor account configured in Supabase.</p>

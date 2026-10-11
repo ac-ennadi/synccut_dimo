@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, FolderPlus, LogOut, ArrowUpRight, AlertCircle, CheckCircle2, Clapperboard, Users, Trash2 } from 'lucide-react';
+import { Search, FolderPlus, LogOut, ArrowUpRight, AlertCircle, CheckCircle2, Users, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { DeleteProjectModal } from '@/components/DeleteProjectModal';
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface ProjectRow {
   project_id: string;
@@ -87,7 +88,7 @@ export default function EditorPage() {
     <main className="min-h-screen bg-neutral-100 p-4 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-7">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
-          <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white"><Clapperboard size={21} /></div><div><p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">SyncCut · Editor</p><h1 className="text-2xl font-bold">Projects</h1></div></div>
+          <div className="flex items-center gap-3"><BrandLogo variant="dark" className="h-8 w-auto" /><div><p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Editor</p><h1 className="text-2xl font-bold">Projects</h1></div></div>
           <div className="flex items-center gap-2"><span className="hidden text-sm text-neutral-500 sm:inline">Signed in as {currentUser.name}</span><button onClick={() => { logout(); router.push('/editor/login'); }} className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900"><LogOut size={15} />Sign out</button></div>
         </header>
 

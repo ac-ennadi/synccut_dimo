@@ -10,7 +10,8 @@ import { VisualReferences } from './VisualReferences';
 import { ActionAlert } from './ActionAlert';
 import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
-import { Clapperboard, LogOut, UserCheck } from 'lucide-react';
+import { LogOut, UserCheck } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 
 interface ClientPortalProps {
   project: Project;
@@ -45,9 +46,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         {/* Navigation Bar: Pure Client Identity */}
         <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600/10 text-indigo-500 flex items-center justify-center font-bold">
-              <Clapperboard className="w-5 h-5" />
-            </div>
+            <BrandLogo variant="light" className="h-7 w-auto" />
             <div>
               <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
                 Client Review Portal

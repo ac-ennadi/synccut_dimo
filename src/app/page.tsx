@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { LandingScrollStory } from '@/components/LandingScrollStory';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export default function HomePage() {
   const router = useRouter();
@@ -32,8 +33,7 @@ export default function HomePage() {
     <main className="landing-page">
       <header className="landing-header">
         <a className="landing-brand" href="#home" aria-label="SyncCut home">
-          <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
-          <span>SyncCut</span>
+          <BrandLogo variant="dark" className="h-[26px] w-auto sm:h-[30px]" priority />
         </a>
         <nav className="landing-nav" aria-label="Main navigation">
           <a href="#how-it-works">How it works</a>
@@ -53,7 +53,9 @@ export default function HomePage() {
       </section>
 
       <footer className="landing-footer">
-        <a className="landing-brand" href="#home"><span className="brand-mark"><Clapperboard size={17} /></span><span>SyncCut</span></a>
+        <a className="landing-brand" href="#home" aria-label="SyncCut home">
+          <BrandLogo variant="dark" className="h-[22px] w-auto sm:h-[24px]" />
+        </a>
         <span className="footer-note">A clearer way to bring every cut across the finish line.</span>
         <div className="footer-links"><Link href="/client/login">Client sign in</Link><Link href="/editor/login">Editor sign in</Link></div>
         <span className="footer-copy">© {new Date().getFullYear()} SyncCut</span>
