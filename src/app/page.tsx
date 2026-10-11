@@ -4,13 +4,8 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowDown,
   ArrowRight,
-  Check,
   Clapperboard,
-  Play,
-  ShieldCheck,
-  UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { LandingScrollStory } from '@/components/LandingScrollStory';
@@ -48,37 +43,6 @@ export default function HomePage() {
           <Link className="nav-cta" href="/client/login">Open your workspace <ArrowRight size={15} /></Link>
         </nav>
       </header>
-
-      <section className="hero-section" id="home">
-        <div className="hero-glow hero-glow-left" />
-        <div className="hero-glow hero-glow-right" />
-        <div className="hero-copy">
-          <div className="hero-kicker"><span className="kicker-dot" /> Video feedback, all in one place</div>
-          <h1>Review the cut.<br /><span>Make the next one better.</span></h1>
-          <p className="hero-description">
-            Watch the latest cut, share feedback, and keep every revision in one place.
-          </p>
-          <div className="hero-actions">
-            <Link className="button-primary" href="/client/login">
-              <UserCheck size={17} /> Log in as client <ArrowRight size={17} />
-            </Link>
-            <a className="button-secondary" href="#how-it-works"><span className="button-play"><Play size={13} fill="currentColor" /></span> See how it works</a>
-          </div>
-          <div className="hero-trust">
-            <span><ShieldCheck size={16} /> Private client review</span>
-            <i />
-            <span><Check size={15} /> Every note stays in context</span>
-          </div>
-        </div>
-
-        <a className="scroll-cue" href="#how-it-works"><span>SCROLL TO EXPLORE</span><ArrowDown size={14} /></a>
-      </section>
-
-      <section className="intro-strip">
-        <span className="section-label">THE SYNC CUT FLOW</span>
-        <p>From the first watch to the final approval, the whole conversation stays together.</p>
-        <div className="step-indicators"><span>01</span><i /><span>02</span><i /><span>03</span></div>
-      </section>
 
       <LandingScrollStory />
 
