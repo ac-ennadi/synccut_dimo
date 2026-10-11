@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowDown, ArrowRight, CheckCircle2, MessageSquareText, Play, ShieldCheck, UserCheck } from 'lucide-react';
+import { ArrowDown, ArrowRight, CheckCircle2, Play, ShieldCheck, UserCheck } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -18,7 +18,6 @@ const steps = [
     title: 'Watch the latest cut.',
     description: 'Clients open the latest cut and its related notes in one secure workspace.',
     bullets: ['One home for every version', 'Private client access'],
-    icon: Play,
   },
   {
     number: '02',
@@ -26,7 +25,6 @@ const steps = [
     title: 'Feedback that makes sense.',
     description: 'Clients leave notes as they watch. Every comment stays connected to its moment, so your next edit starts with clear direction.',
     bullets: ['Timecoded client notes', 'A shared conversation'],
-    icon: MessageSquareText,
   },
   {
     number: '03',
@@ -34,13 +32,13 @@ const steps = [
     title: 'Review, revise, approve.',
     description: 'Track revisions and approval in one place. Your team and client can see where the project stands and what happens next.',
     bullets: ['Version history in one place', 'Clear approval status'],
-    icon: CheckCircle2,
   },
 ];
 
 export function LandingScrollStory() {
   const sectionRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const heroDetailsRef = useRef<HTMLDivElement>(null);
   const stepsColumnRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -49,11 +47,12 @@ export function LandingScrollStory() {
   useGSAP(() => {
     const section = sectionRef.current;
     const hero = heroRef.current;
+    const heroDetails = heroDetailsRef.current;
     const stepsColumn = stepsColumnRef.current;
     const media = mediaRef.current;
     const stepPanels = stepRefs.current.filter(Boolean) as HTMLDivElement[];
     const tabs = tabRefs.current.filter(Boolean) as HTMLButtonElement[];
-    if (!section || !hero || !stepsColumn || !media || stepPanels.length !== 3 || tabs.length !== 3) return;
+    if (!section || !hero || !heroDetails || !stepsColumn || !media || stepPanels.length !== 3 || tabs.length !== 3) return;
 
     const setActiveStep = (index: number) => {
       section.dataset.activeStep = String(index + 1);
@@ -87,9 +86,8 @@ export function LandingScrollStory() {
     gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
     gsap.set(media, {
       left: '10%',
-      // top: 50% + a 70vh frame puts its lower edge at 120% (20% off-screen),
-      // which is the same opening position as bottom: -20% without animating auto offsets.
-      top: '50%',
+      // Start below the hero details; the first scroll phase lifts the frame into place.
+      top: '78%',
       bottom: 'auto',
       width: '80%',
       height: '70vh',
@@ -101,7 +99,9 @@ export function LandingScrollStory() {
 
     // Phase 1: lift the headline and explicitly move the frame out of its clipped hero position.
     timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
+    timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
     timeline.to(media, {
+      top: '50%',
       left: '55%',
       width: '45%',
       height: '60vh',
@@ -172,6 +172,7 @@ export function LandingScrollStory() {
           <p className="mx-auto mt-5 max-w-xl text-[clamp(0.95rem,1.5vw,1.125rem)] leading-7 text-white/65">
             Watch the latest cut, share feedback, and keep every revision in one place.
           </p>
+          <div ref={heroDetailsRef}>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link href="/client/login" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-blue-500 px-5 text-sm font-bold text-[#06110d] shadow-[0_8px_26px_rgba(16,185,129,0.18)] transition hover:-translate-y-0.5">
               <UserCheck size={17} /> Log in as client <ArrowRight size={17} />
@@ -189,12 +190,12 @@ export function LandingScrollStory() {
           <div className="mt-5 inline-flex items-center gap-2 text-[9px] tracking-[0.14em] text-white/45">
             SCROLL TO EXPLORE <ArrowDown size={13} className="text-emerald-300" />
           </div>
+          </div>
         </div>
 
         {/* Step content is stacked in one left-hand column and revealed by the same scrubbed timeline. */}
         <div ref={stepsColumnRef} className="absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:relative max-lg:order-2 max-lg:left-auto max-lg:top-auto max-lg:h-auto max-lg:w-full max-lg:translate-y-0 max-lg:opacity-100 motion-reduce:relative motion-reduce:order-2 motion-reduce:left-auto motion-reduce:top-auto motion-reduce:h-auto motion-reduce:w-full motion-reduce:translate-y-0 motion-reduce:opacity-100">
           {steps.map((step, index) => {
-            const Icon = step.icon;
             return (
               <div
                 ref={(node) => { stepRefs.current[index] = node; }}
@@ -202,12 +203,7 @@ export function LandingScrollStory() {
                 aria-hidden={index !== 0}
                 className="pointer-events-none absolute inset-0 flex flex-col justify-center max-lg:relative max-lg:inset-auto max-lg:mb-12 max-lg:min-h-[45vh] motion-reduce:relative motion-reduce:inset-auto motion-reduce:mb-12 motion-reduce:min-h-[45vh]"
               >
-                <div className="mb-9 flex items-center gap-3 font-mono text-[11px] text-white/50">
-                  <span className="text-emerald-300">{step.number}</span>
-                  <span className="h-px w-9 bg-gradient-to-r from-emerald-400 to-blue-500" />
-                  <span>{step.label}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-white/65"><Icon size={16} className="text-emerald-300" /> {step.label}</div>
+                <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
                 <h2 className="mt-4 max-w-lg text-[clamp(2.25rem,4.3vw,4rem)] font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa]">{step.title}</h2>
                 <p className="mt-4 max-w-md text-sm leading-7 text-white/65">{step.description}</p>
                 <ul className="mt-6 grid gap-3 text-[13px] text-white/80">
@@ -219,7 +215,7 @@ export function LandingScrollStory() {
         </div>
 
         {/* The window starts wide and low, then GSAP moves it into the right column. */}
-        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:relative max-lg:order-1 max-lg:inset-auto max-lg:h-[56vw] max-lg:min-h-[260px] max-lg:w-full max-lg:rounded-2xl motion-reduce:relative motion-reduce:order-1 motion-reduce:inset-auto motion-reduce:h-[56vw] motion-reduce:min-h-[260px] motion-reduce:w-full">
+        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:relative max-lg:order-1 max-lg:inset-auto max-lg:h-[56vw] max-lg:min-h-[260px] max-lg:w-full max-lg:rounded-2xl motion-reduce:relative motion-reduce:order-1 motion-reduce:inset-auto motion-reduce:h-[56vw] motion-reduce:min-h-[260px] motion-reduce:w-full">
           <div className="flex h-full flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <div className="relative flex min-w-0 flex-1 items-center gap-1.5">
@@ -241,10 +237,10 @@ export function LandingScrollStory() {
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-gray-950"><Play size={10} fill="currentColor" /></span> View full demo
               </a>
             </div>
-            <div id="sync-cut-demo-video" className="min-h-0 flex-1 overflow-hidden rounded-xl border border-white/10 bg-black">
+            <div id="sync-cut-demo-video" className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black">
               <iframe
-                className="h-full w-full border-0"
-                src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=1&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
+                className="pointer-events-none h-full w-full border-0 object-cover"
+                src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
                 title="SyncCut product demo"
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 allowFullScreen
