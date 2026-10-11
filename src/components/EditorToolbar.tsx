@@ -43,13 +43,14 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 }) => {
   const [activeModal, setActiveModal] = useState<'none' | 'newCut' | 'actionAlert' | 'editScript'>('none');
 
-  // New Cut Form state
+  // New Cut Form state. Duration is never asked for: it is read from the chosen
+  // file, and the player falls back to the real media duration on playback.
   const [cutVersion, setCutVersion] = useState('');
   const [cutUrl, setCutUrl] = useState('');
-  const [cutDuration, setCutDuration] = useState(0);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [videoDuration, setVideoDuration] = useState(0);
 
   // Action Banner state
   const [alertText, setAlertText] = useState(
@@ -85,9 +86,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     setUploadError('');
     setIsUploading(true);
     try {
-      let videoUrl = cutUrl.trim();
+      const videoUrl = cutUrl.trim();
       let videoStoragePath: string | undefined;
-      let duration = cutDuration;
+      // Detected when the file is picked, with a re-read here as a fallback.
+      let duration = videoDuration;
       if (videoFile) {
         if (videoFile.size > 512 * 1024 * 1024) throw new Error('This video is larger than the 512 MB per-file limit.');
         const { data: { session } } = await supabase.auth.getSession();
@@ -102,13 +104,13 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         const { error } = await supabase.storage.from('project-videos').uploadToSignedUrl(ticket.path, ticket.token, videoFile, { contentType: videoFile.type, upsert: false });
         if (error) throw error;
         videoStoragePath = ticket.path;
-        duration = await readVideoDuration(videoFile);
-        setCutDuration(duration);
+        if (!duration) duration = await readVideoDuration(videoFile);
       }
-      if (!videoUrl) throw new Error('Choose a video file or enter a video URL.');
+      if (!videoUrl && !videoStoragePath) throw new Error('Choose a video file or enter a video URL.');
       onPostNewCut({ version: cutVersion, videoUrl, videoStoragePath, duration });
       setVideoFile(null);
       setCutUrl('');
+      setVideoDuration(0);
       setActiveModal('none');
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'Video upload failed. Please try again.');
@@ -239,8 +241,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
               <div>
                 <label className="block text-neutral-300 font-semibold mb-1">Upload video file</label>
-                <input type="file" accept="video/*" onChange={(e) => { const file = e.target.files?.[0] ?? null; setVideoFile(file); if (file) setCutUrl(''); setUploadError(''); }} className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-300 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-800 file:px-3 file:py-2 file:text-neutral-100" />
-                {videoFile && <p className="mt-1 text-[11px] text-neutral-400">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB</p>}
+                <input type="file" accept="video/*" onChange={async (e) => { const file = e.target.files?.[0] ?? null; setVideoFile(file); setUploadError(''); if (file) { setCutUrl(''); setVideoDuration(await readVideoDuration(file)); } else setVideoDuration(0); }} className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-300 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-800 file:px-3 file:py-2 file:text-neutral-100" />
+                {videoFile && <p className="mt-1 text-[11px] text-neutral-400">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB{videoDuration ? ` · ${Math.floor(videoDuration / 60)}:${String(videoDuration % 60).padStart(2, '0')}` : ''}</p>}
                 <p className="mt-1 text-[11px] text-neutral-500">The file uploads directly to the project video storage. Large files may take a few minutes.</p>
               </div>
 
@@ -259,20 +261,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
               {uploadError && <p role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-2.5 text-red-300">{uploadError}</p>}
 
-              <div>
-                <label className="block text-neutral-300 font-semibold mb-1">Duration in seconds</label>
-                <input
-                  type="number"
-                  value={cutDuration}
-                  min={videoFile ? 0 : 1}
-                  onChange={(e) => setCutDuration(Number(e.target.value))}
-                  required={!videoFile}
-                  className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
               <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-neutral-300 leading-relaxed text-[11px]">
-                💡 <strong>What happens:</strong> Publishing replaces the current video in the client portal, where the client can review it and leave notes.
+                💡 <strong>What happens:</strong> Publishing replaces the current video in the client portal, where the client can review it and leave notes. The length is read from the video itself.
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

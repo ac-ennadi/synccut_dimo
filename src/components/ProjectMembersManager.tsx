@@ -36,7 +36,22 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
     } finally { setLoading(false); }
   }, [projectId, request]);
 
-  useEffect(() => { void loadMembers(); }, [loadMembers]);
+  // Defined inside the effect so the fetch is not triggered by a state update
+  // during render, and so Vite/React can cancel it cleanly on unmount.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = await request(`/api/editor/project-members?projectId=${encodeURIComponent(projectId)}`);
+        if (!cancelled) setMembers(result.members ?? []);
+      } catch (error) {
+        if (!cancelled) setMessage({ error: true, text: error instanceof Error ? error.message : 'Could not load project users.' });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId, request]);
 
   const addMember = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

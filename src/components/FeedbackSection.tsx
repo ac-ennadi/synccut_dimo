@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { FeedbackNote } from '@/types';
 import { MessageSquare, Send, Clock, CheckCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { formatRelativeTime } from '@/lib/formatters';
 
 interface FeedbackSectionProps {
   notes: FeedbackNote[];
@@ -148,7 +149,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                     </span>
                   )}
                 </div>
-                <span className="text-neutral-400 text-[10px]">{note.created_at}</span>
+                <span className="text-neutral-400 text-[10px]">{formatRelativeTime(note.created_at)}</span>
               </div>
               <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
                 {note.content}
