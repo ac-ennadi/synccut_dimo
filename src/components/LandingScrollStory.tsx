@@ -86,7 +86,7 @@ export function LandingScrollStory() {
       });
 
       setStep(0);
-      gsap.set(mediaWindow, { width: 'min(92vw, 1440px)', xPercent: -50, yPercent: -50, x: 0, scale: 1.12, left: '50%', right: 'auto', top: '88%' });
+      gsap.set(mediaWindow, { width: 'min(92vw, 1440px)', xPercent: -50, yPercent: -50, x: 0, scale: 1.08, left: '50%', right: 'auto', top: '110%' });
       gsap.set(copy, { opacity: 0, x: -34 });
       gsap.set(heroCopy, { autoAlpha: 1, y: 0 });
       gsap.set(cards, { autoAlpha: 0, y: 24 });
