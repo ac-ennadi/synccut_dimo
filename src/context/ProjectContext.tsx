@@ -66,6 +66,19 @@ function withoutNotes(deliverable: Partial<Deliverable>): Partial<Omit<Deliverab
   return data;
 }
 
+/** Translates a failed feedback insert into an actionable, user-facing message. */
+function describeFeedbackError(error: { message?: string; code?: string; details?: string | null }, email?: string, projectId?: string): string {
+  const code = error.code ?? '';
+  const message = error.message ?? '';
+  if (/jwt|expired|token|sign in|401/i.test(message) || code === 'PGRST301') return 'Your session expired. Sign in again and retry your note.';
+  if (/row-level security|policy|permission denied/i.test(message) || code === '42501') {
+    return `You are signed in as ${email ?? 'this account'}, but the database is not letting this account add notes to project ${projectId ?? 'this project'}. This is usually a missing row-level-security policy — see the steps below.`;
+  }
+  if (/column .* does not exist|does not exist|PGRST204/i.test(message)) return 'The feedback table is missing a column from the latest migration. Ask the developer to run the feedback migrations.';
+  if (/foreign key|violates|not present/i.test(message) || code === '23503') return 'This project is missing its state record, so notes cannot be attached to it. The editor should re-create the project.';
+  return `Could not save your feedback: ${message || 'the server rejected it.'}`;
+}
+
 export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: string }> = ({ children, projectId }) => {
   const { currentUser } = useAuth();
   const id = projectId ?? currentUser?.project_id ?? mockProject.project_id;
@@ -250,7 +263,16 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       .insert({ ...newNote, project_id: id })
       .select('id,author_name,timecode,content,created_at')
       .single();
-    if (error) throw error;
+    if (error) {
+      // This is the one write that runs straight from the browser under row
+      // level security, so the database message is the only way to tell a
+      // missing policy apart from a missing column or an expired session.
+      console.error('Failed to save feedback to Supabase.', {
+        message: error.message, code: error.code, details: error.details, hint: error.hint,
+        signedInAs: currentUser?.email, projectId: id,
+      });
+      throw new Error(describeFeedbackError(error, currentUser?.email, id));
+    }
     const savedNote = data as FeedbackNote;
     setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === savedNote.id)
       ? current

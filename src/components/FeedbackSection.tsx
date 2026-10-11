@@ -39,8 +39,10 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
       setContent('');
       setManualTimecode('');
       setTimecodeTag(null);
-    } catch {
-      setErrorMessage('Could not save your feedback. Please try again.');
+    } catch (error) {
+      setErrorMessage(error instanceof Error && error.message
+        ? error.message
+        : 'Could not save your feedback. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -114,7 +116,19 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
             <Send className="w-3.5 h-3.5" />
           </button>
         </div>
-        {errorMessage && <p role="alert" className="text-xs text-rose-500">{errorMessage}</p>}
+        {errorMessage && (
+          <div role="alert" className="space-y-1 rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300">
+            <p>{errorMessage}</p>
+            {/row-level security|policy|not letting/i.test(errorMessage) && (
+              <p className="text-rose-600/80 dark:text-rose-400/80">
+                Fix: in Supabase, open the SQL Editor and run{' '}
+                <code className="rounded bg-rose-100 px-1 font-mono dark:bg-rose-950">supabase/migrations/20261011_concurrent_project_edits.sql</code>{' '}
+                and{' '}
+                <code className="rounded bg-rose-100 px-1 font-mono dark:bg-rose-950">20261011_project_member_feedback_attribution.sql</code>, then reload this page.
+              </p>
+            )}
+          </div>
+        )}
       </form>
 
       {/* Logged Notes Feed */}
