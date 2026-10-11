@@ -9,5 +9,5 @@ export interface MoodboardReference{id:string;title:string;category:string;descr
 export interface ScriptScene{scene_number:number;title:string;timecode:string;visual_description:string;voiceover:string}
 export interface ScriptSection{id:string;title:string;content:string}
 export interface CreativeBrief{brief_id:string;project_id:string;version_label:string;is_locked:boolean;target_audience:string;script_scenes:ScriptScene[];script_sections?:ScriptSection[];references:MoodboardReference[]}
-export interface FeedbackNote{id:string;author_name:string;timecode?:string;content:string;created_at:string}
+export interface FeedbackNote{id:string;author_name:string;author_email?:string;timecode?:string;content:string;created_at:string}
 export interface Deliverable{deliverable_id:string;project_id:string;version_number:string;video_url:string;video_storage_path?:string;logo_storage_path?:string;logo_file_name?:string;duration_seconds:number;uploaded_at:string;action_required_by:ActionRequiredBy;action_banner_text?:string;approval_status:ApprovalStatus;feedback_notes:FeedbackNote[]}

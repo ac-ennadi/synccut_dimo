@@ -225,7 +225,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   };
 
   const addNote = async (note: Omit<FeedbackNote, 'id' | 'created_at'>) => {
-    const newNote: FeedbackNote = { ...note, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    const newNote: FeedbackNote = { ...note, author_email: currentUser?.email, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     if (!remote) {
       setDeliverable((current) => ({ ...current, feedback_notes: [newNote, ...current.feedback_notes] }));
       return;

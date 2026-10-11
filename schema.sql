@@ -88,6 +88,7 @@
     project_id text not null references public.project_portal_state(project_id) on delete cascade,
     id text not null,
     author_name text not null,
+    author_email text,
     timecode text,
     content text not null,
     created_at timestamptz not null default timezone('utc', now()),
