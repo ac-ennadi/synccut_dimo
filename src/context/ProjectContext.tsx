@@ -83,8 +83,18 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const { currentUser } = useAuth();
   const id = projectId ?? currentUser?.project_id ?? mockProject.project_id;
   const uid = currentUser?.user_id;
+  const companyName = currentUser?.company_name ?? '';
+  const userProjectId = currentUser?.project_id;
+  const stableUser = useMemo(() => currentUser, [
+    uid,
+    companyName,
+    userProjectId,
+    currentUser?.email,
+    currentUser?.name,
+    currentUser?.role,
+  ]);
   const remote = isSupabaseConfigured && Boolean(uid) && Boolean(projectId ?? currentUser?.project_id) && !uid?.startsWith('usr_');
-  const seedKey = `${id}|${currentUser?.company_name ?? ''}|${uid ?? ''}`;
+  const seedKey = `${id}|${companyName}|${uid ?? ''}`;
   const [state, setState] = useState<ProjectState>(() => makeInitialState(id, currentUser));
   const [ready, setReady] = useState<string | null>(null);
   const [pendingStatusSaves, setPendingStatusSaves] = useState(0);
@@ -104,17 +114,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     // is only rebuilt when the project or the signed-in user actually changes.
     const needsSeed = seededKey.current !== seedKey;
     seededKey.current = seedKey;
-    const seed = needsSeed ? makeInitialState(id, currentUser) : null;
+    const seed = needsSeed ? makeInitialState(id, stableUser) : null;
     if (seed) setState(seed);
     setReady(null);
 
     const restore = async () => {
+      // Do not expose seeded/mock data as loaded while a configured auth
+      // session is still being resolved. Consumers will remain on their
+      // loading screen until the real project data is available.
+      if (isSupabaseConfigured && !stableUser) return;
       if (!remote) {
         if (seed) setState(seed);
-        setReady(id);
+        if (!cancelled) setReady(id);
         return;
       }
-      const base = seed ?? makeInitialState(id, currentUser);
+      const base = seed ?? makeInitialState(id, stableUser);
       try {
         const [{ data: row, error }, { data: notes, error: notesError }] = await Promise.all([
           supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle(),
@@ -155,7 +169,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
 
     void restore();
     return () => { cancelled = true; };
-  }, [id, uid, currentUser, remote, seedKey]);
+  }, [id, uid, companyName, userProjectId, stableUser, remote, seedKey]);
 
   useEffect(() => {
     if (!remote || ready !== id) return;
