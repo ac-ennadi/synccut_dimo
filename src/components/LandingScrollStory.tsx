@@ -54,8 +54,11 @@ function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: n
       muted
       loop
       playsInline
-      preload="metadata"
+      preload={mobile ? 'auto' : 'metadata'}
       onCanPlay={(event) => {
+        void event.currentTarget.play();
+      }}
+      onLoadedData={(event) => {
         void event.currentTarget.play();
       }}
       aria-label={`SyncCut position ${String(positionIndex + 1).padStart(2, '0')} video preview`}
@@ -203,15 +206,6 @@ export function LandingScrollStory() {
         clearProps: 'transform,opacity,visibility,top,left,right,bottom,width,height',
       });
       section.dataset.activeStep = '1';
-      gsap.utils.toArray<HTMLElement>('.mobile-feature-card').forEach((card) => {
-        gsap.from(card, {
-          y: 20,
-          autoAlpha: 0,
-          duration: 0.6,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: card, start: 'top 85%', once: true },
-        });
-      });
     });
 
     let resizeTimer: number | undefined;
