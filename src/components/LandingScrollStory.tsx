@@ -47,7 +47,7 @@ const steps = [
 function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: number; mobile?: boolean }) {
   return (
     <video
-      className={`${mobile ? '' : 'pointer-events-none '}h-full w-full bg-black object-contain`}
+      className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-cover`}
       src={positionVideos[positionIndex]}
       autoPlay
       muted
@@ -310,6 +310,7 @@ export function LandingScrollStory() {
                     role="tab"
                     aria-selected={index === activeStep}
                     aria-controls="sync-cut-demo-video"
+                    onClick={() => setActiveStep(index)}
                     className={`flex-shrink-0 whitespace-nowrap truncate rounded-full px-2.5 py-2 text-xs font-semibold transition-colors md:text-sm sm:px-3 ${index === activeStep ? 'bg-white/10 text-white' : 'text-white/45'}`}
                   >
                     <span className="mr-1.5 font-mono text-emerald-300">{step.number}</span>{step.label}
