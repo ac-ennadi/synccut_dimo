@@ -53,11 +53,34 @@ function parseTimecode(timecode?: string) {
 
 function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positionIndex?: number; mobile?: boolean; startTime?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(!mobile || positionIndex === 0);
   const startTimeSeconds = parseTimecode(startTime);
 
   useEffect(() => {
+    if (shouldLoad || !mobile) return;
     const video = videoRef.current;
-    if (!video || startTimeSeconds <= 0) return;
+    if (!video || !('IntersectionObserver' in window)) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px 0px' },
+    );
+    observer.observe(video);
+
+    return () => observer.disconnect();
+  }, [mobile, shouldLoad]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !shouldLoad || startTimeSeconds <= 0) return;
 
     const seekToStartTime = () => {
       if (video.duration > startTimeSeconds) {
@@ -71,11 +94,11 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
     return () => {
       video.removeEventListener('loadedmetadata', seekToStartTime);
     };
-  }, [startTimeSeconds]);
+  }, [shouldLoad, startTimeSeconds]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !shouldLoad) return;
 
     const resumePlayback = () => {
       if (document.visibilityState !== 'hidden' && video.paused) {
@@ -95,19 +118,19 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
       video.removeEventListener('loadeddata', resumePlayback);
       video.removeEventListener('waiting', resumePlayback);
     };
-  }, [positionIndex]);
+  }, [positionIndex, shouldLoad]);
 
   return (
     <video
       ref={videoRef}
       key={positionVideos[positionIndex]}
       className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-contain`}
-      src={positionVideos[positionIndex]}
+      src={shouldLoad ? positionVideos[positionIndex] : undefined}
       autoPlay
       muted
       loop
       playsInline
-      preload={mobile ? 'auto' : 'metadata'}
+      preload={shouldLoad ? 'auto' : 'none'}
       aria-label={`SyncCut position ${String(positionIndex + 1).padStart(2, '0')} video preview`}
     />
   );
