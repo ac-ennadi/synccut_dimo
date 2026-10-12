@@ -36,6 +36,24 @@ const steps = [
   },
 ];
 
+function MobileFeaturePreview() {
+  return (
+    <div className="mt-8 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)] lg:hidden">
+      <div className="aspect-video w-full overflow-hidden rounded-xl">
+        <iframe
+          className="h-full w-full border-0"
+          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
+          title="SyncCut product demo"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      </div>
+    </div>
+  );
+}
+
 export function LandingScrollStory() {
   const [activeStep, setActiveStep] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
@@ -69,16 +87,6 @@ export function LandingScrollStory() {
     if (!section || !hero || !heroDetails || !stepsColumn || !media || !heroHeading || !heroSubtitle || stepPanels.length !== 3 || tabs.length !== 3) return;
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isPhone = window.matchMedia('(max-width: 768px)').matches;
-    if (isPhone) {
-      gsap.set([hero, stepsColumn, ...stepPanels, media], {
-        autoAlpha: 1,
-        clearProps: 'transform,opacity,visibility,top,left,right,bottom,width,height',
-      });
-      section.dataset.activeStep = '1';
-      return;
-    }
-
     if (reducedMotion) {
       gsap.set([hero, stepsColumn, ...stepPanels, media], { clearProps: 'all', autoAlpha: 1 });
       return;
@@ -93,28 +101,12 @@ export function LandingScrollStory() {
       clearProps: 'transform,opacity,visibility',
     });
 
-    gsap.fromTo(media,
-      { rotateX: 12, scale: 0.9, transformPerspective: 1200 },
-      {
-        rotateX: 0,
-        scale: 1,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: hero,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 1,
-          invalidateOnRefresh: true,
-        },
-      },
-    );
-
     const updateActiveStep = (index: number) => {
       setActiveStep(index);
       section.dataset.activeStep = String(index + 1);
     };
 
-    const buildTimeline = (isMobile: boolean, shouldPin: boolean) => {
+    const buildDesktopTimeline = () => {
       const timeline = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
@@ -122,7 +114,7 @@ export function LandingScrollStory() {
           start: 'top top',
           end: '+=400%',
           scrub: 0.8,
-          pin: shouldPin ? section : false,
+          pin: section,
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
@@ -132,13 +124,9 @@ export function LandingScrollStory() {
       gsap.set(hero, { autoAlpha: 1, y: 0 });
       gsap.set(stepsColumn, {
         autoAlpha: 0,
-        ...(isMobile ? { top: '4%', left: '0%', width: '100%', height: '50vh', yPercent: 0 } : {}),
       });
       gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
-      gsap.set(media, isMobile ? {
-        left: '5%', top: '70%', bottom: 'auto', width: '90%', height: '38vh',
-        xPercent: 0, yPercent: 0, borderRadius: 16,
-      } : {
+      gsap.set(media, {
         left: '10%', top: '78%', bottom: 'auto', width: '80%', height: '70vh',
         xPercent: 0, yPercent: 0, borderRadius: 16,
       });
@@ -146,9 +134,7 @@ export function LandingScrollStory() {
 
       timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
       timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
-      timeline.to(media, isMobile ? {
-        top: '56%', left: '4%', width: '92%', height: '38vh', borderRadius: 24, duration: 1,
-      } : {
+      timeline.to(media, {
         top: '50%', left: '55%', width: '45%', height: '60vh', yPercent: -50, borderRadius: 24, duration: 1,
       }, 0);
 
@@ -174,9 +160,40 @@ export function LandingScrollStory() {
     };
 
     const mm = gsap.matchMedia();
-    mm.add('(min-width: 1024px)', () => buildTimeline(false, true));
-    mm.add('(min-width: 769px) and (max-width: 1023px)', () => buildTimeline(true, true));
-    mm.add('(max-width: 768px)', () => buildTimeline(true, false));
+    mm.add('(min-width: 1024px)', () => {
+      gsap.fromTo(media,
+        { rotateX: 12, scale: 0.9, transformPerspective: 1200 },
+        {
+          rotateX: 0,
+          scale: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 1,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+      return buildDesktopTimeline();
+    });
+    mm.add('(max-width: 1023px)', () => {
+      gsap.set([hero, stepsColumn, ...stepPanels, media], {
+        autoAlpha: 1,
+        clearProps: 'transform,opacity,visibility,top,left,right,bottom,width,height',
+      });
+      section.dataset.activeStep = '1';
+      gsap.utils.toArray<HTMLElement>('.mobile-feature-card').forEach((card) => {
+        gsap.from(card, {
+          y: 20,
+          autoAlpha: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: card, start: 'top 85%', once: true },
+        });
+      });
+    });
 
     let resizeTimer: number | undefined;
     const refreshAfterResize = () => {
@@ -197,19 +214,19 @@ export function LandingScrollStory() {
       ref={sectionRef}
       id="how-it-works"
       aria-label="See how SyncCut works"
-      className="relative h-screen h-[100dvh] w-full overflow-hidden bg-[#08090c] text-white max-[768px]:h-auto max-[768px]:min-h-screen max-[768px]:overflow-visible"
+      className="relative h-screen h-[100dvh] w-full max-w-full overflow-hidden bg-[#08090c] text-white max-lg:h-auto max-lg:min-h-screen max-lg:overflow-visible"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_76%_45%,rgba(99,102,241,0.12),transparent_42%),radial-gradient(ellipse_at_12%_62%,rgba(16,185,129,0.09),transparent_38%)]" />
 
       {/* All animation geometry is measured against this centered, full-height frame. */}
-      <div className="relative mx-auto h-full w-full max-w-7xl max-[768px]:flex max-[768px]:h-auto max-[768px]:min-h-screen max-[768px]:flex-col max-[768px]:px-5 max-[768px]:pb-12">
+      <div className="relative mx-auto h-full w-full max-w-7xl max-w-full max-lg:flex max-lg:h-auto max-lg:min-h-screen max-lg:flex-col max-lg:px-4 max-lg:pb-12 sm:max-lg:px-6">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
-        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:top-[4%] max-[768px]:static max-[768px]:z-20 max-[768px]:w-full max-[768px]:max-w-none max-[768px]:translate-x-0 max-[768px]:px-0 max-[768px]:pb-8 max-[768px]:pt-14">
+        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:static max-lg:z-20 max-lg:w-full max-lg:max-w-none max-lg:translate-x-0 max-lg:px-0 max-lg:pb-8 max-lg:pt-14">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-100">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
             Video collaboration, all on one page
           </div>
-          <h1 ref={heroHeadingRef} className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl">
+          <h1 ref={heroHeadingRef} className="box-border w-full max-w-full break-words text-3xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl">
             Clients review it. Editors cut it.<br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Projects ship.</span>
           </h1>
@@ -237,14 +254,14 @@ export function LandingScrollStory() {
         </div>
 
         {/* Step content is stacked in one left-hand column and revealed by the same scrubbed timeline. */}
-        <div ref={stepsColumnRef} className="absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:left-0 max-lg:top-[5%] max-lg:h-[30vh] max-lg:w-full max-lg:translate-y-0 max-[768px]:static max-[768px]:z-10 max-[768px]:h-auto max-[768px]:w-full max-[768px]:translate-y-0 max-[768px]:opacity-100">
+        <div ref={stepsColumnRef} className="feature-wrapper absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:static max-lg:z-10 max-lg:h-auto max-lg:w-full max-lg:translate-y-0 max-lg:opacity-100">
           {steps.map((step, index) => {
             return (
               <div
                 ref={(node) => { stepRefs.current[index] = node; }}
                 key={step.number}
                 aria-hidden={index !== activeStep}
-                className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8 max-[768px]:static max-[768px]:min-h-0 max-[768px]:w-full max-[768px]:max-w-none max-[768px]:px-0 max-[768px]:py-10"
+                className="mobile-feature-card pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8 max-lg:static max-lg:min-h-0 max-lg:w-full max-lg:max-w-full max-lg:px-0 max-lg:py-10"
               >
                 <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
                 <h2 className="mt-4 max-w-lg text-3xl font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa] md:text-5xl lg:text-6xl">{step.title}</h2>
@@ -252,13 +269,14 @@ export function LandingScrollStory() {
                 <ul className="mt-6 grid gap-3 text-[13px] text-white/80 gsap-reveal">
                   {step.bullets.map((bullet) => <li className="gsap-checkmark flex items-center gap-2.5" key={bullet}><CheckCircle2 size={15} className="shrink-0 text-emerald-300" />{bullet}</li>)}
                 </ul>
+                <MobileFeaturePreview />
               </div>
             );
           })}
         </div>
 
         {/* The window starts wide and low, then GSAP moves it into the right column. */}
-        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:bottom-[-10%] max-lg:left-[5%] max-lg:top-auto max-lg:h-[40vh] max-lg:w-[90%] max-lg:rounded-2xl max-[768px]:static max-[768px]:mt-2 max-[768px]:h-auto max-[768px]:min-h-0 max-[768px]:w-full max-[768px]:rounded-2xl max-[768px]:aspect-video">
+        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:hidden">
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4 max-[768px]:h-auto">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <div ref={tabContainerRef} className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scroll-smooth pr-4 no-scrollbar">
