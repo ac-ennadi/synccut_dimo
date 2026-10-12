@@ -154,7 +154,7 @@ export function LandingScrollStory() {
       timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
       timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
       timeline.to(media, {
-        top: '50%', left: '52%', width: '48%', height: 'calc(27vw + 60px)', yPercent: -50, borderRadius: 24, duration: 1,
+        top: '50%', left: '52%', width: '44%', height: 'calc(24.75vw + 60px)', yPercent: -50, borderRadius: 24, duration: 1,
       }, 0);
 
       timeline.to(stepsColumn, { autoAlpha: 1, duration: 0.18 }, 1);
