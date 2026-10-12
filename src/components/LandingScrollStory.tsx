@@ -40,6 +40,8 @@ export function LandingScrollStory() {
   const [activeStep, setActiveStep] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const heroHeadingRef = useRef<HTMLHeadingElement>(null);
+  const heroSubtitleRef = useRef<HTMLParagraphElement>(null);
   const heroDetailsRef = useRef<HTMLDivElement>(null);
   const stepsColumnRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
@@ -60,16 +62,49 @@ export function LandingScrollStory() {
     const heroDetails = heroDetailsRef.current;
     const stepsColumn = stepsColumnRef.current;
     const media = mediaRef.current;
+    const heroHeading = heroHeadingRef.current;
+    const heroSubtitle = heroSubtitleRef.current;
     const stepPanels = stepRefs.current.filter(Boolean) as HTMLDivElement[];
     const tabs = tabRefs.current.filter(Boolean) as HTMLButtonElement[];
-    if (!section || !hero || !heroDetails || !stepsColumn || !media || stepPanels.length !== 3 || tabs.length !== 3) return;
+    if (!section || !hero || !heroDetails || !stepsColumn || !media || !heroHeading || !heroSubtitle || stepPanels.length !== 3 || tabs.length !== 3) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      gsap.set([hero, stepsColumn, ...stepPanels, media], { clearProps: 'all', autoAlpha: 1 });
+      return;
+    }
+
+    gsap.from([heroHeading, heroSubtitle], {
+      y: 40,
+      autoAlpha: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'power3.out',
+      clearProps: 'transform,opacity,visibility',
+    });
+
+    gsap.fromTo(media,
+      { rotateX: 12, scale: 0.9, transformPerspective: 1200 },
+      {
+        rotateX: 0,
+        scale: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: hero,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1,
+          invalidateOnRefresh: true,
+        },
+      },
+    );
 
     const updateActiveStep = (index: number) => {
       setActiveStep(index);
       section.dataset.activeStep = String(index + 1);
     };
 
-    const buildTimeline = (isMobile: boolean) => {
+    const buildTimeline = (isMobile: boolean, shouldPin: boolean) => {
       const timeline = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: {
@@ -77,7 +112,7 @@ export function LandingScrollStory() {
           start: 'top top',
           end: '+=400%',
           scrub: 0.8,
-          pin: section,
+          pin: shouldPin ? section : false,
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
@@ -129,8 +164,9 @@ export function LandingScrollStory() {
     };
 
     const mm = gsap.matchMedia();
-    mm.add('(min-width: 1024px)', () => buildTimeline(false));
-    mm.add('(max-width: 1023px)', () => buildTimeline(true));
+    mm.add('(min-width: 1024px)', () => buildTimeline(false, true));
+    mm.add('(min-width: 769px) and (max-width: 1023px)', () => buildTimeline(true, true));
+    mm.add('(max-width: 768px)', () => buildTimeline(true, false));
 
     let resizeTimer: number | undefined;
     const refreshAfterResize = () => {
@@ -163,11 +199,11 @@ export function LandingScrollStory() {
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
             Video collaboration, all on one page
           </div>
-          <h1 className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl">
+          <h1 ref={heroHeadingRef} className="box-border w-full break-words text-2xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl">
             Clients review it. Editors cut it.<br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Projects ship.</span>
           </h1>
-          <p className="box-border mx-auto mt-5 max-w-md text-xs leading-7 text-white/65 sm:text-sm md:max-w-xl md:text-base">
+          <p ref={heroSubtitleRef} className="box-border mx-auto mt-5 max-w-md text-xs leading-7 text-white/65 sm:text-sm md:max-w-xl md:text-base">
             Unify script notes, project stages, timecoded feedback, and style references into one clean workspace.
           </p>
           <div ref={heroDetailsRef} className="box-border w-full">
@@ -203,8 +239,8 @@ export function LandingScrollStory() {
                 <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
                 <h2 className="mt-4 max-w-lg text-3xl font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa] md:text-5xl lg:text-6xl">{step.title}</h2>
                 <p className="mt-4 max-w-md text-sm leading-7 text-white/65">{step.description}</p>
-                <ul className="mt-6 grid gap-3 text-[13px] text-white/80">
-                  {step.bullets.map((bullet) => <li className="flex items-center gap-2.5" key={bullet}><CheckCircle2 size={15} className="shrink-0 text-emerald-300" />{bullet}</li>)}
+                <ul className="mt-6 grid gap-3 text-[13px] text-white/80 gsap-reveal">
+                  {step.bullets.map((bullet) => <li className="gsap-checkmark flex items-center gap-2.5" key={bullet}><CheckCircle2 size={15} className="shrink-0 text-emerald-300" />{bullet}</li>)}
                 </ul>
               </div>
             );

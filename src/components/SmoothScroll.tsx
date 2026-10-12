@@ -15,6 +15,10 @@ export function SmoothScroll() {
     // Keep the editor workspace on native scrolling so nested panels and the
     // client preview modal receive mouse-wheel events normally.
     if (pathname.startsWith('/editor')) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      ScrollTrigger.refresh();
+      return;
+    }
 
     const lenis = new Lenis({
       autoRaf: false,
@@ -30,6 +34,7 @@ export function SmoothScroll() {
     lenis.on('scroll', onScroll);
     gsap.ticker.add(onTick);
     gsap.ticker.lagSmoothing(0);
+    ScrollTrigger.refresh();
 
     return () => {
       lenis.off('scroll', onScroll);

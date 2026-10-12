@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { LandingScrollStory } from '@/components/LandingScrollStory';
+import { LandingMotion } from '@/components/LandingMotion';
 import { BrandLogo } from '@/components/BrandLogo';
 
 export default function HomePage() {
@@ -45,8 +46,9 @@ export default function HomePage() {
       </header>
 
       <LandingScrollStory />
+      <LandingMotion />
 
-      <section className="editor-callout" id="for-editors">
+      <section className="editor-callout landing-cta" id="for-editors">
         <div className="callout-icon"><Clapperboard size={20} /></div>
         <div><span className="section-label">MADE FOR EDITORS &amp; CREATIVE TEAMS</span><h2>One page for them.<br /><span>Fewer revisions for you.</span></h2><p>The cleanest way to bring video projects across the finish line without email chaos.</p></div>
         <div className="callout-actions"><Link className="button-primary" href="/client/login">Open your workspace <ArrowRight size={17} /></Link><Link className="editor-link" href="/editor/login">Editor sign in <ArrowRight size={15} /></Link></div>
@@ -63,7 +65,6 @@ export default function HomePage() {
     </main>
   );
 }
-
 
 
 
