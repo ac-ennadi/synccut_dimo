@@ -71,7 +71,10 @@ export function LandingScrollStory() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isPhone = window.matchMedia('(max-width: 768px)').matches;
     if (isPhone) {
-      gsap.set([hero, stepsColumn, ...stepPanels, media], { clearProps: 'all', autoAlpha: 1 });
+      gsap.set([hero, stepsColumn, ...stepPanels, media], {
+        autoAlpha: 1,
+        clearProps: 'transform,opacity,visibility,top,left,right,bottom,width,height',
+      });
       section.dataset.activeStep = '1';
       return;
     }
@@ -256,7 +259,7 @@ export function LandingScrollStory() {
 
         {/* The window starts wide and low, then GSAP moves it into the right column. */}
         <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:bottom-[-10%] max-lg:left-[5%] max-lg:top-auto max-lg:h-[40vh] max-lg:w-[90%] max-lg:rounded-2xl max-[768px]:static max-[768px]:mt-2 max-[768px]:h-auto max-[768px]:min-h-0 max-[768px]:w-full max-[768px]:rounded-2xl max-[768px]:aspect-video">
-          <div className="flex h-full flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4">
+          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4 max-[768px]:h-auto">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <div ref={tabContainerRef} className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scroll-smooth pr-4 no-scrollbar">
                 {steps.map((step, index) => (
@@ -277,7 +280,7 @@ export function LandingScrollStory() {
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-gray-950"><Play size={10} fill="currentColor" /></span> View full demo
               </a>
             </div>
-            <div id="sync-cut-demo-video" className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black">
+            <div id="sync-cut-demo-video" className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black max-[768px]:aspect-video">
               <iframe
                 className="pointer-events-none h-full w-full border-0 object-cover"
                 src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
