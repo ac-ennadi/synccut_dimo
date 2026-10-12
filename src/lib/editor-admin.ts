@@ -19,9 +19,6 @@ export async function authorizeEditor(request: Request) {
   if (error || data.user?.email?.trim().toLowerCase() !== editorEmail) {
     return { error: 'Only the configured editor account can access project members.', status: 403 as const };
   }
-  const { data: member, error: memberError } = await admin.from('project_members')
-    .select('email').eq('email', editorEmail).eq('role', 'Editor').limit(1).maybeSingle();
-  if (memberError || !member) return { error: 'The configured editor email must have Editor access in project_members.', status: 403 as const };
   return { admin, editorEmail };
 }
 

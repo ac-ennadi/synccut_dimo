@@ -31,20 +31,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 2. Connect Your Backend Services
 Copy `.env.example` to `.env.local` and provide your API keys:
-- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), and `EDITOR_EMAIL`. Run [`schema.sql`](./schema.sql). Create the editor's email/password account in Supabase Auth, set that email as `EDITOR_EMAIL`, and add a matching `Editor` row to `project_members` for `proj_promo_2026`. In Supabase Auth settings, disable public sign-ups and turn off email confirmation. Client accounts are created from the editor dashboard; the server marks them confirmed and records their project membership. Clients then sign in with the password supplied by the editor. Never expose the service role key in a `NEXT_PUBLIC_` variable or browser code.
+- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), and `EDITOR_EMAIL`. Run [`schema.sql`](./schema.sql). Create the editor's email/password account in Supabase Auth, set that email as `EDITOR_EMAIL`, and create the first project from the editor dashboard. The editor account remains valid even when all projects are deleted. In Supabase Auth settings, disable public sign-ups and turn off email confirmation. Client accounts are created from the editor dashboard; the server marks them confirmed and records their project membership. Clients then sign in with the password supplied by the editor. Never expose the service role key in a `NEXT_PUBLIC_` variable or browser code.
 
 For an existing Supabase project, run every file in [`supabase/migrations`](./supabase/migrations) in filename order in the Supabase SQL Editor before deploying. The concurrent-edits migration moves feedback into its own table so simultaneous comments cannot overwrite each other. The attribution migration adds feedback author attribution so removing a user can also remove their feedback from that project. The video migration creates a private bucket; the app grants short-lived upload and playback links only to project members. The deletion migration adds the missing delete policy for project members, the indexes the access checks rely on, and a cascade so deleting a project also clears its membership rows.
 
 ### 3. First Setup
 
-For the first setup, create the editor user in **Supabase → Authentication → Users**, then add its matching membership row in the SQL editor (use the same lowercase email):
-
-```sql
-insert into public.project_members (project_id, email, role, display_name, company_name)
-values ('proj_promo_2026', 'editor@example.com', 'Editor', 'Editor', 'SyncCut');
-```
-
-Replace `editor@example.com` with the chosen editor email, use it as `EDITOR_EMAIL`, and restart/redeploy the app after changing environment variables. Create each project in the editor dashboard, then add multiple client users from its workspace. Removing a user revokes their project access and deletes their project feedback; their Supabase sign-in account is deleted when they have no other client-project memberships. Shared project files and content remain. Keep custom SMTP disabled; this login and account creation flow does not send verification emails.
+For the first setup, create the editor user in **Supabase → Authentication → Users**, set its email as `EDITOR_EMAIL`, and restart/redeploy the app after changing environment variables. Create projects from the editor dashboard, then add multiple client users from each workspace. Removing a user revokes their project access and deletes their project feedback; their Supabase sign-in account is deleted when they have no other client-project memberships. Shared project files and content remain. Keep custom SMTP disabled; this login and account creation flow does not send verification emails.
 
 ---
 
@@ -55,4 +48,3 @@ Editors can delete a project from the trash button on its card in `/editor`, or 
 Deleting removes the project state, every feedback note, and all uploaded videos, logos, and reference images from storage. Client sign-in accounts are deliberately kept, so those people can be added to another project later; only their membership in the deleted project disappears.
 
 Deletion runs through `DELETE /api/editor/clients`, which clears the private `project-videos` folder before removing the database rows. Storage is cleared first on purpose: an orphaned project row is much worse than an orphaned file.
-

@@ -28,9 +28,9 @@ export const AuthProvider:React.FC<{children:React.ReactNode}>=({children})=>{
 
  useEffect(()=>{
   let mounted=true;
-  const apply=async(authUser:SupabaseUser)=>{
+  const apply=async(authUser:SupabaseUser,accessToken?:string)=>{
    try{
-    const user=await buildAppUser(authUser);
+  const user=await buildAppUser(authUser,accessToken);
     if(mounted)setCurrentUser(user);
    }catch(error){
     console.error('This Supabase account is not assigned to a SyncCut project.',error);
@@ -45,7 +45,7 @@ export const AuthProvider:React.FC<{children:React.ReactNode}>=({children})=>{
      const{data}=await supabase.auth.getSession();
      // A stored session only counts once its membership resolves, otherwise a
      // valid user would be bounced to the login page while the lookup runs.
-     if(data.session?.user){await apply(data.session.user);return}
+     if(data.session?.user){await apply(data.session.user,data.session.access_token);return}
     }
     if(mounted)setCurrentUser(null);
    }catch(error){
@@ -66,7 +66,7 @@ export const AuthProvider:React.FC<{children:React.ReactNode}>=({children})=>{
     return;
    }
    // Deferred: Supabase warns against awaiting other calls inside this callback.
-   setTimeout(()=>{void apply(session.user)},0);
+   setTimeout(()=>{void apply(session.user,session.access_token)},0);
   });
   return()=>{mounted=false;subscription.unsubscribe()}
  },[]);
@@ -75,10 +75,10 @@ export const AuthProvider:React.FC<{children:React.ReactNode}>=({children})=>{
   signingIn.current=true;
   setIsLoading(true);
   try{
-   const{user}=await signInWithPassword(email.trim(),password);
+   const{user,session}=await signInWithPassword(email.trim(),password);
    if(!user)throw new Error('Supabase did not return an authenticated user.');
    appUserCache.clear();
-   const appUser=await buildAppUser(user);
+   const appUser=await buildAppUser(user,session?.access_token);
    if(appUser.role!==role){
     await signOutAndClearCaches();
     throw new Error(`This account is a ${appUser.role.toLowerCase()} account. Use the ${appUser.role.toLowerCase()} sign-in page instead.`);
@@ -115,7 +115,7 @@ function describeSignInError(error:unknown):string{
  return message||'Could not sign in. Please try again.';
 }
 
-async function buildAppUser(authUser:SupabaseUser):Promise<User>{
+async function buildAppUser(authUser:SupabaseUser, accessToken?:string):Promise<User>{
  const cached=appUserCache.get(authUser.id);if(cached)return cached;
  const email=authUser.email?.trim().toLowerCase();
  if(!email)throw new Error('Your Supabase account does not have an email address.');
@@ -132,6 +132,13 @@ async function buildAppUser(authUser:SupabaseUser):Promise<User>{
  if(ce)throw ce;
 
  const membership=editor??client;
+ if(!membership && accessToken){
+  const response=await fetch('/api/auth/profile',{headers:{Authorization:`Bearer ${accessToken}`}});
+  if(response.ok){
+   const payload=await response.json() as {user?:User};
+   if(payload.user)return payload.user;
+  }
+ }
  if(!membership)throw new Error('This email is not assigned to a SyncCut project. Ask your editor for access.');
  const meta=authUser.user_metadata??{};
  const user:User={
