@@ -48,7 +48,7 @@ function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: n
   return (
     <video
       key={positionVideos[positionIndex]}
-      className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-fill`}
+      className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-contain`}
       src={positionVideos[positionIndex]}
       autoPlay
       muted
@@ -154,7 +154,7 @@ export function LandingScrollStory() {
       timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
       timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
       timeline.to(media, {
-        top: '50%', left: '52%', width: '42%', height: '60vh', yPercent: -50, borderRadius: 24, duration: 1,
+        top: '50%', left: '52%', width: '48%', height: 'calc(27vw + 60px)', yPercent: -50, borderRadius: 24, duration: 1,
       }, 0);
 
       timeline.to(stepsColumn, { autoAlpha: 1, duration: 0.18 }, 1);
@@ -318,7 +318,7 @@ export function LandingScrollStory() {
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-gray-950"><Play size={10} fill="currentColor" /></span> View full demo
               </a>
             </div>
-            <div id="sync-cut-demo-video" className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black max-[768px]:aspect-video">
+            <div id="sync-cut-demo-video" className="aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black">
               <div className="relative h-full w-full">
                 <FeatureVideo positionIndex={activeStep} />
                 {steps[activeStep].frameTime && (
