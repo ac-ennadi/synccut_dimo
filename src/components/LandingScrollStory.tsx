@@ -69,6 +69,13 @@ export function LandingScrollStory() {
     if (!section || !hero || !heroDetails || !stepsColumn || !media || !heroHeading || !heroSubtitle || stepPanels.length !== 3 || tabs.length !== 3) return;
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isPhone = window.matchMedia('(max-width: 768px)').matches;
+    if (isPhone) {
+      gsap.set([hero, stepsColumn, ...stepPanels, media], { clearProps: 'all', autoAlpha: 1 });
+      section.dataset.activeStep = '1';
+      return;
+    }
+
     if (reducedMotion) {
       gsap.set([hero, stepsColumn, ...stepPanels, media], { clearProps: 'all', autoAlpha: 1 });
       return;
@@ -187,14 +194,14 @@ export function LandingScrollStory() {
       ref={sectionRef}
       id="how-it-works"
       aria-label="See how SyncCut works"
-      className="relative h-screen h-[100dvh] w-full overflow-hidden bg-[#08090c] text-white"
+      className="relative h-screen h-[100dvh] w-full overflow-hidden bg-[#08090c] text-white max-[768px]:h-auto max-[768px]:min-h-screen max-[768px]:overflow-visible"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_76%_45%,rgba(99,102,241,0.12),transparent_42%),radial-gradient(ellipse_at_12%_62%,rgba(16,185,129,0.09),transparent_38%)]" />
 
       {/* All animation geometry is measured against this centered, full-height frame. */}
-      <div className="relative mx-auto h-full w-full max-w-7xl">
+      <div className="relative mx-auto h-full w-full max-w-7xl max-[768px]:flex max-[768px]:h-auto max-[768px]:min-h-screen max-[768px]:flex-col max-[768px]:px-5 max-[768px]:pb-12">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
-        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:top-[4%]">
+        <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:top-[4%] max-[768px]:static max-[768px]:z-20 max-[768px]:w-full max-[768px]:max-w-none max-[768px]:translate-x-0 max-[768px]:px-0 max-[768px]:pb-8 max-[768px]:pt-14">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-100">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
             Video collaboration, all on one page
@@ -227,14 +234,14 @@ export function LandingScrollStory() {
         </div>
 
         {/* Step content is stacked in one left-hand column and revealed by the same scrubbed timeline. */}
-        <div ref={stepsColumnRef} className="absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:left-0 max-lg:top-[5%] max-lg:h-[30vh] max-lg:w-full max-lg:translate-y-0">
+        <div ref={stepsColumnRef} className="absolute left-[3%] top-1/2 z-10 h-[70vh] w-1/2 -translate-y-1/2 opacity-0 max-lg:left-0 max-lg:top-[5%] max-lg:h-[30vh] max-lg:w-full max-lg:translate-y-0 max-[768px]:static max-[768px]:z-10 max-[768px]:h-auto max-[768px]:w-full max-[768px]:translate-y-0 max-[768px]:opacity-100">
           {steps.map((step, index) => {
             return (
               <div
                 ref={(node) => { stepRefs.current[index] = node; }}
                 key={step.number}
                 aria-hidden={index !== activeStep}
-                className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8"
+                className="pointer-events-none box-border absolute inset-0 flex w-full max-w-xl flex-col justify-center px-4 md:px-8 max-[768px]:static max-[768px]:min-h-0 max-[768px]:w-full max-[768px]:max-w-none max-[768px]:px-0 max-[768px]:py-10"
               >
                 <div className="mb-4 inline-flex w-fit items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300">{step.number}</div>
                 <h2 className="mt-4 max-w-lg text-3xl font-bold leading-[1.02] tracking-[-0.065em] text-[#f5f6fa] md:text-5xl lg:text-6xl">{step.title}</h2>
@@ -248,7 +255,7 @@ export function LandingScrollStory() {
         </div>
 
         {/* The window starts wide and low, then GSAP moves it into the right column. */}
-        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:bottom-[-10%] max-lg:left-[5%] max-lg:top-auto max-lg:h-[40vh] max-lg:w-[90%] max-lg:rounded-2xl">
+        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:bottom-[-10%] max-lg:left-[5%] max-lg:top-auto max-lg:h-[40vh] max-lg:w-[90%] max-lg:rounded-2xl max-[768px]:static max-[768px]:mt-2 max-[768px]:h-auto max-[768px]:min-h-0 max-[768px]:w-full max-[768px]:rounded-2xl max-[768px]:aspect-video">
           <div className="flex h-full flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <div ref={tabContainerRef} className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scroll-smooth pr-4 no-scrollbar">
