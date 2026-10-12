@@ -85,8 +85,8 @@ export default function EditorPage() {
     .some((value) => value.toLowerCase().includes(normalizedQuery)));
 
   return (
-    <main className="min-h-screen bg-neutral-100 p-4 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 sm:p-8">
-      <div className="mx-auto max-w-6xl space-y-7">
+    <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-100 p-4 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 sm:p-8">
+      <div className="mx-auto w-full min-w-0 max-w-6xl space-y-7">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
           <div className="flex min-w-0 items-center gap-4">
             <Link href="/" aria-label="SyncCut home" className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
@@ -113,8 +113,8 @@ export default function EditorPage() {
         <label className="flex max-w-lg items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 dark:border-neutral-800 dark:bg-neutral-900"><Search size={17} className="text-neutral-400" /><input aria-label="Search projects and users" placeholder="Search projects or users" value={query} onChange={(event) => setQuery(event.target.value)} className="w-full bg-transparent py-3 text-sm outline-none" /></label>
 
         {loading ? <div className="py-16 text-center text-sm text-neutral-500">Loading projects…</div> : filtered.length === 0 ? <div className="rounded-2xl border border-dashed border-neutral-300 py-16 text-center dark:border-neutral-700"><h3 className="font-semibold">{projects.length ? 'No matching projects' : 'No projects yet'}</h3><p className="mt-1 text-sm text-neutral-500">{projects.length ? 'Try another search.' : 'Create a project, then add its users.'}</p></div> : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map((project) => (
-            <article key={project.project_id} className="group relative rounded-2xl border border-neutral-200 bg-white transition hover:border-indigo-400 hover:shadow-md focus-within:border-indigo-400 dark:border-neutral-800 dark:bg-neutral-900">
+          <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map((project) => (
+            <article key={project.project_id} className="group relative min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:border-indigo-400 hover:shadow-md focus-within:border-indigo-400 dark:border-neutral-800 dark:bg-neutral-900">
               <button
                 type="button"
                 onClick={() => setPendingDelete(project)}
