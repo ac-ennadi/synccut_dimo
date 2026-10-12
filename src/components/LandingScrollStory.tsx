@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -45,8 +45,35 @@ const steps = [
 ];
 
 function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: number; mobile?: boolean }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const resumePlayback = () => {
+      if (document.visibilityState !== 'hidden' && video.paused) {
+        void video.play();
+      }
+    };
+
+    document.addEventListener('visibilitychange', resumePlayback);
+    video.addEventListener('canplay', resumePlayback);
+    video.addEventListener('loadeddata', resumePlayback);
+    video.addEventListener('waiting', resumePlayback);
+    resumePlayback();
+
+    return () => {
+      document.removeEventListener('visibilitychange', resumePlayback);
+      video.removeEventListener('canplay', resumePlayback);
+      video.removeEventListener('loadeddata', resumePlayback);
+      video.removeEventListener('waiting', resumePlayback);
+    };
+  }, [positionIndex]);
+
   return (
     <video
+      ref={videoRef}
       key={positionVideos[positionIndex]}
       className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-contain`}
       src={positionVideos[positionIndex]}
@@ -55,12 +82,6 @@ function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: n
       loop
       playsInline
       preload={mobile ? 'auto' : 'metadata'}
-      onCanPlay={(event) => {
-        void event.currentTarget.play();
-      }}
-      onLoadedData={(event) => {
-        void event.currentTarget.play();
-      }}
       aria-label={`SyncCut position ${String(positionIndex + 1).padStart(2, '0')} video preview`}
     />
   );
