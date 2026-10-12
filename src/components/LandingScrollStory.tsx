@@ -54,29 +54,31 @@ function parseTimecode(timecode?: string) {
 function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positionIndex?: number; mobile?: boolean; startTime?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [shouldLoad, setShouldLoad] = useState(!mobile || positionIndex === 0);
+  const [isVisible, setIsVisible] = useState(!mobile);
   const startTimeSeconds = parseTimecode(startTime);
 
   useEffect(() => {
-    if (shouldLoad || !mobile) return;
+    if (!mobile) return;
     const video = videoRef.current;
     if (!video || !('IntersectionObserver' in window)) {
       setShouldLoad(true);
+      setIsVisible(true);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        setIsVisible(entry.isIntersecting);
         if (entry.isIntersecting) {
           setShouldLoad(true);
-          observer.disconnect();
         }
       },
-      { rootMargin: '300px 0px' },
+      { rootMargin: '160px 0px' },
     );
     observer.observe(video);
 
     return () => observer.disconnect();
-  }, [mobile, shouldLoad]);
+  }, [mobile]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -101,7 +103,7 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
     if (!video || !shouldLoad) return;
 
     const resumePlayback = () => {
-      if (document.visibilityState !== 'hidden' && video.paused) {
+      if (document.visibilityState !== 'hidden' && isVisible && video.paused) {
         void video.play();
       }
     };
@@ -109,16 +111,15 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
     document.addEventListener('visibilitychange', resumePlayback);
     video.addEventListener('canplay', resumePlayback);
     video.addEventListener('loadeddata', resumePlayback);
-    video.addEventListener('waiting', resumePlayback);
     resumePlayback();
+    if (!isVisible) video.pause();
 
     return () => {
       document.removeEventListener('visibilitychange', resumePlayback);
       video.removeEventListener('canplay', resumePlayback);
       video.removeEventListener('loadeddata', resumePlayback);
-      video.removeEventListener('waiting', resumePlayback);
     };
-  }, [positionIndex, shouldLoad]);
+  }, [isVisible, positionIndex, shouldLoad]);
 
   return (
     <video
@@ -130,7 +131,7 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
       muted
       loop
       playsInline
-      preload={shouldLoad ? 'auto' : 'none'}
+      preload={shouldLoad ? 'metadata' : 'none'}
       aria-label={`SyncCut position ${String(positionIndex + 1).padStart(2, '0')} video preview`}
     />
   );
