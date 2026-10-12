@@ -127,7 +127,7 @@ export function LandingScrollStory() {
       });
       gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
       gsap.set(media, {
-        left: '10%', top: '78%', bottom: 'auto', width: '80%', height: '70vh',
+        left: '8%', top: '78%', bottom: 'auto', width: '78%', height: '70vh',
         xPercent: 0, yPercent: 0, borderRadius: 16,
       });
       updateActiveStep(0);
@@ -135,7 +135,7 @@ export function LandingScrollStory() {
       timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
       timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
       timeline.to(media, {
-        top: '50%', left: '55%', width: '45%', height: '60vh', yPercent: -50, borderRadius: 24, duration: 1,
+        top: '50%', left: '52%', width: '42%', height: '60vh', yPercent: -50, borderRadius: 24, duration: 1,
       }, 0);
 
       timeline.to(stepsColumn, { autoAlpha: 1, duration: 0.18 }, 1);
