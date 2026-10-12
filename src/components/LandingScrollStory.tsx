@@ -47,6 +47,7 @@ const steps = [
 function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: number; mobile?: boolean }) {
   return (
     <video
+      key={positionVideos[positionIndex]}
       className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-cover`}
       src={positionVideos[positionIndex]}
       autoPlay
@@ -54,6 +55,9 @@ function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: n
       loop
       playsInline
       preload="metadata"
+      onCanPlay={(event) => {
+        void event.currentTarget.play();
+      }}
       aria-label={`SyncCut position ${String(positionIndex + 1).padStart(2, '0')} video preview`}
     />
   );
