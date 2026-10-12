@@ -48,7 +48,7 @@ function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: n
   return (
     <video
       key={positionVideos[positionIndex]}
-      className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-cover`}
+      className={`${mobile ? '' : 'pointer-events-none '}h-full w-full object-fill`}
       src={positionVideos[positionIndex]}
       autoPlay
       muted
