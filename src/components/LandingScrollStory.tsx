@@ -19,6 +19,7 @@ const steps = [
     title: 'Watch the latest cut alongside the script.',
     description: 'Give clients full context. Review video drafts directly next to the approved script, scene breakdown, and voiceovers.',
     bullets: ['Script and video on one screen', 'Secure, private client portals'],
+    frameTime: undefined,
   },
   {
     number: '02',
@@ -26,6 +27,7 @@ const steps = [
     title: 'Feedback pinned to the exact frame.',
     description: 'Stop decoding vague emails like "fix that part in the middle." Clients click to drop timecoded notes right where edits are needed.',
     bullets: ['Frame-accurate timestamped notes', 'Color & visual style references'],
+    frameTime: '00:24',
   },
   {
     number: '03',
@@ -33,22 +35,30 @@ const steps = [
     title: 'Track stages, revise, approve.',
     description: 'Eliminate status update messages. Show clients exact project progress—from Script to Shoot to Final Cut—so everyone stays on schedule.',
     bullets: ['Real-time stage pipeline', 'One-click final cut approval'],
+    frameTime: undefined,
   },
 ];
 
-function MobileFeaturePreview() {
+function MobileFeaturePreview({ frameTime }: { frameTime?: string }) {
   return (
     <div className="mt-8 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)] lg:hidden">
       <div className="aspect-video w-full overflow-hidden rounded-xl">
-        <iframe
-          className="h-full w-full border-0"
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
-          title="SyncCut product demo"
-          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
+        <div className="relative h-full w-full">
+          <iframe
+            className="h-full w-full border-0"
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
+            title="SyncCut product demo"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+          {frameTime && (
+            <span className="absolute bottom-3 left-3 rounded-md border border-emerald-300/30 bg-[#071713]/90 px-2 py-1 font-mono text-[10px] font-semibold text-emerald-200">
+              Feedback at {frameTime}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -269,7 +279,7 @@ export function LandingScrollStory() {
                 <ul className="mt-6 grid gap-3 text-[13px] text-white/80 gsap-reveal">
                   {step.bullets.map((bullet) => <li className="gsap-checkmark flex items-center gap-2.5" key={bullet}><CheckCircle2 size={15} className="shrink-0 text-emerald-300" />{bullet}</li>)}
                 </ul>
-                <MobileFeaturePreview />
+                <MobileFeaturePreview frameTime={step.frameTime} />
               </div>
             );
           })}
@@ -299,15 +309,22 @@ export function LandingScrollStory() {
               </a>
             </div>
             <div id="sync-cut-demo-video" className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black max-[768px]:aspect-video">
-              <iframe
-                className="pointer-events-none h-full w-full border-0 object-cover"
-                src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
-                title="SyncCut product demo"
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
+              <div className="relative h-full w-full">
+                <iframe
+                  className="pointer-events-none h-full w-full border-0 object-cover"
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${videoId}&rel=0&modestbranding=1`}
+                  title="SyncCut product demo"
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+                {steps[activeStep].frameTime && (
+                  <span className="absolute bottom-4 left-4 rounded-md border border-emerald-300/30 bg-[#071713]/90 px-2.5 py-1.5 font-mono text-xs font-semibold text-emerald-200">
+                    Feedback at {steps[activeStep].frameTime}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
