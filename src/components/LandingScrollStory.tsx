@@ -44,8 +44,34 @@ const steps = [
   },
 ];
 
-function FeatureVideo({ positionIndex = 0, mobile = false }: { positionIndex?: number; mobile?: boolean }) {
+function parseTimecode(timecode?: string) {
+  if (!timecode) return 0;
+  const parts = timecode.split(':').map(Number);
+  if (parts.some((part) => !Number.isFinite(part)) || parts.length > 3) return 0;
+  return parts.reduce((total, part) => total * 60 + part, 0);
+}
+
+function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positionIndex?: number; mobile?: boolean; startTime?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const startTimeSeconds = parseTimecode(startTime);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || startTimeSeconds <= 0) return;
+
+    const seekToStartTime = () => {
+      if (video.duration > startTimeSeconds) {
+        video.currentTime = startTimeSeconds;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', seekToStartTime);
+    seekToStartTime();
+
+    return () => {
+      video.removeEventListener('loadedmetadata', seekToStartTime);
+    };
+  }, [startTimeSeconds]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -92,7 +118,7 @@ function MobileFeaturePreview({ frameTime, positionIndex }: { frameTime?: string
     <div className="mt-8 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)] lg:hidden">
       <div className="aspect-video w-full overflow-hidden rounded-xl">
         <div className="relative h-full w-full">
-          <FeatureVideo positionIndex={positionIndex} mobile />
+          <FeatureVideo positionIndex={positionIndex} mobile startTime={frameTime} />
           {frameTime && (
             <span className="absolute bottom-3 left-3 rounded-md border border-emerald-300/30 bg-[#071713]/90 px-2 py-1 font-mono text-[10px] font-semibold text-emerald-200">
               Feedback at {frameTime}
