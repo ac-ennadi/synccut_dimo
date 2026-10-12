@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -88,13 +88,6 @@ export function LandingScrollStory() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const tabContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const activeTab = tabRefs.current[activeStep];
-    if (!activeTab || !tabContainerRef.current) return;
-
-    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [activeStep]);
 
   useGSAP(() => {
     const section = sectionRef.current;
