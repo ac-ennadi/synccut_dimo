@@ -11,7 +11,7 @@ import { VisualReferences } from './VisualReferences';
 import { ActionAlert } from './ActionAlert';
 import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
-import { BriefcaseBusiness, ChevronDown, LogOut, UserCheck } from 'lucide-react';
+import { ArrowLeft, BriefcaseBusiness, ChevronDown, LogOut, UserCheck } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface ClientPortalProps {
@@ -89,6 +89,11 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            {projectIds.length > 1 && (
+              <button type="button" onClick={() => router.push('/client')} className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-indigo-800 dark:hover:text-indigo-300">
+                <ArrowLeft className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Choose project</span>
+              </button>
+            )}
 
             {/* Client User Info */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-300">
