@@ -36,7 +36,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
         </div>
       </header>
 
-      <div className="max-h-[560px] overflow-y-auto px-6 py-3">
+      <div className="px-6 py-3">
         {brief.script_scenes.map((scene) => (
           <section
             key={scene.scene_number}

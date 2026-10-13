@@ -54,7 +54,7 @@ function ProjectChooser({ projectIds, projectTitles, currentProjectId, currentPr
               const isCurrent = projectId === currentProjectId;
               const label = projectTitles[projectId] || (isCurrent ? currentProjectTitle : `Project ${index + 1}`);
               return (
-                <button key={projectId} type="button" onClick={() => router.push(`/client?project=${encodeURIComponent(projectId)}`)} className="group relative flex min-h-48 w-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+                <button key={projectId} type="button" onClick={() => { router.push(`/client?project=${encodeURIComponent(projectId)}`); router.refresh(); }} className="group relative flex min-h-48 w-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
                   <span className="min-w-0">
                     <span className="mb-3 block text-[10px] font-bold uppercase tracking-wider text-neutral-500">Project {String(index + 1).padStart(2, '0')}</span>
                     <span className="block truncate text-lg font-bold text-neutral-900 dark:text-neutral-100">{label}</span>

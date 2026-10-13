@@ -35,6 +35,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('');
   const projectIds = currentUser?.project_ids ?? (currentUser?.project_id ? [currentUser.project_id] : []);
+  const projectTitles = currentUser?.project_titles ?? {};
 
   const handleLogout = () => {
     logout();
@@ -67,12 +68,17 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 <select
                   aria-label="Switch project"
                   value={project.project_id}
-                  onChange={(event) => router.push(`/client?project=${encodeURIComponent(event.target.value)}`)}
+                  onChange={(event) => {
+                    // A full navigation resets the shared provider and guarantees
+                    // that the new project's state is loaded before rendering.
+                    router.push(`/client?project=${encodeURIComponent(event.target.value)}`);
+                    router.refresh();
+                  }}
                   className="min-w-0 max-w-[145px] cursor-pointer appearance-none truncate bg-transparent pr-4 font-semibold text-neutral-800 outline-none dark:text-neutral-100"
                 >
                   {projectIds.map((projectId, index) => (
                     <option key={projectId} value={projectId}>
-                      {projectId === project.project_id ? project.title : `Project ${index + 1}`}
+                      {projectTitles[projectId] || (projectId === project.project_id ? project.title : `Project ${index + 1}`)}
                     </option>
                   ))}
                 </select>
