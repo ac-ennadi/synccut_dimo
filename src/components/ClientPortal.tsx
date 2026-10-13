@@ -60,7 +60,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 {currentUser?.company_name || 'Client workspace'}
               </div>
             </div>
-            {projectIds.length > 1 && (
+            {projectIds.length > 1 ? (
               <label className="group relative flex min-w-0 items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs shadow-xs transition-colors hover:border-indigo-300 dark:border-indigo-900/70 dark:bg-indigo-950/30">
                 <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
                 <span className="hidden whitespace-nowrap font-medium text-indigo-600 dark:text-indigo-300 sm:inline">Working in</span>
@@ -71,11 +71,20 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                   className="min-w-0 max-w-[145px] cursor-pointer appearance-none truncate bg-transparent pr-4 font-semibold text-neutral-800 outline-none dark:text-neutral-100"
                 >
                   {projectIds.map((projectId, index) => (
-                    <option key={projectId} value={projectId}>Project {index + 1}</option>
+                    <option key={projectId} value={projectId}>
+                      {projectId === project.project_id ? project.title : `Project ${index + 1}`}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-indigo-500" />
               </label>
+            ) : (
+              <div className="flex min-w-0 max-w-[230px] items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs shadow-xs dark:border-indigo-900/70 dark:bg-indigo-950/30">
+                <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
+                <span className="truncate font-semibold text-indigo-700 dark:text-indigo-300" title={project.title}>
+                  {project.title}
+                </span>
+              </div>
             )}
           </div>
 
