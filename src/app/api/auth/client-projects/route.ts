@@ -23,6 +23,16 @@ export async function GET(request: Request) {
     .order('project_id');
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
+  const projectIds = [...new Set((data ?? []).map((membership) => membership.project_id))];
+  const { data: states, error: statesError } = projectIds.length
+    ? await admin.admin.from('project_portal_state').select('project_id,state').in('project_id', projectIds)
+    : { data: [], error: null };
+  if (statesError) return Response.json({ error: statesError.message }, { status: 500 });
+  const projectTitles = Object.fromEntries((states ?? []).map((row) => {
+    const state = row.state as { project?: { title?: string } };
+    return [row.project_id, state.project?.title?.trim() || row.project_id];
+  }));
+
   return Response.json({
     user: {
       user_id: authData.user.id,
@@ -31,7 +41,8 @@ export async function GET(request: Request) {
       role: 'Client',
       company_name: data?.[0]?.company_name || authData.user.user_metadata?.company_name || '',
       project_id: data?.[0]?.project_id,
-      project_ids: data?.map((membership) => membership.project_id) ?? [],
+      project_ids: projectIds,
+      project_titles: projectTitles,
     },
   });
 }

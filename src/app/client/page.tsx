@@ -8,11 +8,11 @@ import { ClientPortal } from '@/components/ClientPortal';
 import { ArrowRight, BriefcaseBusiness, LogOut } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 
-function ProjectChooser({ projectIds, currentProjectId, currentProjectTitle, clientName, onLogout }: { projectIds: string[]; currentProjectId: string; currentProjectTitle: string; clientName: string; onLogout: () => void }) {
+function ProjectChooser({ projectIds, projectTitles, currentProjectId, currentProjectTitle, clientName, onLogout }: { projectIds: string[]; projectTitles: Record<string, string>; currentProjectId: string; currentProjectTitle: string; clientName: string; onLogout: () => void }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const visibleProjects = projectIds.filter((projectId) => {
-    const label = projectId === currentProjectId ? currentProjectTitle : `Project ${projectIds.indexOf(projectId) + 1}`;
+    const label = projectTitles[projectId] || (projectId === currentProjectId ? currentProjectTitle : `Project ${projectIds.indexOf(projectId) + 1}`);
     return label.toLowerCase().includes(query.toLowerCase());
   });
 
@@ -52,7 +52,7 @@ function ProjectChooser({ projectIds, currentProjectId, currentProjectTitle, cli
             {visibleProjects.map((projectId) => {
               const index = projectIds.indexOf(projectId);
               const isCurrent = projectId === currentProjectId;
-              const label = isCurrent ? currentProjectTitle : `Project ${index + 1}`;
+              const label = projectTitles[projectId] || (isCurrent ? currentProjectTitle : `Project ${index + 1}`);
               return (
                 <button key={projectId} type="button" onClick={() => router.push(`/client?project=${encodeURIComponent(projectId)}`)} className="group relative flex min-h-48 w-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
                   <span className="min-w-0">
@@ -88,6 +88,7 @@ export default function ClientPage() {
     uploadSuccess,
   } = useProject();
   const projectIds = currentUser?.project_ids ?? (currentUser?.project_id ? [currentUser.project_id] : []);
+  const projectTitles = currentUser?.project_titles ?? {};
   const selectedProjectId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('project') : null;
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function ClientPage() {
   }
 
   if (!selectedProjectId) {
-    return <ProjectChooser projectIds={projectIds} currentProjectId={project.project_id} currentProjectTitle={project.title} clientName={currentUser.name} onLogout={() => { logout(); router.push('/client/login'); }} />;
+    return <ProjectChooser projectIds={projectIds} projectTitles={projectTitles} currentProjectId={project.project_id} currentProjectTitle={project.title} clientName={currentUser.name} onLogout={() => { logout(); router.push('/client/login'); }} />;
   }
 
   return (
