@@ -105,7 +105,7 @@ export default function ClientPage() {
     );
   }
 
-  if (!selectedProjectId) {
+  if (!selectedProjectId || !projectIds.includes(selectedProjectId)) {
     return <ProjectChooser projectIds={projectIds} projectTitles={projectTitles} currentProjectId={project.project_id} currentProjectTitle={project.title} clientName={currentUser.name} onLogout={() => { logout(); router.push('/client/login'); }} />;
   }
 
