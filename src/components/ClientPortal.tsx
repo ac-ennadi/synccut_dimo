@@ -34,6 +34,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('');
+  const [isSwitching, setIsSwitching] = useState(false);
   const projectIds = currentUser?.project_ids ?? (currentUser?.project_id ? [currentUser.project_id] : []);
   const projectTitles = currentUser?.project_titles ?? {};
 
@@ -69,10 +70,10 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                   aria-label="Switch project"
                   value={project.project_id}
                   onChange={(event) => {
+                    setIsSwitching(true);
                     // A full navigation resets the shared provider and guarantees
                     // that the new project's state is loaded before rendering.
                     router.push(`/client?project=${encodeURIComponent(event.target.value)}`);
-                    router.refresh();
                   }}
                   className="min-w-0 max-w-[145px] cursor-pointer appearance-none truncate bg-transparent pr-4 font-semibold text-neutral-800 outline-none dark:text-neutral-100"
                 >
@@ -163,6 +164,14 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         </footer>
 
       </div>
+      {isSwitching && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-neutral-950/90 p-6 text-white backdrop-blur-sm" role="status" aria-live="polite">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="h-9 w-9 animate-spin rounded-full border-2 border-emerald-400/30 border-t-emerald-400" />
+            <p className="text-sm font-semibold">Loading project</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

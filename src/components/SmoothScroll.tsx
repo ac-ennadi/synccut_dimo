@@ -14,7 +14,7 @@ export function SmoothScroll() {
   useEffect(() => {
     // Keep the editor workspace on native scrolling so nested panels and the
     // client preview modal receive mouse-wheel events normally.
-    if (pathname.startsWith('/editor')) return;
+    if (pathname.startsWith('/editor') || pathname.startsWith('/client')) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       ScrollTrigger.refresh();
       return;
