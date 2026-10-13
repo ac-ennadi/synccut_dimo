@@ -34,6 +34,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('');
+  const projectIds = currentUser?.project_ids ?? (currentUser?.project_id ? [currentUser.project_id] : []);
 
   const handleLogout = () => {
     logout();
@@ -59,6 +60,21 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 {currentUser?.company_name || 'Client workspace'}
               </div>
             </div>
+            {projectIds.length > 1 && (
+              <label className="flex min-w-0 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs dark:border-neutral-800 dark:bg-neutral-900">
+                <span className="whitespace-nowrap text-neutral-500">Project</span>
+                <select
+                  aria-label="Switch project"
+                  value={project.project_id}
+                  onChange={(event) => router.push(`/client?project=${encodeURIComponent(event.target.value)}`)}
+                  className="min-w-0 max-w-[180px] truncate bg-transparent font-semibold text-neutral-800 outline-none dark:text-neutral-200"
+                >
+                  {projectIds.map((projectId, index) => (
+                    <option key={projectId} value={projectId}>Project {index + 1} ({projectId.slice(0, 8)})</option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -128,4 +144,3 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
     </div>
   );
 };
-

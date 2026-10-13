@@ -1,13 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Trash2, UserPlus } from 'lucide-react';
+import { Plus, Trash2, UserPlus, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface Member { email: string; display_name: string; company_name: string }
 
 export function ProjectMembersManager({ projectId }: { projectId: string }) {
   const [members, setMembers] = useState<Member[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<Member[]>([]);
+  const [mode, setMode] = useState<'existing' | 'new'>('existing');
+  const [selectedEmail, setSelectedEmail] = useState('');
   const [form, setForm] = useState({ name: '', email: '', companyName: '', password: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -31,6 +34,7 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
     try {
       const result = await request(`/api/editor/project-members?projectId=${encodeURIComponent(projectId)}`);
       setMembers(result.members ?? []);
+      setAvailableUsers(result.availableUsers ?? []);
     } catch (error) {
       setMessage({ error: true, text: error instanceof Error ? error.message : 'Could not load project users.' });
     } finally { setLoading(false); }
@@ -43,7 +47,10 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
     void (async () => {
       try {
         const result = await request(`/api/editor/project-members?projectId=${encodeURIComponent(projectId)}`);
-        if (!cancelled) setMembers(result.members ?? []);
+        if (!cancelled) {
+          setMembers(result.members ?? []);
+          setAvailableUsers(result.availableUsers ?? []);
+        }
       } catch (error) {
         if (!cancelled) setMessage({ error: true, text: error instanceof Error ? error.message : 'Could not load project users.' });
       } finally {
@@ -63,11 +70,18 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
         body: JSON.stringify({ projectId, ...form }),
       });
       setForm({ name: '', email: '', companyName: '', password: '' });
+      setSelectedEmail('');
       setMessage({ error: false, text: 'User added to this project.' });
       await loadMembers();
     } catch (error) {
       setMessage({ error: true, text: error instanceof Error ? error.message : 'Could not add this user.' });
     } finally { setSaving(false); }
+  };
+
+  const selectExistingUser = (email: string) => {
+    setSelectedEmail(email);
+    const user = availableUsers.find((entry) => entry.email === email);
+    if (user) setForm({ name: user.display_name, email: user.email, companyName: user.company_name, password: '' });
   };
 
   const removeMember = async (member: Member) => {
@@ -107,12 +121,26 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
         </ul>
       ) : <p className="mb-5 rounded-xl bg-neutral-50 p-3 text-sm text-neutral-500 dark:bg-neutral-950">No client users are assigned yet.</p>}
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button type="button" onClick={() => setMode('existing')} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${mode === 'existing' ? 'bg-indigo-600 text-white' : 'border border-neutral-200 dark:border-neutral-700'}`}><Users size={14} /> Add existing user</button>
+        <button type="button" onClick={() => { setMode('new'); setSelectedEmail(''); setForm({ name: '', email: '', companyName: '', password: '' }); }} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${mode === 'new' ? 'bg-emerald-600 text-white' : 'border border-neutral-200 dark:border-neutral-700'}`}><Plus size={14} /> Create new user</button>
+      </div>
       <form onSubmit={addMember} className="grid gap-3 sm:grid-cols-2">
-        <input aria-label="User name" placeholder="User name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
-        <input aria-label="User email" type="email" placeholder="User email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
-        <input aria-label="Company" placeholder="Company" value={form.companyName} onChange={(event) => setForm({ ...form, companyName: event.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
-        <input aria-label="Password for a new user" type="password" placeholder="New account password (12+ characters)" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={form.password ? 12 : undefined} autoComplete="new-password" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
-        <p className="text-xs text-neutral-500 sm:col-span-2">Leave password blank to add an existing account. New accounts need a password of at least 12 characters.</p>
+        {mode === 'existing' ? (
+          <select aria-label="Existing user" value={selectedEmail} onChange={(event) => selectExistingUser(event.target.value)} required className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950 sm:col-span-2">
+            <option value="">Choose an existing client account</option>
+            {availableUsers.filter((user) => !members.some((member) => member.email === user.email)).map((user) => <option key={user.email} value={user.email}>{user.display_name} — {user.email}</option>)}
+          </select>
+        ) : (
+          <>
+            <input aria-label="User name" placeholder="User name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <input aria-label="User email" type="email" placeholder="User email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <input aria-label="Company" placeholder="Company" value={form.companyName} onChange={(event) => setForm({ ...form, companyName: event.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+            <input aria-label="Password for a new user" type="password" placeholder="New account password (12+ characters)" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required minLength={12} autoComplete="new-password" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />
+          </>
+        )}
+        {mode === 'existing' && <p className="text-xs text-neutral-500 sm:col-span-2">The selected client will keep their existing sign-in and gain access to this project.</p>}
+        {mode === 'new' && <p className="text-xs text-neutral-500 sm:col-span-2">New accounts need a password of at least 12 characters.</p>}
         <button disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60 sm:col-span-2">
           <UserPlus size={16} /> {saving ? 'Adding…' : 'Add user to project'}
         </button>

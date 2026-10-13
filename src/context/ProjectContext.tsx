@@ -81,7 +81,10 @@ function describeFeedbackError(error: { message?: string; code?: string; details
 
 export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: string }> = ({ children, projectId }) => {
   const { currentUser } = useAuth();
-  const id = projectId ?? currentUser?.project_id ?? mockProject.project_id;
+  const requestedProjectId = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('project')
+    : null;
+  const id = projectId ?? requestedProjectId ?? currentUser?.project_id ?? mockProject.project_id;
   const uid = currentUser?.user_id;
   const companyName = currentUser?.company_name ?? '';
   const userProjectId = currentUser?.project_id;
@@ -93,7 +96,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     currentUser?.name,
     currentUser?.role,
   ]);
-  const remote = isSupabaseConfigured && Boolean(uid) && Boolean(projectId ?? currentUser?.project_id) && !uid?.startsWith('usr_');
+  const remote = isSupabaseConfigured && Boolean(uid) && Boolean(projectId ?? requestedProjectId ?? currentUser?.project_id) && !uid?.startsWith('usr_');
   const seedKey = `${id}|${companyName}|${uid ?? ''}`;
   const [state, setState] = useState<ProjectState>(() => makeInitialState(id, currentUser));
   const [ready, setReady] = useState<string | null>(null);

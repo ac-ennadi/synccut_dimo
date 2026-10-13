@@ -121,7 +121,7 @@ async function buildAppUser(authUser:SupabaseUser, accessToken?:string):Promise<
  if(!email)throw new Error('Your Supabase account does not have an email address.');
 
  const membershipQuery=(role:UserRole)=>supabase.from('project_members')
-  .select('project_id,role,display_name,company_name').eq('email',email).eq('role',role).limit(1).maybeSingle();
+  .select('project_id,role,display_name,company_name').eq('email',email).eq('role',role);
  // Both role checks run together so restoring a session or signing in only
  // waits for one network round trip instead of two sequential requests.
  const[{data:editor,error:ee},{data:client,error:ce}]=await Promise.all([
@@ -131,7 +131,7 @@ async function buildAppUser(authUser:SupabaseUser, accessToken?:string):Promise<
  if(ee)throw ee;
  if(ce)throw ce;
 
- const membership=editor??client;
+ const membership=(editor?.[0]??client?.[0]);
  if(!membership && accessToken){
   const response=await fetch('/api/auth/profile',{headers:{Authorization:`Bearer ${accessToken}`}});
   if(response.ok){
@@ -147,7 +147,10 @@ async function buildAppUser(authUser:SupabaseUser, accessToken?:string):Promise<
   email,
   role:membership.role as UserRole,
   company_name:membership.company_name||meta.company_name||'',
-  ...(editor?{}:{project_id:membership.project_id}),
+  ...(editor ? {} : {
+   project_id: membership.project_id,
+   project_ids: client?.map((item)=>item.project_id) ?? [membership.project_id],
+  }),
  };
  appUserCache.set(authUser.id,user);
  return user

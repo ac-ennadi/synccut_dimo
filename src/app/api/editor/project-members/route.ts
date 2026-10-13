@@ -20,7 +20,11 @@ export async function GET(request: Request) {
   const { data, error } = await auth.admin.from('project_members').select('email,display_name,company_name')
     .eq('project_id', projectId).eq('role', 'Client').order('display_name');
   if (error) return Response.json({ error: error.message }, { status: 500 });
-  return Response.json({ members: data ?? [] });
+  const { data: allMembers, error: allMembersError } = await auth.admin.from('project_members')
+    .select('email,display_name,company_name').eq('role', 'Client').order('display_name');
+  if (allMembersError) return Response.json({ error: allMembersError.message }, { status: 500 });
+  const availableUsers = Array.from(new Map((allMembers ?? []).map((member) => [member.email, member])).values());
+  return Response.json({ members: data ?? [], availableUsers });
 }
 
 export async function POST(request: Request) {
@@ -53,17 +57,6 @@ export async function POST(request: Request) {
     });
     if (error || !data.user) return Response.json({ error: error?.message ?? 'Could not create the user account.' }, { status: 400 });
     authUser = data.user;
-  }
-
-  const { data: otherMemberships, error: membershipLookupError } = await auth.admin.from('project_members')
-    .select('project_id,role').eq('email', email).eq('role', 'Client');
-  if (membershipLookupError) {
-    if (wasCreated) await auth.admin.auth.admin.deleteUser(authUser.id);
-    return Response.json({ error: membershipLookupError.message }, { status: 500 });
-  }
-  if ((otherMemberships ?? []).some((membership) => membership.project_id !== projectId)) {
-    if (wasCreated) await auth.admin.auth.admin.deleteUser(authUser.id);
-    return Response.json({ error: 'This account already belongs to another project.' }, { status: 409 });
   }
 
   const { error } = await auth.admin.from('project_members').upsert({
