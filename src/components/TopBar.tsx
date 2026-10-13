@@ -2,13 +2,22 @@
 
 import React from 'react';
 import { Project, ProjectStatus, ProjectType } from '@/types';
-import { Check, Mail } from 'lucide-react';
+import { Check, Mail, Pencil, X } from 'lucide-react';
 
 interface TopBarProps {
   project: Project;
   onStatusChange?: (newStatus: ProjectStatus) => void;
   isStatusSaving?: boolean;
   onProjectTypeChange?: (projectType: ProjectType) => void;
+  onProjectTitleChange?: (title: string) => void;
+  onDueDateChange?: (dueDate: string) => void;
+}
+
+function formatDueDate(value: string): string {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : null;
+  return date && !Number.isNaN(date.getTime())
+    ? new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).format(date)
+    : value;
 }
 
 const STAGES: { key: ProjectStatus; label: string }[] = [
@@ -20,7 +29,9 @@ const STAGES: { key: ProjectStatus; label: string }[] = [
   { key: 'Completed', label: 'Complete' },
 ];
 
-export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatusSaving = false, onProjectTypeChange }) => {
+export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatusSaving = false, onProjectTypeChange, onProjectTitleChange, onDueDateChange }) => {
+  const [editingTitle, setEditingTitle] = React.useState(false);
+  const [draftTitle, setDraftTitle] = React.useState(project.title);
   const stages = project.project_type === 'after_effects' ? STAGES.filter((stage) => stage.key !== 'Shooting') : STAGES;
   const currentStageIndex = stages.findIndex((stage) => stage.key === project.status);
   const stageIndex = Math.max(currentStageIndex, 0);
@@ -31,14 +42,37 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Project</p>
-          <h1 id="project-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mt-1">{project.title}</h1>
+          {editingTitle && onProjectTitleChange ? (
+            <form onSubmit={(event) => { event.preventDefault(); onProjectTitleChange(draftTitle); setEditingTitle(false); }} className="mt-1 flex items-center gap-2">
+              <input
+                autoFocus
+                aria-label="Project name"
+                value={draftTitle}
+                onChange={(event) => setDraftTitle(event.target.value)}
+                className="min-w-0 rounded-lg border border-emerald-500 bg-transparent px-2 py-1 text-2xl font-semibold tracking-tight outline-none"
+              />
+              <button type="submit" aria-label="Save project name" className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"><Check className="h-4 w-4" /></button>
+              <button type="button" aria-label="Cancel project name edit" onClick={() => { setDraftTitle(project.title); setEditingTitle(false); }} className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"><X className="h-4 w-4" /></button>
+            </form>
+          ) : (
+            <div className="mt-1 flex items-center gap-2">
+              <h1 id="project-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">{project.title}</h1>
+              {onProjectTitleChange && <button type="button" aria-label="Edit project name" onClick={() => { setDraftTitle(project.title); setEditingTitle(true); }} className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-100 hover:text-indigo-500 dark:hover:bg-neutral-800"><Pencil className="h-4 w-4" /></button>}
+            </div>
+          )}
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-            Due <strong className="font-medium text-neutral-900 dark:text-neutral-200">{project.due_date}</strong>
+            Due <strong className="font-medium text-neutral-900 dark:text-neutral-200">{formatDueDate(project.due_date)}</strong>
             <span className="mx-2 text-neutral-300 dark:text-neutral-700" aria-hidden="true">·</span>
             Producer {project.producer_name}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 self-start">
+          {onDueDateChange && (
+            <label className="flex min-h-10 items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-xs dark:border-neutral-700 dark:bg-neutral-950">
+              <span className="text-neutral-500">Due date</span>
+              <input type="date" aria-label="Project due date" value={/^\d{4}-\d{2}-\d{2}$/.test(project.due_date) ? project.due_date : ''} onChange={(event) => onDueDateChange(event.target.value)} className="bg-transparent font-semibold text-neutral-900 outline-none dark:text-neutral-100" />
+            </label>
+          )}
           {onProjectTypeChange ? (
             <label className="flex min-h-10 items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 text-xs dark:border-neutral-700 dark:bg-neutral-950">
               <span className="text-neutral-500">Project type</span>
@@ -88,4 +122,3 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
     </section>
   );
 };
-

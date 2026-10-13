@@ -19,6 +19,8 @@ interface ContextValue extends ProjectState {
   isStatusSaving: boolean;
   updateStatus: (status: ProjectStatus) => void;
   updateProjectType: (projectType: ProjectType) => void;
+  updateProjectTitle: (title: string) => void;
+  updateDueDate: (dueDate: string) => void;
   postNewCut: (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => void;
   setActionAlert: (actionBy: ActionRequiredBy, text: string) => void;
   updateScript: (brief: CreativeBrief) => void;
@@ -251,6 +253,18 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     saveProjectFields({ project_type: projectType, status });
   }, [saveProjectFields]);
 
+  const updateDueDate = useCallback((dueDate: string) => {
+    setState((current) => ({ ...current, project: { ...current.project, due_date: dueDate } }));
+    saveProjectFields({ due_date: dueDate });
+  }, [saveProjectFields]);
+
+  const updateProjectTitle = useCallback((title: string) => {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+    setState((current) => ({ ...current, project: { ...current.project, title: trimmedTitle } }));
+    saveProjectFields({ title: trimmedTitle });
+  }, [saveProjectFields]);
+
   const postNewCut = useCallback((cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => {
     const deliverablePatch = {
       version_number: cut.version,
@@ -332,6 +346,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     isProjectLoaded: ready === id,
     isStatusSaving: pendingStatusSaves > 0,
     updateStatus,
+    updateProjectTitle,
+    updateDueDate,
     updateProjectType,
     postNewCut,
     setActionAlert,
@@ -339,7 +355,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     addNote,
     approveCut,
     uploadSuccess,
-  }), [state, ready, id, pendingStatusSaves, updateStatus, updateProjectType, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess]);
+  }), [state, ready, id, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
 };
