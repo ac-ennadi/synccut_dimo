@@ -11,7 +11,7 @@ import { VisualReferences } from './VisualReferences';
 import { ActionAlert } from './ActionAlert';
 import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
-import { ArrowLeft, BriefcaseBusiness, ChevronDown, LogOut, UserCheck } from 'lucide-react';
+import { ArrowLeft, LogOut, UserCheck } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface ClientPortalProps {
@@ -34,9 +34,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('');
-  const [isSwitching, setIsSwitching] = useState(false);
   const projectIds = currentUser?.project_ids ?? (currentUser?.project_id ? [currentUser.project_id] : []);
-  const projectTitles = currentUser?.project_titles ?? {};
 
   const handleLogout = () => {
     logout();
@@ -62,39 +60,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                 {currentUser?.company_name || 'Client workspace'}
               </div>
             </div>
-            {projectIds.length > 1 ? (
-              <label className="group relative flex min-w-0 items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs shadow-xs transition-colors hover:border-indigo-300 dark:border-indigo-900/70 dark:bg-indigo-950/30">
-                <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
-                <span className="hidden whitespace-nowrap font-medium text-indigo-600 dark:text-indigo-300 sm:inline">Working in</span>
-                <select
-                  aria-label="Switch project"
-                  value={project.project_id}
-                  onChange={(event) => {
-                    setIsSwitching(true);
-                    // A full navigation resets the shared provider and guarantees
-                    // that the new project's state is loaded before rendering.
-                    // A full navigation remounts the provider with the new query.
-                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-                    window.location.href = `/client?project=${encodeURIComponent(event.target.value)}`;
-                  }}
-                  className="min-w-0 max-w-[145px] cursor-pointer appearance-none truncate bg-transparent pr-4 font-semibold text-neutral-800 outline-none dark:text-neutral-100"
-                >
-                  {projectIds.map((projectId, index) => (
-                    <option key={projectId} value={projectId}>
-                      {projectTitles[projectId] || (projectId === project.project_id ? project.title : `Project ${index + 1}`)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-indigo-500" />
-              </label>
-            ) : (
-              <div className="flex min-w-0 max-w-[230px] items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs shadow-xs dark:border-indigo-900/70 dark:bg-indigo-950/30">
-                <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
-                <span className="truncate font-semibold text-indigo-700 dark:text-indigo-300" title={project.title}>
-                  {project.title}
-                </span>
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -166,14 +131,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         </footer>
 
       </div>
-      {isSwitching && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-neutral-950/90 p-6 text-white backdrop-blur-sm" role="status" aria-live="polite">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="h-9 w-9 animate-spin rounded-full border-2 border-emerald-400/30 border-t-emerald-400" />
-            <p className="text-sm font-semibold">Loading project</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
