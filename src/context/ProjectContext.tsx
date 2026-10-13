@@ -133,12 +133,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       }
       const base = seed ?? makeInitialState(id, stableUser);
       try {
-        const [{ data: row, error }, { data: notes, error: notesError }] = await Promise.all([
-          supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle(),
-          supabase.from('project_feedback_notes').select('id,author_name,timecode,content,created_at').eq('project_id', id).order('created_at', { ascending: false }),
-        ]);
+        const { data: row, error } = await supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle();
         if (error) throw error;
-        if (notesError) throw notesError;
         if (cancelled) return;
 
         const saved = row?.state as Partial<ProjectState> | null;
@@ -151,9 +147,29 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
             ...(saved?.deliverable ?? base.deliverable),
             // A demo placeholder from an early version is not a real cut.
             video_url: saved?.deliverable?.video_url?.includes('sample-cut-guid') ? '' : saved?.deliverable?.video_url ?? '',
-            feedback_notes: (notes ?? []).filter((note) => note.id !== 'note_1') as FeedbackNote[],
+            feedback_notes: [],
           },
         });
+        setReady(id);
+
+        // Notes are non-blocking. The project workspace can render immediately
+        // and the feedback list is filled in as soon as this lighter query ends.
+        const { data: notes, error: notesError } = await supabase
+          .from('project_feedback_notes')
+          .select('id,author_name,timecode,content,created_at')
+          .eq('project_id', id)
+          .order('created_at', { ascending: false });
+        if (notesError) {
+          console.error('Failed to restore project feedback notes.', notesError);
+        } else if (!cancelled) {
+          setState((current) => ({
+            ...current,
+            deliverable: {
+              ...current.deliverable,
+              feedback_notes: (notes ?? []).filter((note) => note.id !== 'note_1') as FeedbackNote[],
+            },
+          }));
+        }
 
         // Newly created client workspaces already have a state row. This fallback
         // initializes older memberships without replacing an existing row.
@@ -164,7 +180,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
           );
           if (seedError) throw seedError;
         }
-        setReady(id);
       } catch (error) {
         console.error('Failed to restore project state from Supabase.', error);
       }

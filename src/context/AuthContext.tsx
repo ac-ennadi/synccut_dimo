@@ -119,18 +119,12 @@ async function buildAppUser(authUser:SupabaseUser, accessToken?:string):Promise<
  const email=authUser.email?.trim().toLowerCase();
  if(!email)throw new Error('Your Supabase account does not have an email address.');
 
- const membershipQuery=(role:UserRole)=>supabase.from('project_members')
-  .select('project_id,role,display_name,company_name').eq('email',email).eq('role',role);
- // Both role checks run together so restoring a session or signing in only
- // waits for one network round trip instead of two sequential requests.
- const[{data:editor,error:ee},{data:client}]=await Promise.all([
-  membershipQuery('Editor'),
-  membershipQuery('Client'),
- ]);
+ const{data:editor,error:ee}=await supabase.from('project_members')
+  .select('project_id,role,display_name,company_name').eq('email',email).eq('role','Editor');
  if(ee)throw ee;
+  const membership=editor?.[0];
 
- const membership=(editor?.[0]??client?.[0]);
- if(!editor?.length && accessToken){
+  if(!editor?.length && accessToken){
   const response=await fetch('/api/auth/client-projects',{headers:{Authorization:'Bearer '+accessToken}});
   if(response.ok){
    const payload=await response.json() as {user?:User};
@@ -155,10 +149,7 @@ async function buildAppUser(authUser:SupabaseUser, accessToken?:string):Promise<
   email,
   role:membership.role as UserRole,
   company_name:membership.company_name||meta.company_name||'',
-  ...(editor ? {} : {
-   project_id: membership.project_id,
-   project_ids: client?.map((item)=>item.project_id) ?? [membership.project_id],
-  }),
+  ...(editor ? {} : { project_id: membership.project_id, project_ids: [membership.project_id] }),
  };
  appUserCache.set(authUser.id,user);
  return user
