@@ -73,7 +73,9 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
                     setIsSwitching(true);
                     // A full navigation resets the shared provider and guarantees
                     // that the new project's state is loaded before rendering.
-                    router.push(`/client?project=${encodeURIComponent(event.target.value)}`);
+                    // A full navigation remounts the provider with the new query.
+                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                    window.location.href = `/client?project=${encodeURIComponent(event.target.value)}`;
                   }}
                   className="min-w-0 max-w-[145px] cursor-pointer appearance-none truncate bg-transparent pr-4 font-semibold text-neutral-800 outline-none dark:text-neutral-100"
                 >

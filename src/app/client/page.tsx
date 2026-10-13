@@ -9,7 +9,6 @@ import { ArrowRight, BriefcaseBusiness, LogOut } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 
 function ProjectChooser({ projectIds, projectTitles, currentProjectId, currentProjectTitle, clientName, onLogout }: { projectIds: string[]; projectTitles: Record<string, string>; currentProjectId: string; currentProjectTitle: string; clientName: string; onLogout: () => void }) {
-  const router = useRouter();
   const [query, setQuery] = useState('');
   const [isOpening, setIsOpening] = useState(false);
   const visibleProjects = projectIds.filter((projectId) => {
@@ -55,7 +54,12 @@ function ProjectChooser({ projectIds, projectTitles, currentProjectId, currentPr
               const isCurrent = projectId === currentProjectId;
               const label = projectTitles[projectId] || (isCurrent ? currentProjectTitle : `Project ${index + 1}`);
               return (
-                <button key={projectId} type="button" disabled={isOpening} onClick={() => { setIsOpening(true); router.push(`/client?project=${encodeURIComponent(projectId)}`); }} className="group relative flex min-h-48 w-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-lg disabled:cursor-wait disabled:opacity-60 dark:border-neutral-800 dark:bg-neutral-900">
+                <button key={projectId} type="button" disabled={isOpening} onClick={() => {
+                  setIsOpening(true);
+                  // A full navigation remounts the provider with the new query.
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                  window.location.href = `/client?project=${encodeURIComponent(projectId)}`;
+                }} className="group relative flex min-h-48 w-full flex-col justify-between rounded-2xl border border-neutral-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-lg disabled:cursor-wait disabled:opacity-60 dark:border-neutral-800 dark:bg-neutral-900">
                   <span className="min-w-0">
                     <span className="mb-3 block text-[10px] font-bold uppercase tracking-wider text-neutral-500">Project {String(index + 1).padStart(2, '0')}</span>
                     <span className="block truncate text-lg font-bold text-neutral-900 dark:text-neutral-100">{label}</span>
