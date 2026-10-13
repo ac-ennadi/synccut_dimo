@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Plus, Trash2, UserPlus, Users } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, UserPlus, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface Member { email: string; display_name: string; company_name: string }
@@ -127,10 +127,14 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
       </div>
       <form onSubmit={addMember} className="grid gap-3 sm:grid-cols-2">
         {mode === 'existing' ? (
-          <select aria-label="Existing user" value={selectedEmail} onChange={(event) => selectExistingUser(event.target.value)} required className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950 sm:col-span-2">
-            <option value="">Choose an existing client account</option>
-            {availableUsers.filter((user) => !members.some((member) => member.email === user.email)).map((user) => <option key={user.email} value={user.email}>{user.display_name} — {user.email}</option>)}
-          </select>
+          <label className="relative sm:col-span-2">
+            <Users className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-500" />
+            <select aria-label="Existing user" value={selectedEmail} onChange={(event) => selectExistingUser(event.target.value)} required className="w-full cursor-pointer appearance-none rounded-xl border border-indigo-200 bg-indigo-50/60 py-2.5 pl-10 pr-10 text-sm font-medium text-neutral-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-indigo-900/70 dark:bg-indigo-950/30 dark:text-neutral-100">
+              <option value="">Choose an existing client account</option>
+              {availableUsers.filter((user) => !members.some((member) => member.email === user.email)).map((user) => <option key={user.email} value={user.email}>{user.display_name} — {user.email}</option>)}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-500" />
+          </label>
         ) : (
           <>
             <input aria-label="User name" placeholder="User name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required minLength={2} className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950" />

@@ -11,7 +11,7 @@ import { VisualReferences } from './VisualReferences';
 import { ActionAlert } from './ActionAlert';
 import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
-import { LogOut, UserCheck } from 'lucide-react';
+import { BriefcaseBusiness, ChevronDown, LogOut, UserCheck } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface ClientPortalProps {
@@ -61,18 +61,20 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
               </div>
             </div>
             {projectIds.length > 1 && (
-              <label className="flex min-w-0 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs dark:border-neutral-800 dark:bg-neutral-900">
-                <span className="whitespace-nowrap text-neutral-500">Project</span>
+              <label className="group relative flex min-w-0 items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs shadow-xs transition-colors hover:border-indigo-300 dark:border-indigo-900/70 dark:bg-indigo-950/30">
+                <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
+                <span className="hidden whitespace-nowrap font-medium text-indigo-600 dark:text-indigo-300 sm:inline">Working in</span>
                 <select
                   aria-label="Switch project"
                   value={project.project_id}
                   onChange={(event) => router.push(`/client?project=${encodeURIComponent(event.target.value)}`)}
-                  className="min-w-0 max-w-[180px] truncate bg-transparent font-semibold text-neutral-800 outline-none dark:text-neutral-200"
+                  className="min-w-0 max-w-[145px] cursor-pointer appearance-none truncate bg-transparent pr-4 font-semibold text-neutral-800 outline-none dark:text-neutral-100"
                 >
                   {projectIds.map((projectId, index) => (
-                    <option key={projectId} value={projectId}>Project {index + 1} ({projectId.slice(0, 8)})</option>
+                    <option key={projectId} value={projectId}>Project {index + 1}</option>
                   ))}
                 </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-indigo-500" />
               </label>
             )}
           </div>
