@@ -1,50 +1,82 @@
-# Client Portal: Video Production Review & Approval Platform
+# SyncCut
 
-A single-page client dashboard for commercial and video production teams. Built with **Next.js (App Router)**, **Tailwind CSS**, and **Supabase**.
+## Video production collaboration, without the review chaos
 
----
+SyncCut is a shared workspace for video editors, producers, and clients. It brings project context, visual direction, review notes, approvals, and deliverables into one focused experience so every revision stays connected to the work.
 
-## 🌟 Key Features
+Instead of managing feedback across email threads, chat messages, cloud folders, and disconnected documents, teams can move a project from brief to final cut in one place.
 
-1. **Top Bar — Pizza Delivery Progress Tracker**:
-   - Premiere Pro projects use `Scripting` ➔ `Pre-Production` ➔ `Shooting` ➔ `Editing` ➔ `Final Review`; After Effects projects skip `Shooting`.
-   - Live stage switcher & visual progress ring.
-2. **Left Column (Laptop) / Second on Mobile — The Script & Brief**:
-   - **Script Box**: Editors can add and revise scenes, titles, timecodes, visual direction, voiceover, and extra script sections.
-   - **Mood Board**: Editors can add, edit, and remove reference cards with uploaded images or image links and notes; saved cards are shared with the client portal.
-3. **Right Column (Laptop) / First on Mobile — Action Items & Deliverables**:
-   - **Action Required Alert**: High-contrast amber card when waiting on client assets (e.g. vector logos).
-   - **Video Cut Player**: Upload private video cuts or paste a Google Drive share link, scrub direct-video playback timecodes, and approve cuts.
-   - **Timecoded Feedback Box**: Instant note submission directly tagged to playback timecode (`+ Stamp Timecode 00:18`) with real-time optimistic feed.
-4. **Device Viewport Simulator**:
-   - Header toggle button lets you instantly preview both **Laptop (2-Column)** and **Mobile (Stacked)** layouts on the fly.
+## Built for the full production relationship
 
----
+### Editors and producers
 
-## 🚀 Getting Started
+- Manage multiple client projects from a central workspace.
+- Organize each project around its current production stage.
+- Invite existing client accounts to additional projects or create new client access.
+- Share scripts, scene details, voiceover direction, and production notes.
+- Build visual reference and mood boards with images, links, and creative notes.
+- Upload new cuts and keep the latest deliverable visible to the project team.
+- Request specific client assets, such as logos or brand files.
+- Review feedback, manage approvals, and keep project decisions in context.
 
-### 1. Run Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Clients
 
-### 2. Connect Your Backend Services
-Copy `.env.example` to `.env.local` and provide your API keys:
-- **Supabase**: Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), and `EDITOR_EMAIL`. Run [`schema.sql`](./schema.sql). Create the editor's email/password account in Supabase Auth, set that email as `EDITOR_EMAIL`, and create the first project from the editor dashboard. The editor account remains valid even when all projects are deleted. In Supabase Auth settings, disable public sign-ups and turn off email confirmation. Client accounts are created from the editor dashboard; the server marks them confirmed and records their project membership. Clients then sign in with the password supplied by the editor. Never expose the service role key in a `NEXT_PUBLIC_` variable or browser code.
+- See the project they are currently working on as soon as they sign in.
+- Switch between every project they have been assigned to.
+- Review the script, brief, progress stages, and visual references in one workspace.
+- Watch the latest video cut without leaving the project.
+- Leave feedback at an exact timecode in the video.
+- Upload requested brand assets and production files.
+- Approve a final cut when the project is ready to move forward.
 
-For an existing Supabase project, run every file in [`supabase/migrations`](./supabase/migrations) in filename order in the Supabase SQL Editor before deploying. The concurrent-edits migration moves feedback into its own table so simultaneous comments cannot overwrite each other. The attribution migration adds feedback author attribution so removing a user can also remove their feedback from that project. The video migration creates a private bucket; the app grants short-lived upload and playback links only to project members. The deletion migration adds the missing delete policy for project members, the indexes the access checks rely on, and a cascade so deleting a project also clears its membership rows.
+## A clearer project workflow
 
-### 3. First Setup
+SyncCut supports the stages that turn an idea into a finished video:
 
-For the first setup, create the editor user in **Supabase → Authentication → Users**, set its email as `EDITOR_EMAIL`, and restart/redeploy the app after changing environment variables. Create projects from the editor dashboard, then add multiple client users from each workspace. Removing a user revokes their project access and deletes their project feedback; their Supabase sign-in account is deleted when they have no other client-project memberships. Shared project files and content remain. Keep custom SMTP disabled; this login and account creation flow does not send verification emails.
+1. **Script** — align on the story, scenes, voiceover, and creative direction.
+2. **Pre-production** — prepare references, assets, and the production plan.
+3. **Shoot** — keep production progress visible to everyone involved.
+4. **Edit** — share cuts and collect precise, actionable feedback.
+5. **Final review** — resolve remaining notes and confirm the final version.
+6. **Complete** — close the loop with a clear approval.
 
----
+Projects can follow a full video-production workflow or use a shorter motion-design workflow when a shooting stage is not needed.
 
-## 🗑️ Deleting a Project
+## Feedback that stays in context
 
-Editors can delete a project from the trash button on its card in `/editor`, or from the **Danger zone** panel inside the project workspace. Both paths ask you to type the project name first.
+Every note can be tied directly to a moment in the video. Clients and editors can discuss what needs to change without guessing which scene, frame, or version someone is referring to.
 
-Deleting removes the project state, every feedback note, and all uploaded videos, logos, and reference images from storage. Client sign-in accounts are deliberately kept, so those people can be added to another project later; only their membership in the deleted project disappears.
+This keeps:
 
-Deletion runs through `DELETE /api/editor/clients`, which clears the private `project-videos` folder before removing the database rows. Storage is cleared first on purpose: an orphaned project row is much worse than an orphaned file.
+- Feedback specific instead of vague.
+- Creative decisions close to the work they describe.
+- Revisions easier to prioritize.
+- Approval history easier to understand.
+
+## Shared project spaces
+
+Each project brings together:
+
+- Project status and production progress.
+- Creative brief and script information.
+- Visual references and mood boards.
+- Client requests and action items.
+- Latest video deliverables.
+- Timecoded feedback and approval state.
+- Project members and access.
+
+When a client works across several projects, their account keeps one identity while their project memberships remain separate. Editors can reuse an existing client account across projects without creating duplicate logins.
+
+## Designed for focused reviews
+
+SyncCut is designed to make review sessions feel simple and intentional:
+
+- A responsive workspace for desktop and phone screens.
+- A clean client-facing portal with only the information needed for review.
+- Clear visual priority for urgent client actions.
+- Smooth project progress and review transitions.
+- Private project access for assigned team members.
+
+## The outcome
+
+SyncCut helps production teams spend less time translating feedback and more time making the work better. Everyone sees the same project context, the same latest cut, and the same next step.
