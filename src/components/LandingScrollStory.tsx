@@ -221,22 +221,29 @@ export function LandingScrollStory() {
       gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
       gsap.set(media, {
         left: '8%', top: '78%', bottom: 'auto', width: '78%', height: '70vh',
-        xPercent: 0, yPercent: 0, borderRadius: 16,
+        xPercent: 0, yPercent: 0, borderRadius: 16, rotateZ: -1.5, scale: 0.94,
+      });
+      stepPanels.forEach((panel) => {
+        gsap.set(panel.children, { autoAlpha: 0, y: 18 });
       });
       updateActiveStep(0);
 
       timeline.to(hero, { autoAlpha: 0, y: -56, duration: 1 }, 0);
       timeline.to(heroDetails, { autoAlpha: 0, duration: 0.32 }, 0);
       timeline.to(media, {
-        top: '50%', left: '52%', width: '44%', height: 'calc(24.75vw + 60px)', yPercent: -50, borderRadius: 24, duration: 1,
+        top: '50%', left: '52%', width: '44%', height: 'calc(24.75vw + 60px)', yPercent: -50,
+        borderRadius: 24, rotateZ: 0, scale: 1, duration: 1,
       }, 0);
 
       timeline.to(stepsColumn, { autoAlpha: 1, duration: 0.18 }, 1);
       timeline.to(stepPanels[0], { autoAlpha: 1, y: 0, duration: 0.24 }, 1.08);
+      timeline.to(stepPanels[0].children, { autoAlpha: 1, y: 0, duration: 0.2, stagger: 0.06 }, 1.14);
       timeline.to(stepPanels[0], { autoAlpha: 0, y: -28, duration: 0.2 }, 2);
       timeline.to(stepPanels[1], { autoAlpha: 1, y: 0, duration: 0.2 }, 2.12);
+      timeline.to(stepPanels[1].children, { autoAlpha: 1, y: 0, duration: 0.2, stagger: 0.06 }, 2.18);
       timeline.to(stepPanels[1], { autoAlpha: 0, y: -28, duration: 0.2 }, 3);
       timeline.to(stepPanels[2], { autoAlpha: 1, y: 0, duration: 0.2 }, 3.12);
+      timeline.to(stepPanels[2].children, { autoAlpha: 1, y: 0, duration: 0.2, stagger: 0.06 }, 3.18);
       timeline.to({}, { duration: 0.68 }, 3.32);
 
       let activeIndex = -1;
