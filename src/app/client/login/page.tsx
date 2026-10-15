@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function ClientLoginPage() {
   const router = useRouter();
-  const { currentUser, isLoading: isRestoring, signIn } = useAuth();
+  const { currentUser, isLoading: isRestoring, signIn, logout } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -19,9 +19,14 @@ export default function ClientLoginPage() {
     // Only redirect once the stored session has been resolved, otherwise a valid
     // client is bounced back here while their membership is still loading.
     if (isRestoring || !currentUser) return;
-    setIsNavigating(true);
-    router.replace(currentUser.role === 'Editor' ? '/editor' : '/client');
-  }, [currentUser, isRestoring, router]);
+    if (currentUser.role === 'Client') {
+      queueMicrotask(() => setIsNavigating(true));
+      router.replace('/client');
+      return;
+    }
+    logout();
+    queueMicrotask(() => setError('This is an editor account. Use the editor sign-in page.'));
+  }, [currentUser, isRestoring, logout, router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

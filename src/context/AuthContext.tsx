@@ -19,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // High-speed in-memory cache for user metadata to avoid redundant lookups.
 const appUserCache = new Map<string, User>();
+const userSessionCachePrefix = 'synccut_user_v2_';
 
 function clearAllUserCaches() {
   appUserCache.clear();
@@ -163,7 +164,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
   // 2. Instant SessionStorage cache hit (accelerates page transitions and reloads)
   try {
     if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem(`synccut_user_${authUser.id}`);
+      const stored = sessionStorage.getItem(`${userSessionCachePrefix}${authUser.id}`);
       if (stored) {
         const parsed = JSON.parse(stored) as User;
         if (parsed && parsed.email === email) {
@@ -186,26 +187,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
     console.warn('Direct membership lookup error:', membersError);
   }
 
-  const editorMember = members?.find((m) => m.role === 'Editor');
   const clientMembers = members?.filter((m) => m.role === 'Client') ?? [];
-
-  if (editorMember) {
-    const meta = authUser.user_metadata ?? {};
-    const user: User = {
-      user_id: authUser.id,
-      name: editorMember.display_name || meta.name || email,
-      email,
-      role: 'Editor',
-      company_name: editorMember.company_name || meta.company_name || 'SyncCut',
-    };
-    appUserCache.set(authUser.id, user);
-    try {
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(`synccut_user_${authUser.id}`, JSON.stringify(user));
-      }
-    } catch {}
-    return user;
-  }
 
   if (clientMembers.length > 0) {
     const projectIds = [...new Set(clientMembers.map((m) => m.project_id))];
@@ -239,7 +221,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
     appUserCache.set(authUser.id, user);
     try {
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem(`synccut_user_${authUser.id}`, JSON.stringify(user));
+        sessionStorage.setItem(`${userSessionCachePrefix}${authUser.id}`, JSON.stringify(user));
       }
     } catch {}
     return user;
@@ -257,7 +239,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
       if (payload.user) {
         appUserCache.set(authUser.id, payload.user);
         try {
-          if (typeof window !== 'undefined') sessionStorage.setItem(`synccut_user_${authUser.id}`, JSON.stringify(payload.user));
+          if (typeof window !== 'undefined') sessionStorage.setItem(`${userSessionCachePrefix}${authUser.id}`, JSON.stringify(payload.user));
         } catch {}
         return payload.user;
       }
@@ -268,7 +250,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
       if (payload.user) {
         appUserCache.set(authUser.id, payload.user);
         try {
-          if (typeof window !== 'undefined') sessionStorage.setItem(`synccut_user_${authUser.id}`, JSON.stringify(payload.user));
+          if (typeof window !== 'undefined') sessionStorage.setItem(`${userSessionCachePrefix}${authUser.id}`, JSON.stringify(payload.user));
         } catch {}
         return payload.user;
       }

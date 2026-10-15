@@ -26,6 +26,9 @@ export async function GET(request: Request) {
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   const projectIds = [...new Set((data ?? []).map((membership) => membership.project_id))];
+  if (!projectIds.length) {
+    return Response.json({ error: 'This account is not assigned to a client project.' }, { status: 403 });
+  }
   const { data: states, error: statesError } = projectIds.length
     ? await admin.admin.from('project_portal_state').select('project_id,state').in('project_id', projectIds)
     : { data: [], error: null };
