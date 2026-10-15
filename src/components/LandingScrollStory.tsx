@@ -228,7 +228,7 @@ export function LandingScrollStory() {
       });
       gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
       gsap.set(media, {
-        left: '8%', top: '78%', bottom: 'auto', width: '78%', height: 'calc(43.875vw + 60px)',
+        left: '8%', top: '68%', bottom: 'auto', width: '78%', height: 'calc(43.875vw + 60px)',
         xPercent: 0, yPercent: 0, borderRadius: 16, rotateZ: -1.5, scale: 0.94,
       });
       stepPanels.forEach((panel) => {
