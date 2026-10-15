@@ -30,8 +30,11 @@ function EditorLoadingScreen() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
       <section className="w-full max-w-md space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-2xl shadow-indigo-950/30 sm:p-8" role="status" aria-live="polite">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10">
-          <div className="h-7 w-7 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/20">
+          <div className="h-6 w-6 rounded-lg border-2 border-indigo-400/80" />
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-indigo-400 to-blue-400" />
         </div>
         <div>
           <h1 className="text-base font-bold">Loading editor dashboard</h1>

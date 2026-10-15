@@ -64,9 +64,7 @@ export default function EditorLoginPage() {
       {showLoading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-neutral-950/95 text-white backdrop-blur-md" role="status" aria-live="polite">
           <div className="flex flex-col items-center gap-4 text-center px-4">
-            <div className="relative flex h-14 w-14 items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20" />
-              <div className="h-14 w-14 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/20">
               <Shield className="h-6 w-6 text-indigo-400" />
             </div>
             <div className="space-y-1">
@@ -76,6 +74,9 @@ export default function EditorLoginPage() {
               <p className="text-xs text-neutral-400">
                 {isRestoring ? 'Restoring editor credentials…' : 'Preparing workspaces and project states…'}
               </p>
+            </div>
+            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+              <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-indigo-400 to-blue-400" />
             </div>
             {isTakingLonger && (
               <div className="mt-4 max-w-sm rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">

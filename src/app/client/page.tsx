@@ -25,12 +25,12 @@ function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string })
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/95 p-4 text-white backdrop-blur-xl" role="status" aria-live="polite">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-emerald-950/30 sm:p-8">
         <div className="flex items-center gap-4">
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10">
-            <div className="absolute inset-1 animate-ping rounded-xl border border-emerald-400/30" />
-            <ShieldCheck className="h-7 w-7 text-emerald-400" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/10 ring-1 ring-emerald-300/20">
+            <ShieldCheck className="h-6 w-6 text-emerald-300" />
           </div>
           <div className="min-w-0">
-            <p className="text-base font-bold">{label}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Secure connection</p>
+            <p className="mt-1 text-base font-bold">{label}</p>
             <p className="mt-1 text-xs text-neutral-400">Securely connecting to your Supabase workspace</p>
           </div>
         </div>
@@ -45,8 +45,8 @@ function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string })
           ))}
         </div>
 
-        <div className="mt-7 h-1 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full w-1/2 animate-pulse rounded-full bg-emerald-500" />
+        <div className="mt-7 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-emerald-400 to-teal-300" />
         </div>
 
         {isTakingLonger && (

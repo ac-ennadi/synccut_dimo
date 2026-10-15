@@ -22,9 +22,11 @@ function Workspace() {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950 p-6 text-white backdrop-blur-md" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="relative flex h-12 w-12 items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20" />
-            <div className="h-12 w-12 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/20">
+            <div className="h-5 w-5 rounded-md border-2 border-indigo-400/80" />
+          </div>
+          <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+            <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-indigo-400 to-blue-400" />
           </div>
           <div className="space-y-1">
             <p className="text-sm font-semibold">Opening project workspace…</p>
