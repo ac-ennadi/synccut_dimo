@@ -324,10 +324,6 @@ export function LandingScrollStory() {
       <div className="relative mx-auto h-full w-full max-w-7xl max-w-full max-lg:flex max-lg:h-auto max-lg:min-h-screen max-lg:flex-col max-lg:px-4 max-lg:pb-12 sm:max-lg:px-6">
         {/* Hero headline occupies the upper half while the wide video peeks up from below. */}
         <div ref={heroRef} id="home" className="box-border absolute left-1/2 top-[7%] z-20 mx-auto flex w-full max-w-5xl -translate-x-1/2 flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8 max-lg:static max-lg:z-20 max-lg:w-full max-lg:max-w-none max-lg:translate-x-0 max-lg:px-0 max-lg:pb-8 max-lg:pt-14">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-100">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
-            Video collaboration, all on one page
-          </div>
           <h1 ref={heroHeadingRef} className="box-border w-full max-w-full break-words text-3xl font-bold leading-tight tracking-tight text-center text-[#f5f6fa] sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl">
             Clients review it. Editors cut it.<br />
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">Projects ship.</span>
