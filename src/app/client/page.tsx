@@ -5,21 +5,66 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ProjectProvider, useProject } from '@/context/ProjectContext';
 import { ClientPortal } from '@/components/ClientPortal';
-import { ArrowRight, BriefcaseBusiness, LogOut } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Check, Circle, LogOut, RefreshCw, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 
 function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string }) {
+  const [isTakingLonger, setIsTakingLonger] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setIsTakingLonger(true), 9000);
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  const isProject = /project|workspace/i.test(label);
+  const steps = isProject
+    ? ['Verifying project access', 'Loading project brief and deliverables', 'Preparing your review workspace']
+    : ['Verifying your session', 'Loading assigned projects', 'Preparing your client portal'];
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/90 p-6 text-white backdrop-blur-md" role="status" aria-live="polite">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="relative flex h-12 w-12 items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20" />
-          <div className="h-12 w-12 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/95 p-4 text-white backdrop-blur-xl" role="status" aria-live="polite">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-emerald-950/30 sm:p-8">
+        <div className="flex items-center gap-4">
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10">
+            <div className="absolute inset-1 animate-ping rounded-xl border border-emerald-400/30" />
+            <ShieldCheck className="h-7 w-7 text-emerald-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-base font-bold">{label}</p>
+            <p className="mt-1 text-xs text-neutral-400">Securely connecting to your Supabase workspace</p>
+          </div>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">{label}</p>
-          <p className="text-xs text-neutral-400">Syncing real-time timeline, brief, and assets</p>
+
+        <div className="mt-7 space-y-3">
+          {steps.map((step, index) => (
+            <div key={step} className="flex items-center gap-3 text-sm">
+              {index === 0 ? <Check className="h-4 w-4 text-emerald-400" /> : <Circle className="h-3.5 w-3.5 text-neutral-600" />}
+              <span className={index === 0 ? 'text-neutral-200' : 'text-neutral-500'}>{step}</span>
+              {index === 0 && <RefreshCw className="ml-auto h-3.5 w-3.5 animate-spin text-emerald-400" />}
+            </div>
+          ))}
         </div>
+
+        <div className="mt-7 h-1 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-emerald-500" />
+        </div>
+
+        {isTakingLonger && (
+          <div className="mt-6 space-y-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4">
+            <p className="text-sm font-semibold text-amber-200">This is taking longer than expected</p>
+            <p className="text-xs leading-5 text-neutral-400">
+              Supabase may be waking up or your session may have expired. You can retry safely or sign in again.
+            </p>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">
+                Retry connection
+              </button>
+              <a href="/client/login" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-white/10">
+                Sign in again
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

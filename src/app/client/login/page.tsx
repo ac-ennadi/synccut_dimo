@@ -14,6 +14,13 @@ export default function ClientLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isTakingLonger, setIsTakingLonger] = useState(false);
+
+  useEffect(() => {
+    if (!isRestoring && !isSubmitting && !isNavigating) return;
+    const timeout = window.setTimeout(() => setIsTakingLonger(true), 9000);
+    return () => window.clearTimeout(timeout);
+  }, [isRestoring, isSubmitting, isNavigating]);
 
   useEffect(() => {
     // Only redirect once the stored session has been resolved, otherwise a valid
@@ -64,6 +71,15 @@ export default function ClientLoginPage() {
                 {isRestoring ? 'Restoring your authenticated session…' : 'Verifying credentials and loading your projects…'}
               </p>
             </div>
+            {isTakingLonger && (
+              <div className="mt-4 max-w-sm rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
+                <p className="text-sm font-semibold text-amber-200">Still connecting</p>
+                <p className="mt-1 text-xs leading-5 text-neutral-400">The Supabase project is taking longer than expected.</p>
+                <button type="button" onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">
+                  Retry connection
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
