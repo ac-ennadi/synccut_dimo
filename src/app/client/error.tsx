@@ -24,6 +24,11 @@ export default function ClientError({
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Your project data could not be opened. Try again, or sign in again if your session expired.
           </p>
+          {error.message && (
+            <p className="rounded-lg bg-neutral-100 p-3 text-left text-xs text-neutral-600 dark:bg-neutral-950 dark:text-neutral-400">
+              Diagnostic: {error.message}
+            </p>
+          )}
         </div>
         <div className="flex justify-center gap-3">
           <button

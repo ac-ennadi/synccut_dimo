@@ -177,11 +177,15 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         ]);
 
         if (stateRes.error) throw stateRes.error;
-        if (notesRes.error) throw notesRes.error;
+        if (notesRes.error) {
+          // Feedback is optional for opening a project. A missing feedback
+          // migration or policy must not prevent clients from reviewing a cut.
+          console.warn('Could not load project feedback notes.', notesRes.error);
+        }
         if (cancelled) return;
 
         const row = stateRes.data;
-        const notes = notesRes.data ?? [];
+        const notes = notesRes.error ? [] : notesRes.data ?? [];
         const saved = row?.state as Partial<ProjectState> | null;
         const projectType = normalizeProjectType(saved?.project?.project_type);
         const restoredProject = { ...(saved?.project ?? base.project) };
@@ -199,9 +203,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
           brief: {
             ...base.brief,
             ...savedBrief,
-            script_scenes: savedBrief.script_scenes ?? base.brief.script_scenes,
-            script_sections: savedBrief.script_sections ?? base.brief.script_sections,
-            references: savedBrief.references ?? base.brief.references,
+            script_scenes: Array.isArray(savedBrief.script_scenes) ? savedBrief.script_scenes : base.brief.script_scenes,
+            script_sections: Array.isArray(savedBrief.script_sections) ? savedBrief.script_sections : base.brief.script_sections,
+            references: Array.isArray(savedBrief.references) ? savedBrief.references : base.brief.references,
           },
           deliverable: {
             ...base.deliverable,
