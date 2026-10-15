@@ -38,7 +38,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 
   const handleLogout = () => {
     logout();
-    router.push('/client/login');
+    router.replace('/client/login');
   };
 
   return (

@@ -264,7 +264,7 @@ function ClientPageContent() {
         }}
         onLogout={() => {
           logout();
-          router.push('/client/login');
+          router.replace('/client/login');
         }}
       />
     );

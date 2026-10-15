@@ -125,8 +125,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(() => {
     clearAllUserCaches();
     setCurrentUser(null);
-    setIsLoading(true);
-    void signOutAndClearCaches().finally(() => setIsLoading(false));
+    // The local session must clear immediately. Supabase sign-out can be
+    // delayed by network issues and must not block the login screen.
+    setIsLoading(false);
+    void signOutAndClearCaches().catch((error) => {
+      console.warn('Remote Supabase sign-out did not complete.', error);
+    });
   }, []);
 
   const value = useMemo<AuthContextType>(

@@ -119,7 +119,7 @@ export default function EditorPage() {
               <h1 className="text-2xl font-bold leading-7">Projects</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2"><span className="hidden text-sm text-neutral-500 sm:inline">Signed in as {currentUser.name}</span><button onClick={() => { logout(); router.push('/editor/login'); }} className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900"><LogOut size={15} />Sign out</button></div>
+          <div className="flex items-center gap-2"><span className="hidden text-sm text-neutral-500 sm:inline">Signed in as {currentUser.name}</span><button onClick={() => { logout(); router.replace('/editor/login'); }} className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900"><LogOut size={15} />Sign out</button></div>
         </header>
 
         <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Project workspaces</h2><p className="mt-1 text-sm text-neutral-500">Create a project, then add everyone who needs access to its shared workspace.</p></div><button onClick={() => { setShowForm((current) => !current); setMessage(null); }} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white"><FolderPlus size={16} />Create project</button></div>
