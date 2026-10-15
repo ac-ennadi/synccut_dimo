@@ -159,7 +159,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
 
   // 1. In-memory cache hit
   const cached = appUserCache.get(authUser.id);
-  if (cached && cached.email === email) return cached;
+  if (cached && cached.email === email && !accessToken) return cached;
 
   // 2. Instant SessionStorage cache hit (accelerates page transitions and reloads)
   try {
@@ -167,7 +167,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
       const stored = sessionStorage.getItem(`${userSessionCachePrefix}${authUser.id}`);
       if (stored) {
         const parsed = JSON.parse(stored) as User;
-        if (parsed && parsed.email === email) {
+        if (parsed && parsed.email === email && !accessToken) {
           appUserCache.set(authUser.id, parsed);
           return parsed;
         }
@@ -175,6 +175,27 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
     }
   } catch {
     // Ignore storage access errors
+  }
+
+  // The configured editor identity is authoritative. Check it before reading
+  // client memberships so an editor who is also assigned to a client project
+  // cannot be routed through the client portal.
+  if (accessToken) {
+    const editorRes = await fetch('/api/auth/profile', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).catch(() => null);
+    if (editorRes?.ok) {
+      const payload = (await editorRes.json()) as { user?: User };
+      if (payload.user?.role === 'Editor' && payload.user.user_id === authUser.id) {
+        appUserCache.set(authUser.id, payload.user);
+        try {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(`${userSessionCachePrefix}${authUser.id}`, JSON.stringify(payload.user));
+          }
+        } catch {}
+        return payload.user;
+      }
+    }
   }
 
   // 3. Fast direct database lookup (runs in single round-trip with user's JWT)
