@@ -187,16 +187,26 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         const restoredProject = { ...(saved?.project ?? base.project) };
         const cleanNotes = notes.filter((note) => note.id !== 'note_1') as FeedbackNote[];
 
+        const savedBrief = (saved?.brief ?? {}) as Partial<CreativeBrief>;
+        const savedDeliverable = (saved?.deliverable ?? {}) as Partial<Deliverable>;
         const fullProjectState: ProjectState = {
           project: {
+            ...base.project,
             ...restoredProject,
             project_type: projectType,
             status: normalizeProjectStatus(restoredProject.status, projectType),
           },
-          brief: saved?.brief ?? base.brief,
+          brief: {
+            ...base.brief,
+            ...savedBrief,
+            script_scenes: savedBrief.script_scenes ?? base.brief.script_scenes,
+            script_sections: savedBrief.script_sections ?? base.brief.script_sections,
+            references: savedBrief.references ?? base.brief.references,
+          },
           deliverable: {
-            ...(saved?.deliverable ?? base.deliverable),
-            video_url: saved?.deliverable?.video_url?.includes('sample-cut-guid') ? '' : saved?.deliverable?.video_url ?? '',
+            ...base.deliverable,
+            ...savedDeliverable,
+            video_url: savedDeliverable.video_url?.includes('sample-cut-guid') ? '' : savedDeliverable.video_url ?? '',
             feedback_notes: cleanNotes,
           },
         };
