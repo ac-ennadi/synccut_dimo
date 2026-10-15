@@ -161,8 +161,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      try { await video.play(); } catch { setVideoLoadError('This video could not start. Try tapping play again.'); }
-    } else video.pause();
+      try {
+        await video.play();
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setVideoLoadError('This video could not start. Try tapping play again.');
+      }
+    } else if (!video.paused) {
+      video.pause();
+    }
   };
 
   /** Shortcuts for reviewing frame by frame without reaching for the mouse. */
@@ -263,4 +270,3 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
     </section>
   );
 };
-

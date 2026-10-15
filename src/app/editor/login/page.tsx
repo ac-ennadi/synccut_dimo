@@ -15,10 +15,27 @@ export default function EditorLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isTakingLonger, setIsTakingLonger] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (!isRestoring && !isSubmitting && !isNavigating) return;
+    const warningTimeout = window.setTimeout(() => setIsTakingLonger(true), 4000);
+    const failTimeout = window.setTimeout(() => {
+      setLoadingTimedOut(true);
+      setIsSubmitting(false);
+      setIsNavigating(false);
+      setError('The connection timed out. Refresh the page and try again.');
+    }, 15000);
+    return () => {
+      window.clearTimeout(warningTimeout);
+      window.clearTimeout(failTimeout);
+    };
+  }, [isRestoring, isSubmitting, isNavigating]);
 
   useEffect(() => {
     if (isRestoring || currentUser?.role !== 'Editor') return;
-    setIsNavigating(true);
+    queueMicrotask(() => setIsNavigating(true));
     router.replace('/editor');
   }, [currentUser, isRestoring, router]);
 
@@ -26,6 +43,8 @@ export default function EditorLoginPage() {
     event.preventDefault();
     if (isSubmitting || isNavigating) return;
     setIsSubmitting(true);
+    setLoadingTimedOut(false);
+    setIsTakingLonger(false);
     setError(null);
     const result = await signIn(email, password, 'Editor');
     if (result.success) {
@@ -38,7 +57,7 @@ export default function EditorLoginPage() {
     }
   };
 
-  const showLoading = isRestoring || isSubmitting || isNavigating;
+  const showLoading = !loadingTimedOut && (isRestoring || isSubmitting || isNavigating);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
@@ -58,6 +77,17 @@ export default function EditorLoginPage() {
                 {isRestoring ? 'Restoring editor credentials…' : 'Preparing workspaces and project states…'}
               </p>
             </div>
+            {isTakingLonger && (
+              <div className="mt-4 max-w-sm rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
+                <p className="text-sm font-semibold text-amber-200">Still connecting</p>
+                <p className="mt-1 text-xs leading-5 text-neutral-400">
+                  Supabase is taking longer than expected. If this reaches 15 seconds, the loading screen will close.
+                </p>
+                <button type="button" onClick={() => window.location.reload()} className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                  <RefreshCw size={13} /> Refresh page
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

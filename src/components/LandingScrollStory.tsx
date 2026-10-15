@@ -101,10 +101,17 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !shouldLoad) return;
+    let cancelled = false;
 
-    const resumePlayback = () => {
-      if (document.visibilityState !== 'hidden' && isVisible && video.paused) {
-        void video.play();
+    const resumePlayback = async () => {
+      if (cancelled || document.visibilityState === 'hidden' || !isVisible || !video.paused) return;
+      try {
+        await video.play();
+      } catch (error) {
+        // Chromium rejects autoplay when the element is replaced or paused
+        // before play() resolves. That is an expected resize/visibility race.
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.warn('Landing preview could not start playback.', error);
       }
     };
 
@@ -112,9 +119,10 @@ function FeatureVideo({ positionIndex = 0, mobile = false, startTime }: { positi
     video.addEventListener('canplay', resumePlayback);
     video.addEventListener('loadeddata', resumePlayback);
     resumePlayback();
-    if (!isVisible) video.pause();
+    if (!isVisible && !video.paused) video.pause();
 
     return () => {
+      cancelled = true;
       document.removeEventListener('visibilitychange', resumePlayback);
       video.removeEventListener('canplay', resumePlayback);
       video.removeEventListener('loadeddata', resumePlayback);
@@ -220,7 +228,7 @@ export function LandingScrollStory() {
       });
       gsap.set(stepPanels, { autoAlpha: 0, y: 28 });
       gsap.set(media, {
-        left: '8%', top: '78%', bottom: 'auto', width: '78%', height: '70vh',
+        left: '8%', top: '78%', bottom: 'auto', width: '78%', height: 'calc(43.875vw + 60px)',
         xPercent: 0, yPercent: 0, borderRadius: 16, rotateZ: -1.5, scale: 0.94,
       });
       stepPanels.forEach((panel) => {
@@ -256,7 +264,10 @@ export function LandingScrollStory() {
         }
       });
 
-      return () => timeline.scrollTrigger?.kill();
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
+      };
     };
 
     const mm = gsap.matchMedia();
@@ -367,7 +378,7 @@ export function LandingScrollStory() {
         </div>
 
         {/* The window starts wide and low, then GSAP moves it into the right column. */}
-        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[70vh] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:hidden">
+        <div ref={mediaRef} className="absolute bottom-[-20%] left-[10%] z-10 h-[calc(43.875vw+60px)] w-[80%] overflow-hidden rounded-2xl border border-white/10 bg-gray-900 shadow-[0_30px_100px_rgba(0,0,0,0.6),0_12px_80px_rgba(16,185,129,0.11),0_0_48px_rgba(99,102,241,0.12)] max-lg:hidden">
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[inherit] p-3 sm:p-4 max-[768px]:h-auto">
             <div className="mb-3 flex h-9 shrink-0 items-center justify-between gap-3">
               <div ref={tabContainerRef} className="flex w-full min-w-0 items-center gap-2 overflow-x-auto scroll-smooth pr-4 no-scrollbar">

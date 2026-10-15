@@ -19,27 +19,49 @@ interface ProjectRow {
   latestCut: string;
 }
 
+function EditorLoadingScreen() {
+  const [isTakingLonger, setIsTakingLonger] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setIsTakingLonger(true), 9000);
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
+      <section className="w-full max-w-md space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-2xl shadow-indigo-950/30 sm:p-8" role="status" aria-live="polite">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+        </div>
+        <div>
+          <h1 className="text-base font-bold">Loading editor dashboard</h1>
+          <p className="mt-1 text-xs text-neutral-400">Restoring your studio session and project workspaces</p>
+        </div>
+        {isTakingLonger && (
+          <div className="space-y-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
+            <p className="text-sm font-semibold text-amber-200">This is taking longer than expected</p>
+            <p className="text-xs leading-5 text-neutral-400">Supabase may be waking up or your session may have expired. Retry safely or sign in again.</p>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+                Retry connection
+              </button>
+              <a href="/editor/login" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-white/10">
+                Sign in again
+              </a>
+            </div>
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
+
 export default function EditorPage() {
   const router = useRouter();
   const { currentUser, isLoading, logout } = useAuth();
-  const [projects, setProjects] = useState<ProjectRow[]>(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const cached = sessionStorage.getItem('synccut_editor_projects_cache');
-        if (cached) return JSON.parse(cached);
-      }
-    } catch {}
-    return [];
-  });
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(() => {
-    try {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('synccut_editor_projects_cache')) {
-        return false;
-      }
-    } catch {}
-    return true;
-  });
+  const [loading, setLoading] = useState(true);
   const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro' });
@@ -57,11 +79,6 @@ export default function EditorPage() {
       if (!response.ok) throw new Error(result.error || 'Could not load projects.');
       const loaded = result.projects ?? [];
       setProjects(loaded);
-      try {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('synccut_editor_projects_cache', JSON.stringify(loaded));
-        }
-      } catch {}
     } catch (error) {
       setMessage({ error: true, text: error instanceof Error ? error.message : 'Could not load projects.' });
     } finally { setLoading(false); }
@@ -101,7 +118,7 @@ export default function EditorPage() {
     } finally { setSaving(false); }
   };
 
-  if (isLoading || !currentUser || currentUser.role !== 'Editor') return <div className="flex min-h-screen items-center justify-center bg-neutral-950"><div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" /></div>;
+  if (isLoading || !currentUser || currentUser.role !== 'Editor') return <EditorLoadingScreen />;
   const normalizedQuery = query.toLowerCase();
   const filtered = projects.filter((project) => [project.title, project.company_name, ...project.members.flatMap((member) => [member.display_name, member.email])]
     .some((value) => value.toLowerCase().includes(normalizedQuery)));
