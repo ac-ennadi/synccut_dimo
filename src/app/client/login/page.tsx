@@ -20,7 +20,7 @@ export default function ClientLoginPage() {
   useEffect(() => {
     if (!isRestoring && !isSubmitting && !isNavigating) return;
     setLoadingTimedOut(false);
-    const warningTimeout = window.setTimeout(() => setIsTakingLonger(true), 9000);
+    const warningTimeout = window.setTimeout(() => setIsTakingLonger(true), 4000);
     const failTimeout = window.setTimeout(() => {
       setLoadingTimedOut(true);
       setIsSubmitting(false);
