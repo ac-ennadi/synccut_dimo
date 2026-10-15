@@ -16,6 +16,7 @@ interface ProjectStatePatch {
 }
 interface ContextValue extends ProjectState {
   isProjectLoaded: boolean;
+  projectLoadError: string | null;
   isStatusSaving: boolean;
   updateStatus: (status: ProjectStatus) => void;
   updateProjectType: (projectType: ProjectType) => void;
@@ -79,9 +80,28 @@ function describeFeedbackError(error: { message?: string; code?: string; details
   if (/row-level security|policy|permission denied/i.test(message) || code === '42501') {
     return `You are signed in as ${email ?? 'this account'}, but the database is not letting this account add notes to project ${projectId ?? 'this project'}. This is usually a missing row-level-security policy — see the steps below.`;
   }
+
   if (/column .* does not exist|does not exist|PGRST204/i.test(message)) return 'The feedback table is missing a column from the latest migration. Ask the developer to run the feedback migrations.';
   if (/foreign key|violates|not present/i.test(message) || code === '23503') return 'This project is missing its state record, so notes cannot be attached to it. The editor should re-create the project.';
   return `Could not save your feedback: ${message || 'the server rejected it.'}`;
+}
+
+function describeProjectLoadError(error: { message?: string; code?: string }): string {
+  const message = error.message ?? '';
+  const code = error.code ?? '';
+  if (/jwt|expired|token|unauthorized|authentication/i.test(message) || code === 'PGRST301') {
+    return 'Your Supabase session expired. Sign in again to open this project.';
+  }
+  if (/row-level security|permission denied|not allowed/i.test(message) || code === '42501') {
+    return 'Your account does not have access to this project. Ask the editor to verify the project membership.';
+  }
+  if (/relation .* does not exist|schema cache|column .* does not exist/i.test(message) || code === '42P01' || code === 'PGRST204') {
+    return 'The Supabase database is missing a required project table or column. Apply the latest database migrations.';
+  }
+  if (/failed to fetch|network|load failed/i.test(message)) {
+    return 'Could not reach Supabase. Check the Supabase URL, network connection, and project status.';
+  }
+  return 'Supabase could not load this project. Check the database configuration and project membership, then try again.';
 }
 
 export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: string }> = ({ children, projectId }) => {
@@ -107,6 +127,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const seedKey = `${id}|${companyName}|${uid ?? ''}`;
   const [state, setState] = useState<ProjectState>(() => makeInitialState(id, currentUser));
   const [ready, setReady] = useState<string | null>(null);
+  const [projectLoadError, setProjectLoadError] = useState<string | null>(null);
   const [pendingStatusSaves, setPendingStatusSaves] = useState(0);
   // Saves are chained so two quick edits can never be written out of order.
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
@@ -137,6 +158,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
 
     const restore = async () => {
       if (isSupabaseConfigured && !stableUser) return;
+      if (!cancelled) setProjectLoadError(null);
       if (!remote) {
         if (seed) setState(seed);
         if (!cancelled) setReady(id);
@@ -155,6 +177,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         ]);
 
         if (stateRes.error) throw stateRes.error;
+        if (notesRes.error) throw notesRes.error;
         if (cancelled) return;
 
         const row = stateRes.data;
@@ -191,6 +214,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         }
       } catch (error) {
         console.error('Failed to restore project state from Supabase.', error);
+        if (!cancelled) {
+          setProjectLoadError(describeProjectLoadError(error as { message?: string; code?: string }));
+          setReady(null);
+        }
       }
     };
 
@@ -351,6 +378,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const value = useMemo<ContextValue>(() => ({
     ...state,
     isProjectLoaded: ready === id,
+    projectLoadError,
     isStatusSaving: pendingStatusSaves > 0,
     updateStatus,
     updateProjectTitle,
@@ -362,7 +390,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     addNote,
     approveCut,
     uploadSuccess,
-  }), [state, ready, id, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess]);
+  }), [state, ready, id, projectLoadError, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
 };

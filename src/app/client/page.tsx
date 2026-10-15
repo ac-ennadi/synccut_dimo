@@ -134,12 +134,35 @@ function ClientWorkspace({ projectId }: { projectId: string }) {
     brief,
     deliverable,
     isProjectLoaded,
+    projectLoadError,
     addNote,
     approveCut,
     uploadSuccess,
   } = useProject();
 
   if (!isProjectLoaded) {
+    if (projectLoadError) {
+      return (
+        <main className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+          <section className="w-full max-w-lg space-y-4 rounded-2xl border border-rose-200 bg-white p-6 text-center shadow-sm dark:border-rose-900 dark:bg-neutral-900">
+            <h1 className="text-lg font-bold">Could not load the client project</h1>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">{projectLoadError}</p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+              >
+                Try again
+              </button>
+              <a href="/client/login" className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-semibold dark:border-neutral-700">
+                Sign in again
+              </a>
+            </div>
+          </section>
+        </main>
+      );
+    }
     return <ProjectLoadingScreen label="Opening project workspace…" />;
   }
 
