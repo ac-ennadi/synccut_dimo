@@ -57,6 +57,8 @@ export async function GET(request: Request) {
   return Response.json({ projects });
 }
 
+const SAFE_ID_REGEX = /^[a-zA-Z0-9_-]{1,128}$/;
+
 export async function POST(request: Request) {
   let auth: Awaited<ReturnType<typeof authorizeEditor>>;
   try { auth = await authorizeEditor(request); } catch { return Response.json({ error: 'Server setup is incomplete.' }, { status: 500 }); }
@@ -64,8 +66,8 @@ export async function POST(request: Request) {
 
   let body: { action?: string; projectName?: string; companyName?: string; projectType?: string };
   try { body = await request.json(); } catch { return Response.json({ error: 'Invalid form data.' }, { status: 400 }); }
-  const projectName = body.projectName?.trim();
-  const companyName = body.companyName?.trim();
+  const projectName = body.projectName?.trim().replace(/[\x00-\x1F\x7F]/g, '').slice(0, 150);
+  const companyName = body.companyName?.trim().replace(/[\x00-\x1F\x7F]/g, '').slice(0, 150);
   const projectType = body.projectType === 'after_effects' ? 'after_effects' : body.projectType === 'premiere_pro' ? 'premiere_pro' : null;
   if (body.action !== 'create-project') return Response.json({ error: 'Choose a valid project action.' }, { status: 400 });
   if (!projectName || !companyName || projectName.length < 2 || companyName.length < 2 || !projectType) {
@@ -99,7 +101,7 @@ export async function DELETE(request: Request) {
   let body: { projectId?: string };
   try { body = await request.json(); } catch { return Response.json({ error: 'Invalid request.' }, { status: 400 }); }
   const projectId = body.projectId?.trim();
-  if (!projectId || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !SAFE_ID_REGEX.test(projectId) || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project not found.' }, { status: 404 });
   }
 

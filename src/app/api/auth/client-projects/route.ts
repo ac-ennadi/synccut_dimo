@@ -13,12 +13,14 @@ export async function GET(request: Request) {
 
   const { data: authData, error: authError } = await admin.admin.auth.getUser(token);
   const email = authData.user?.email?.trim().toLowerCase();
-  if (authError || !email) return Response.json({ error: 'Your session is invalid.' }, { status: 401 });
+  if (authError || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return Response.json({ error: 'Your session is invalid.' }, { status: 401 });
+  }
 
   const { data, error } = await admin.admin
     .from('project_members')
     .select('project_id,display_name,company_name,role')
-    .ilike('email', email)
+    .eq('email', email)
     .eq('role', 'Client')
     .order('project_id');
   if (error) return Response.json({ error: error.message }, { status: 500 });

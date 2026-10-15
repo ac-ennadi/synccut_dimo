@@ -9,12 +9,15 @@ async function findAuthUser(admin: ReturnType<typeof getEditorAdmin>['admin'], e
   }
 }
 
+const SAFE_ID_REGEX = /^[a-zA-Z0-9_-]{1,128}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function GET(request: Request) {
   let auth: Awaited<ReturnType<typeof authorizeEditor>>;
   try { auth = await authorizeEditor(request); } catch { return Response.json({ error: 'Server setup is incomplete.' }, { status: 500 }); }
   if ('error' in auth) return Response.json({ error: auth.error }, { status: auth.status });
   const projectId = new URL(request.url).searchParams.get('projectId')?.trim();
-  if (!projectId || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !SAFE_ID_REGEX.test(projectId) || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project not found.' }, { status: 404 });
   }
   const { data, error } = await auth.admin.from('project_members').select('email,display_name,company_name')
@@ -39,11 +42,11 @@ export async function POST(request: Request) {
   const name = body.name?.trim();
   const companyName = body.companyName?.trim();
   const password = body.password ?? '';
-  if (!projectId || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !SAFE_ID_REGEX.test(projectId) || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project not found.' }, { status: 404 });
   }
-  if (!email || !name || !companyName || email === auth.editorEmail) {
-    return Response.json({ error: 'Enter the user’s name, email, and company.' }, { status: 400 });
+  if (!email || !EMAIL_REGEX.test(email) || !name || !companyName || email === auth.editorEmail) {
+    return Response.json({ error: 'Enter a valid user name, email, and company.' }, { status: 400 });
   }
 
   const lookup = await findAuthUser(auth.admin, email);
@@ -77,7 +80,7 @@ export async function DELETE(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: 'Invalid request.' }, { status: 400 }); }
   const projectId = body.projectId?.trim();
   const email = body.email?.trim().toLowerCase();
-  if (!projectId || !email || email === auth.editorEmail || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
+  if (!projectId || !SAFE_ID_REGEX.test(projectId) || !email || !EMAIL_REGEX.test(email) || email === auth.editorEmail || !await hasProjectAccess(auth.admin, auth.editorEmail, projectId)) {
     return Response.json({ error: 'Project member not found.' }, { status: 404 });
   }
   const { data: membership, error: lookupError } = await auth.admin.from('project_members')

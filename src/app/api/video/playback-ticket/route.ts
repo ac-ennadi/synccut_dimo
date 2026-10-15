@@ -7,8 +7,17 @@ export async function POST(request: Request) {
   }
   const projectId = body.projectId?.trim();
   const path = body.path?.trim();
-  // The prefix check stops a valid project member from reading another project's file.
-  if (!projectId || !path || !path.startsWith(`${projectId}/`)) {
+
+  // Strict validation prevents path traversal attacks (e.g. projectId/../../other-project/file)
+  if (
+    !projectId ||
+    !path ||
+    !/^[a-zA-Z0-9_-]{1,128}$/.test(projectId) ||
+    path.includes('..') ||
+    path.includes('\\') ||
+    !/^[a-zA-Z0-9_-]+\/(videos|references|logos)\/[a-zA-Z0-9_.-]+$/.test(path) ||
+    !path.startsWith(`${projectId}/`)
+  ) {
     return Response.json({ error: 'This video does not belong to the selected project.' }, { status: 400 });
   }
 

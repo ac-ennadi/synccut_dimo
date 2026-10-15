@@ -156,9 +156,22 @@
   create or replace function public.merge_project_portal_state(p_project_id text, p_patch jsonb)
   returns void
   language plpgsql
-  set search_path = public
+  security invoker
+  set search_path = public, pg_temp
   as $$
   begin
+    if p_project_id is null or length(trim(p_project_id)) = 0 then
+      raise exception 'Invalid project ID';
+    end if;
+
+    if not exists (
+      select 1 from public.project_members
+      where project_members.project_id = p_project_id
+        and lower(project_members.email) = lower(auth.jwt() ->> 'email')
+    ) then
+      raise exception 'Access denied for project %', p_project_id;
+    end if;
+
     update public.project_portal_state as portal
     set state = portal.state || jsonb_build_object(
           'project', coalesce(portal.state->'project', '{}'::jsonb) || coalesce(p_patch->'project', '{}'::jsonb),

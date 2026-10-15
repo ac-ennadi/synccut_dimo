@@ -24,6 +24,7 @@ export async function authorizeEditor(request: Request) {
 
 /** True only when the configured editor email holds an Editor row on this project. */
 export async function hasProjectAccess(admin: EditorAdmin, editorEmail: string, projectId: string) {
+  if (!projectId || !/^[a-zA-Z0-9_-]{1,128}$/.test(projectId)) return false;
   const { data, error } = await admin.from('project_members').select('project_id')
     .eq('project_id', projectId).eq('email', editorEmail).eq('role', 'Editor').maybeSingle();
   return !error && Boolean(data);
@@ -34,6 +35,7 @@ export async function hasProjectAccess(admin: EditorAdmin, editorEmail: string, 
  * does not delete its uploaded files, which would otherwise stay in the bucket forever.
  */
 export async function listProjectFiles(admin: EditorAdmin, projectId: string): Promise<string[]> {
+  if (!projectId || !/^[a-zA-Z0-9_-]{1,128}$/.test(projectId)) return [];
   const listings = await Promise.all(PROJECT_STORAGE_FOLDERS.map((folder) =>
     admin.storage.from(PROJECT_VIDEO_BUCKET).list(`${projectId}/${folder}`, { limit: 1000 })));
   return listings.flatMap(({ data }, index) =>

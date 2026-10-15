@@ -6,8 +6,15 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Invalid upload details.' }, { status: 400 });
   }
   const projectId = body.projectId?.trim();
-  const fileName = body.fileName?.replace(/[^\w.-]+/g, '_').slice(-120);
-  if (!projectId || !fileName) return Response.json({ error: 'Choose a supported logo, video, or image file.' }, { status: 400 });
+  const rawFileName = body.fileName?.trim();
+  if (!projectId || !rawFileName || !/^[a-zA-Z0-9_-]{1,128}$/.test(projectId)) {
+    return Response.json({ error: 'Invalid project identifier.' }, { status: 400 });
+  }
+  // Sanitize filename to eliminate path traversal and null-byte/special injection
+  const fileName = rawFileName.replace(/\.{2,}/g, '_').replace(/[^\w.-]+/g, '_').slice(-120);
+  if (!fileName || fileName.startsWith('.')) {
+    return Response.json({ error: 'Choose a supported logo, video, or image file.' }, { status: 400 });
+  }
 
   const auth = await authorizeProjectRequest(request, projectId);
   if ('error' in auth) return Response.json({ error: auth.error }, { status: auth.status });

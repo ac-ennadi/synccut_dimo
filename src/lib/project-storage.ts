@@ -11,6 +11,10 @@ export const PROJECT_STORAGE_FOLDERS = ['videos', 'references', 'logos'] as cons
  * service role key, it only receives short-lived links minted here.
  */
 export async function authorizeProjectRequest(request: Request, projectId: string) {
+  if (!projectId || !/^[a-zA-Z0-9_-]{1,128}$/.test(projectId)) {
+    return { error: 'Invalid project identifier.', status: 400 as const };
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return { error: 'Project storage is not configured on the server.', status: 500 as const };

@@ -86,7 +86,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   const requestedProjectId = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('project')
     : null;
-  const id = projectId ?? requestedProjectId ?? currentUser?.project_id ?? mockProject.project_id;
+  const rawId = projectId ?? requestedProjectId ?? currentUser?.project_id ?? mockProject.project_id;
+  // Strict sanitization: Project IDs must strictly contain only alphanumeric characters, underscores, or hyphens
+  const id = /^[a-zA-Z0-9_-]{1,128}$/.test(rawId) ? rawId : mockProject.project_id;
   const uid = currentUser?.user_id;
   const companyName = currentUser?.company_name ?? '';
   const userProjectId = currentUser?.project_id;
