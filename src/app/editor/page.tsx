@@ -22,9 +22,25 @@ interface ProjectRow {
 export default function EditorPage() {
   const router = useRouter();
   const { currentUser, isLoading, logout } = useAuth();
-  const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [projects, setProjects] = useState<ProjectRow[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const cached = sessionStorage.getItem('synccut_editor_projects_cache');
+        if (cached) return JSON.parse(cached);
+      }
+    } catch {}
+    return [];
+  });
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('synccut_editor_projects_cache')) {
+        return false;
+      }
+    } catch {}
+    return true;
+  });
+  const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro' });
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
@@ -39,7 +55,13 @@ export default function EditorPage() {
       const response = await fetch('/api/editor/clients', { headers: { Authorization: `Bearer ${token}` } });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Could not load projects.');
-      setProjects(result.projects ?? []);
+      const loaded = result.projects ?? [];
+      setProjects(loaded);
+      try {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('synccut_editor_projects_cache', JSON.stringify(loaded));
+        }
+      } catch {}
     } catch (error) {
       setMessage({ error: true, text: error instanceof Error ? error.message : 'Could not load projects.' });
     } finally { setLoading(false); }
@@ -124,7 +146,11 @@ export default function EditorPage() {
               >
                 <Trash2 size={16} />
               </button>
-              <Link href={`/editor/clients/${encodeURIComponent(project.project_id)}`} className="block p-5 focus-visible:outline-none">
+              <Link
+                href={`/editor/clients/${encodeURIComponent(project.project_id)}`}
+                onClick={() => setOpeningProjectId(project.project_id)}
+                className="block p-5 focus-visible:outline-none"
+              >
                 <div className="flex items-start justify-between gap-3"><div className="min-w-0 pr-8"><p className="text-xs font-medium uppercase tracking-wide text-neutral-500">{project.company_name || 'Project'}</p><h3 className="mt-1 truncate text-lg font-semibold">{project.title}</h3><p className="mt-2 text-xs font-semibold text-indigo-500">{project.projectType === 'after_effects' ? 'After Effects' : 'Premiere Pro'}</p></div><ArrowUpRight size={18} className="shrink-0 text-neutral-400 group-hover:text-indigo-500" /></div>
                 <div className="mt-4 flex items-center gap-2 text-sm text-neutral-500"><Users size={15} /><span>{project.members.length} {project.members.length === 1 ? 'user' : 'users'}</span></div>
                 <p className="mt-1 min-h-5 truncate text-xs text-neutral-500">{project.members.map((member) => member.display_name).join(', ') || 'No users added yet'}</p>
@@ -134,6 +160,21 @@ export default function EditorPage() {
           ))}</section>
         )}
       </div>
+
+      {openingProjectId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/90 p-6 text-white backdrop-blur-md" role="status" aria-live="polite">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="relative flex h-12 w-12 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20" />
+              <div className="h-12 w-12 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Opening project workspace…</p>
+              <p className="text-xs text-neutral-400">Loading timeline, cut versions, and team notes</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {pendingDelete && <DeleteProjectModal projectId={pendingDelete.project_id} projectTitle={pendingDelete.title} onClose={() => setPendingDelete(null)} onDeleted={(projectId) => { setProjects((current) => current.filter((project) => project.project_id !== projectId)); setPendingDelete(null); setMessage({ error: false, text: 'Project deleted. Client sign-in accounts were kept.' }); }} />}
     </main>

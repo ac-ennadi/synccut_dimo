@@ -31,6 +31,9 @@ interface ContextValue extends ProjectState {
 
 const Context = createContext<ContextValue | undefined>(undefined);
 
+// High-speed in-memory project cache for instant switching and navigation
+const projectStateCache = new Map<string, ProjectState>();
+
 function makeInitialState(id: string, user: ReturnType<typeof useAuth>['currentUser']): ProjectState {
   return {
     project: {
@@ -115,74 +118,76 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     projectStatusRef.current = state.project.status;
   }, [state.project.status]);
 
+  // High-speed memory cache so revisiting projects or switching views is instant
   useEffect(() => {
     let cancelled = false;
-    // The initial render already seeded this project for this user, so the seed
-    // is only rebuilt when the project or the signed-in user actually changes.
     const needsSeed = seededKey.current !== seedKey;
     seededKey.current = seedKey;
     const seed = needsSeed ? makeInitialState(id, stableUser) : null;
-    if (seed) setState(seed);
-    setReady(null);
+    
+    // Check if we already have this project cached in memory
+    const cachedState = projectStateCache.get(id);
+    if (cachedState) {
+      setState(cachedState);
+      setReady(id);
+    } else {
+      if (seed) setState(seed);
+      setReady(null);
+    }
 
     const restore = async () => {
-      // Do not expose seeded/mock data as loaded while a configured auth
-      // session is still being resolved. Consumers will remain on their
-      // loading screen until the real project data is available.
       if (isSupabaseConfigured && !stableUser) return;
       if (!remote) {
         if (seed) setState(seed);
         if (!cancelled) setReady(id);
         return;
       }
-      const base = seed ?? makeInitialState(id, stableUser);
+      const base = cachedState ?? seed ?? makeInitialState(id, stableUser);
       try {
-        const { data: row, error } = await supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle();
-        if (error) throw error;
+        // Parallel fetch of project state and feedback notes
+        const [stateRes, notesRes] = await Promise.all([
+          supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle(),
+          supabase
+            .from('project_feedback_notes')
+            .select('id,author_name,timecode,content,created_at')
+            .eq('project_id', id)
+            .order('created_at', { ascending: false }),
+        ]);
+
+        if (stateRes.error) throw stateRes.error;
         if (cancelled) return;
 
+        const row = stateRes.data;
+        const notes = notesRes.data ?? [];
         const saved = row?.state as Partial<ProjectState> | null;
         const projectType = normalizeProjectType(saved?.project?.project_type);
         const restoredProject = { ...(saved?.project ?? base.project) };
-        setState({
-          project: { ...restoredProject, project_type: projectType, status: normalizeProjectStatus(restoredProject.status, projectType) },
+        const cleanNotes = notes.filter((note) => note.id !== 'note_1') as FeedbackNote[];
+
+        const fullProjectState: ProjectState = {
+          project: {
+            ...restoredProject,
+            project_type: projectType,
+            status: normalizeProjectStatus(restoredProject.status, projectType),
+          },
           brief: saved?.brief ?? base.brief,
           deliverable: {
             ...(saved?.deliverable ?? base.deliverable),
-            // A demo placeholder from an early version is not a real cut.
             video_url: saved?.deliverable?.video_url?.includes('sample-cut-guid') ? '' : saved?.deliverable?.video_url ?? '',
-            feedback_notes: [],
+            feedback_notes: cleanNotes,
           },
-        });
+        };
+
+        projectStateCache.set(id, fullProjectState);
+        setState(fullProjectState);
         setReady(id);
 
-        // Notes are non-blocking. The project workspace can render immediately
-        // and the feedback list is filled in as soon as this lighter query ends.
-        const { data: notes, error: notesError } = await supabase
-          .from('project_feedback_notes')
-          .select('id,author_name,timecode,content,created_at')
-          .eq('project_id', id)
-          .order('created_at', { ascending: false });
-        if (notesError) {
-          console.error('Failed to restore project feedback notes.', notesError);
-        } else if (!cancelled) {
-          setState((current) => ({
-            ...current,
-            deliverable: {
-              ...current.deliverable,
-              feedback_notes: (notes ?? []).filter((note) => note.id !== 'note_1') as FeedbackNote[],
-            },
-          }));
-        }
-
-        // Newly created client workspaces already have a state row. This fallback
-        // initializes older memberships without replacing an existing row.
         if (!row) {
           const { error: seedError } = await supabase.from('project_portal_state').upsert(
             { project_id: id, state: { ...base, deliverable: withoutNotes(base.deliverable) }, updated_by: uid },
             { onConflict: 'project_id', ignoreDuplicates: true },
           );
-          if (seedError) throw seedError;
+          if (seedError) console.warn('Auto-seed state warning:', seedError);
         }
       } catch (error) {
         console.error('Failed to restore project state from Supabase.', error);

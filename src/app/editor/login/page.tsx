@@ -14,47 +14,67 @@ export default function EditorLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     if (isRestoring || currentUser?.role !== 'Editor') return;
+    setIsNavigating(true);
     router.replace('/editor');
   }, [currentUser, isRestoring, router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || isNavigating) return;
     setIsSubmitting(true);
     setError(null);
     const result = await signIn(email, password, 'Editor');
-    setIsSubmitting(false);
-    if (result.success) router.replace('/editor');
-    else setError(result.error || 'Could not sign in. Check the editor email and password.');
+    if (result.success) {
+      // Keep loading overlay active and persistent until destination page mounts completely
+      setIsNavigating(true);
+      router.replace('/editor');
+    } else {
+      setIsSubmitting(false);
+      setError(result.error || 'Could not sign in. Check the editor email and password.');
+    }
   };
 
-  if (isRestoring) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-neutral-950">
-        <div className="flex flex-col items-center gap-3 text-neutral-400">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" aria-hidden="true" />
-          <p className="text-sm">Checking your session…</p>
-        </div>
-      </main>
-    );
-  }
+  const showLoading = isRestoring || isSubmitting || isNavigating;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
+    <main className="relative flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
+      {showLoading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-neutral-950/95 text-white backdrop-blur-md" role="status" aria-live="polite">
+          <div className="flex flex-col items-center gap-4 text-center px-4">
+            <div className="relative flex h-14 w-14 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20" />
+              <div className="h-14 w-14 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+              <Shield className="h-6 w-6 text-indigo-400" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">
+                {isRestoring ? 'Checking studio session' : 'Opening editor dashboard'}
+              </h3>
+              <p className="text-xs text-neutral-400">
+                {isRestoring ? 'Restoring editor credentials…' : 'Preparing workspaces and project states…'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md space-y-6">
         <header className="space-y-3 text-center">
           <Link href="/" aria-label="SyncCut home" className="flex justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
             <BrandLogo variant="dark" className="h-9 w-auto" />
           </Link>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase text-indigo-300"><Shield size={14} /> Editor access only</div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase text-indigo-300">
+            <Shield size={14} /> Editor access only
+          </div>
           <h1 className="text-2xl font-black">Editor dashboard</h1>
           <p className="text-sm text-neutral-400">Sign in with the editor account configured in Supabase.</p>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
           <div className="space-y-1.5">
             <label className="block text-sm font-semibold" htmlFor="editor-email">Editor email</label>
             <input
@@ -65,7 +85,7 @@ export default function EditorLoginPage() {
               required
               autoComplete="username"
               autoFocus
-              disabled={isSubmitting}
+              disabled={isSubmitting || isNavigating}
               className="w-full rounded-xl border border-neutral-700 bg-neutral-950 px-3.5 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:opacity-60"
             />
           </div>
@@ -80,7 +100,7 @@ export default function EditorLoginPage() {
                 onChange={(event) => setPassword(event.target.value)}
                 required
                 autoComplete="current-password"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isNavigating}
                 className="w-full rounded-xl border border-neutral-700 bg-neutral-950 py-3 pl-10 pr-3.5 text-sm text-neutral-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:opacity-60"
               />
             </div>
@@ -95,19 +115,22 @@ export default function EditorLoginPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 disabled:cursor-wait disabled:opacity-60"
+            disabled={isSubmitting || isNavigating}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 disabled:cursor-wait disabled:opacity-60 shadow-md"
           >
-            {isSubmitting ? <><RefreshCw size={17} className="animate-spin" /> Signing in…</> : 'Sign in'}
+            {isSubmitting || isNavigating ? (
+              <>
+                <RefreshCw size={17} className="animate-spin" /> Signing in…
+              </>
+            ) : (
+              'Sign in as editor'
+            )}
           </button>
-
-          <p className="pt-1 text-center text-sm text-neutral-400">
-            Client?{' '}
-            <Link href="/client/login" className="font-semibold text-emerald-400 hover:underline">
-              Go to client sign in
-            </Link>
-          </p>
         </form>
+
+        <p className="text-center text-xs text-neutral-500">
+          Client reviewing a video? <Link href="/client/login" className="font-semibold text-neutral-300 hover:underline">Client sign in</Link>
+        </p>
       </div>
     </main>
   );
