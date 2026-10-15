@@ -181,9 +181,9 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
     // Ignore storage access errors
   }
 
-  // The configured editor identity is authoritative. Check it before reading
-  // client memberships so an editor who is also assigned to a client project
-  // cannot be routed through the client portal.
+  // Editor membership is authoritative. Check it before reading client
+  // memberships so an editor who is also assigned to a client project cannot
+  // be routed through the client portal.
   if (accessToken) {
     const editorRes = await fetch('/api/auth/profile', {
       headers: { Authorization: `Bearer ${accessToken}` },

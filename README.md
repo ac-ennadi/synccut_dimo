@@ -11,6 +11,7 @@ Instead of managing feedback across email threads, chat messages, cloud folders,
 ### Editors and producers
 
 - Manage multiple client projects from a central workspace.
+- Support multiple editor accounts through per-project editor memberships.
 - Organize each project around its current production stage.
 - Invite existing client accounts to additional projects or create new client access.
 - Share scripts, scene details, voiceover direction, and production notes.
@@ -66,6 +67,24 @@ Each project brings together:
 - Project members and access.
 
 When a client works across several projects, their account keeps one identity while their project memberships remain separate. Editors can reuse an existing client account across projects without creating duplicate logins.
+
+### Adding editor accounts
+
+Editor accounts use Supabase Auth plus a `project_members` row with `role = 'Editor'`.
+
+1. Create the editor in **Supabase Dashboard → Authentication → Users**.
+2. Add the editor to each project they should access:
+
+   ```sql
+   insert into public.project_members
+     (project_id, email, role, display_name, company_name)
+   values
+     ('project_id_here', 'editor@example.com', 'Editor', 'Editor Name', 'Company Name');
+   ```
+
+3. The editor can sign in at `/editor/login`.
+
+The email must match the Supabase Auth email (case-insensitively). Editor authorization is checked against project membership, so an editor only sees and can modify projects where they have an `Editor` row.
 
 ## Designed for focused reviews
 
