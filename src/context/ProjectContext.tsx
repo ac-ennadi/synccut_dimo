@@ -280,32 +280,43 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
 
   useEffect(() => {
     if (!remote || ready !== id) return;
-    const channel = supabase
-      .channel(`portal-${id}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_portal_state', filter: `project_id=eq.${id}` }, (event) => {
-        const incoming = (event.new as { state?: Partial<ProjectState> }).state;
-        if (!incoming) return;
-        setState((current) => {
-          const projectType = normalizeProjectType(incoming.project?.project_type ?? current.project.project_type);
-          return {
-            project: incoming.project
-              ? { ...incoming.project, project_type: projectType, status: normalizeProjectStatus(incoming.project.status, projectType) }
-              : current.project,
-            brief: incoming.brief ?? current.brief,
-            // Realtime rows never carry notes, so the local list stays authoritative.
-            deliverable: incoming.deliverable ? { ...current.deliverable, ...incoming.deliverable } : current.deliverable,
-          };
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      channel = supabase
+        .channel(`portal-${id}-${uid ?? 'session'}-${crypto.randomUUID()}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_portal_state', filter: `project_id=eq.${id}` }, (event) => {
+          const incoming = (event.new as { state?: Partial<ProjectState> }).state;
+          if (!incoming) return;
+          setState((current) => {
+            const projectType = normalizeProjectType(incoming.project?.project_type ?? current.project.project_type);
+            return {
+              project: incoming.project
+                ? { ...incoming.project, project_type: projectType, status: normalizeProjectStatus(incoming.project.status, projectType) }
+                : current.project,
+              brief: incoming.brief ?? current.brief,
+              // Realtime rows never carry notes, so the local list stays authoritative.
+              deliverable: incoming.deliverable ? { ...current.deliverable, ...incoming.deliverable } : current.deliverable,
+            };
+          });
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_feedback_notes', filter: `project_id=eq.${id}` }, (event) => {
+          const note = event.new as FeedbackNote;
+          setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === note.id)
+            ? current
+            : { ...current, deliverable: { ...current.deliverable, feedback_notes: [note, ...current.deliverable.feedback_notes] } });
         });
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_feedback_notes', filter: `project_id=eq.${id}` }, (event) => {
-        const note = event.new as FeedbackNote;
-        setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === note.id)
-          ? current
-          : { ...current, deliverable: { ...current.deliverable, feedback_notes: [note, ...current.deliverable.feedback_notes] } });
-      })
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [id, remote, ready]);
+      channel.subscribe((status, error) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('Realtime updates are unavailable for this project.', error);
+        }
+      });
+    } catch (error) {
+      console.warn('Could not start realtime updates for this project.', error);
+    }
+    return () => {
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [id, uid, remote, ready]);
 
   const savePatch = useCallback((patch: ProjectStatePatch): Promise<void> => {
     if (!remote || !uid || ready !== id) return Promise.resolve();
