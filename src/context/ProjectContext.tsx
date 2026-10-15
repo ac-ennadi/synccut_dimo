@@ -104,6 +104,10 @@ function describeProjectLoadError(error: { message?: string; code?: string }): s
   return 'Supabase could not load this project. Check the database configuration and project membership, then try again.';
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: string }> = ({ children, projectId }) => {
   const { currentUser } = useAuth();
   const requestedProjectId = typeof window !== 'undefined'
@@ -189,7 +193,15 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
         const saved = row?.state as Partial<ProjectState> | null;
         const projectType = normalizeProjectType(saved?.project?.project_type);
         const restoredProject = { ...(saved?.project ?? base.project) };
-        const cleanNotes = notes.filter((note) => note.id !== 'note_1') as FeedbackNote[];
+        const cleanNotes = notes
+          .filter((note) => isRecord(note) && typeof note.id === 'string' && note.id !== 'note_1')
+          .map((note) => ({
+            id: String(note.id),
+            author_name: typeof note.author_name === 'string' ? note.author_name : 'Team member',
+            timecode: typeof note.timecode === 'string' ? note.timecode : undefined,
+            content: typeof note.content === 'string' ? note.content : '',
+            created_at: typeof note.created_at === 'string' ? note.created_at : new Date().toISOString(),
+          })) as FeedbackNote[];
 
         const savedBrief = (saved?.brief ?? {}) as Partial<CreativeBrief>;
         const savedDeliverable = (saved?.deliverable ?? {}) as Partial<Deliverable>;
@@ -203,9 +215,36 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
           brief: {
             ...base.brief,
             ...savedBrief,
-            script_scenes: Array.isArray(savedBrief.script_scenes) ? savedBrief.script_scenes : base.brief.script_scenes,
-            script_sections: Array.isArray(savedBrief.script_sections) ? savedBrief.script_sections : base.brief.script_sections,
-            references: Array.isArray(savedBrief.references) ? savedBrief.references : base.brief.references,
+            script_scenes: Array.isArray(savedBrief.script_scenes)
+              ? savedBrief.script_scenes.filter(isRecord).map((scene, index) => ({
+                ...base.brief.script_scenes[0],
+                ...scene,
+                scene_number: typeof scene.scene_number === 'number' ? scene.scene_number : index + 1,
+                title: typeof scene.title === 'string' ? scene.title : '',
+                timecode: typeof scene.timecode === 'string' ? scene.timecode : '',
+                visual_description: typeof scene.visual_description === 'string' ? scene.visual_description : '',
+                voiceover: typeof scene.voiceover === 'string' ? scene.voiceover : '',
+              }))
+              : base.brief.script_scenes,
+            script_sections: Array.isArray(savedBrief.script_sections)
+              ? savedBrief.script_sections.filter(isRecord).map((section, index) => ({
+                id: typeof section.id === 'string' ? section.id : `section_${index + 1}`,
+                title: typeof section.title === 'string' ? section.title : '',
+                content: typeof section.content === 'string' ? section.content : '',
+              }))
+              : base.brief.script_sections,
+            references: Array.isArray(savedBrief.references)
+              ? savedBrief.references.filter(isRecord).map((reference, index) => ({
+                id: typeof reference.id === 'string' ? reference.id : `reference_${index + 1}`,
+                title: typeof reference.title === 'string' ? reference.title : '',
+                category: typeof reference.category === 'string' ? reference.category : 'Reference',
+                description: typeof reference.description === 'string' ? reference.description : '',
+                color_gradient: typeof reference.color_gradient === 'string' ? reference.color_gradient : 'from-slate-800 via-neutral-700 to-slate-900',
+                icon: typeof reference.icon === 'string' ? reference.icon : '🎨',
+                image_url: typeof reference.image_url === 'string' ? reference.image_url : undefined,
+                image_storage_path: typeof reference.image_storage_path === 'string' ? reference.image_storage_path : undefined,
+              }))
+              : base.brief.references,
           },
           deliverable: {
             ...base.deliverable,
