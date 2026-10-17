@@ -7,16 +7,17 @@ import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/lib/formatters';
 
 interface FeedbackSectionProps {
-  notes: FeedbackNote[];
+  notes?: FeedbackNote[];
   currentTimecode: string;
   onAddNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => void | Promise<void>;
 }
 
 export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
-  notes,
+  notes = [],
   currentTimecode,
   onAddNote,
 }) => {
+  const safeNotes = Array.isArray(notes) ? notes : [];
   const [content, setContent] = useState('');
   const [manualTimecode, setManualTimecode] = useState('');
   const [timecodeTag, setTimecodeTag] = useState<string | null>(null);
@@ -135,7 +136,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
       <div className="pt-3 border-t border-neutral-200 dark:border-neutral-800 space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-            Feedback ({notes.length})
+            Feedback ({safeNotes.length})
           </span>
           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
             <CheckCheck className="w-3 h-3" /> Shared feedback
@@ -143,11 +144,11 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
         </div>
 
         <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-          {notes.length === 0 ? (
+          {safeNotes.length === 0 ? (
             <p className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
               No feedback yet. Your notes about the video will appear here.
             </p>
-          ) : notes.map((note) => (
+          ) : safeNotes.map((note) => (
             <div
               key={note.id}
               className="p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 text-xs space-y-1"
