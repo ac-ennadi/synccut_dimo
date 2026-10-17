@@ -22,7 +22,7 @@ export const ActionAlert: React.FC<ActionAlertProps> = ({
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [uploadError, setUploadError] = useState('');
-  if (deliverable.action_required_by !== 'Client') {
+  if (deliverable?.action_required_by !== 'Client') {
     return (
       <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5">

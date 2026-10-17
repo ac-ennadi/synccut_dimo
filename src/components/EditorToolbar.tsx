@@ -54,9 +54,9 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
   // Action Banner state
   const [alertText, setAlertText] = useState(
-    deliverable.action_banner_text || 'Waiting on Client: Please upload your vector logo (.SVG or .AI)'
+    deliverable?.action_banner_text || 'Waiting on Client: Please upload your vector logo (.SVG or .AI)'
   );
-  const [alertParty, setAlertParty] = useState<ActionRequiredBy>(deliverable.action_required_by);
+  const [alertParty, setAlertParty] = useState<ActionRequiredBy>(deliverable?.action_required_by ?? 'Client');
 
   // Script Edit state
   const [editingBrief, setEditingBrief] = useState(brief);

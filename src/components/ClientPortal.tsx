@@ -42,21 +42,20 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 p-4 sm:p-6 lg:p-8 transition-colors">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Navigation Bar: Pure Client Identity */}
-        <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200 dark:border-neutral-800">
+        <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-800">
           <div className="flex min-w-0 items-center gap-4">
-            <Link href="/" aria-label="SyncCut home" className="flex h-10 w-[170px] shrink-0 items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-              <BrandLogo variant="light" className="h-8 w-full object-contain object-left dark:hidden" />
-              <BrandLogo variant="dark" className="hidden h-8 w-full object-contain object-left dark:block" />
+            <Link href="/" aria-label="SyncCut home" className="flex h-10 w-[170px] shrink-0 items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+              <BrandLogo variant="dark" className="h-8 w-auto object-contain object-left" priority />
             </Link>
-            <div className="flex min-h-10 flex-col justify-center border-l border-neutral-200 pl-4 dark:border-neutral-800">
-              <div className="text-[10px] uppercase font-bold leading-4 tracking-wider text-neutral-400">
+            <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
+              <div className="text-[10px] uppercase font-bold leading-4 tracking-wider text-emerald-400">
                 Client Review Portal
               </div>
-              <div className="text-xs font-semibold leading-5 text-neutral-800 dark:text-neutral-200 sm:text-sm">
+              <div className="text-xs font-semibold leading-5 text-neutral-200 sm:text-sm">
                 {currentUser?.company_name || 'Client workspace'}
               </div>
             </div>
@@ -64,21 +63,25 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 
           <div className="flex items-center gap-3">
             {projectIds.length > 1 && (
-              <button type="button" onClick={() => router.push('/client')} className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-600 transition-colors hover:border-indigo-300 hover:text-indigo-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-indigo-800 dark:hover:text-indigo-300">
+              <button
+                type="button"
+                onClick={() => router.push('/client')}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-neutral-300 transition-colors hover:border-emerald-500/40 hover:text-white"
+              >
                 <ArrowLeft className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Choose project</span>
               </button>
             )}
 
             {/* Client User Info */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-300">
-              <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-300">
+              <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span className="font-semibold">{currentUser?.name}</span>
             </div>
 
             {/* Sign Out Button */}
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-semibold text-neutral-600 dark:text-neutral-300 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-neutral-300 hover:text-white transition-colors shadow-2xs"
               title="Sign out of client session"
             >
               <LogOut className="w-3.5 h-3.5" />

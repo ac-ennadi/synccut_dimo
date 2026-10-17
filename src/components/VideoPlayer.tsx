@@ -87,14 +87,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
   const [currentTime, setCurrentTime] = useState(0);
   // Starts from the stored duration and is corrected by the media's own metadata
   // as soon as it loads, so a stale or missing value is never shown.
-  const [mediaDuration, setMediaDuration] = useState(deliverable.duration_seconds || 0);
+  const [mediaDuration, setMediaDuration] = useState(deliverable?.duration_seconds || 0);
   const [signedVideoUrl, setSignedVideoUrl] = useState('');
   const [videoLoadError, setVideoLoadError] = useState('');
-  const videoUrl = deliverable.video_url?.trim() || signedVideoUrl;
+  const videoUrl = deliverable?.video_url?.trim() || signedVideoUrl;
   const isDirectVideo = /\.(mp4|webm|ogg|mov|m4v)(?:$|[?#])/i.test(videoUrl);
   const googleDrivePreviewUrl = getGoogleDrivePreviewUrl(videoUrl);
   const googleDriveViewUrl = getGoogleDriveViewUrl(videoUrl);
-  const isApproved = deliverable.approval_status === 'Approved';
+  const isApproved = deliverable?.approval_status === 'Approved';
   // An embed (Drive, YouTube, Vimeo) exposes no metadata, so there is no usable
   // timeline: the seek bar and timecode stamping only apply to real video files.
   const hasTimeline = isDirectVideo && Number.isFinite(mediaDuration) && mediaDuration > 0;
@@ -102,9 +102,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
 
   useEffect(() => {
     setCurrentTime(0);
-    setMediaDuration(deliverable.duration_seconds || 0);
+    setMediaDuration(deliverable?.duration_seconds || 0);
     setIsPlaying(false);
-  }, [videoUrl, deliverable.duration_seconds]);
+  }, [videoUrl, deliverable?.duration_seconds]);
 
   useEffect(() => {
     const updateFullscreen = () => setIsFullscreen(document.fullscreenElement === playerFrameRef.current);
@@ -115,7 +115,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
   useEffect(() => {
     let cancelled = false;
     const loadPrivateVideo = async () => {
-      if (!deliverable.video_storage_path) { setSignedVideoUrl(''); setVideoLoadError(''); return; }
+      if (!deliverable?.video_storage_path || !deliverable?.project_id) { setSignedVideoUrl(''); setVideoLoadError(''); return; }
       setVideoLoadError('');
       try {
         const url = await getPlaybackTicket(deliverable.project_id, deliverable.video_storage_path);
@@ -126,7 +126,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
     };
     void loadPrivateVideo();
     return () => { cancelled = true; };
-  }, [deliverable.project_id, deliverable.video_storage_path]);
+  }, [deliverable?.project_id, deliverable?.video_storage_path]);
 
   const handleCopyLink = async () => {
     if (!videoUrl || !navigator.clipboard) return;

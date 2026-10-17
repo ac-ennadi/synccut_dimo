@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, LockKeyhole, RefreshCw, Shield } from 'lucide-react';
+import { AlertCircle, LockKeyhole, Mail, Lock, RefreshCw, Shield, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export default function ClientLoginPage() {
   const router = useRouter();
@@ -67,11 +68,17 @@ export default function ClientLoginPage() {
   const showLoading = !loadingTimedOut && (isRestoring || isSubmitting || isNavigating);
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-neutral-100 p-4 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+    <main className="relative flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100 overflow-hidden">
+      {/* Background ambient lighting */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-indigo-500/15 blur-[120px] rounded-full"
+      />
+
       {showLoading && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-neutral-950/90 text-white backdrop-blur-md" role="status" aria-live="polite">
-          <div className="flex flex-col items-center gap-4 text-center px-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-400/20">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-neutral-950/95 text-white backdrop-blur-xl" role="status" aria-live="polite">
+          <div className="flex flex-col items-center gap-4 text-center px-4 max-w-sm">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-400/20 shadow-lg">
               <LockKeyhole className="h-6 w-6 text-emerald-400" />
             </div>
             <div className="space-y-1">
@@ -82,11 +89,11 @@ export default function ClientLoginPage() {
                 {isRestoring ? 'Restoring your authenticated session…' : 'Verifying credentials and loading your projects…'}
               </p>
             </div>
-            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10 mt-2">
               <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-emerald-400 to-teal-300" />
             </div>
             {isTakingLonger && (
-              <div className="mt-4 max-w-sm rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
+              <div className="mt-4 w-full rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
                 <p className="text-sm font-semibold text-amber-200">Still connecting</p>
                 <p className="mt-1 text-xs leading-5 text-neutral-400">Supabase is taking longer than expected. If this reaches 15 seconds, the loading screen will close.</p>
                 <button type="button" onClick={() => window.location.reload()} className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">
@@ -98,48 +105,66 @@ export default function ClientLoginPage() {
         </div>
       )}
 
-      <div className="w-full max-w-md space-y-6">
-        <header className="space-y-2 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md">
-            <LockKeyhole />
+      <div className="w-full max-w-md space-y-6 z-10">
+        <header className="space-y-3 text-center">
+          <Link href="/" aria-label="SyncCut home" className="inline-flex justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+            <BrandLogo variant="dark" className="h-8 w-auto sm:h-9" priority />
+          </Link>
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-0.5 text-[11px] font-mono font-semibold uppercase tracking-wider text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Private Client Access
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Client Review Portal</h1>
+            <p className="text-xs text-neutral-400">Sign in with the access credentials provided by your editor.</p>
           </div>
-          <div className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Private client access</div>
-          <h1 className="text-2xl font-black">Client review portal</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Use the email and password given to you by your editor.</p>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900/80 p-6 sm:p-7 shadow-2xl backdrop-blur-md">
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold" htmlFor="client-email">Email</label>
-            <input
-              id="client-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-              autoComplete="username"
-              autoFocus
-              disabled={isSubmitting || isNavigating}
-              className="w-full rounded-xl border border-neutral-300 bg-neutral-50 px-3.5 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
-            />
+            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300" htmlFor="client-email">
+              Client Email
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-500" aria-hidden="true" />
+              <input
+                id="client-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                autoComplete="username"
+                autoFocus
+                placeholder="name@company.com"
+                disabled={isSubmitting || isNavigating}
+                className="w-full rounded-xl border border-neutral-800 bg-neutral-950 py-3 pl-10 pr-3.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+              />
+            </div>
           </div>
+
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold" htmlFor="client-password">Password</label>
-            <input
-              id="client-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              autoComplete="current-password"
-              disabled={isSubmitting || isNavigating}
-              className="w-full rounded-xl border border-neutral-300 bg-neutral-50 px-3.5 py-3 text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
-            />
+            <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300" htmlFor="client-password">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-neutral-500" aria-hidden="true" />
+              <input
+                id="client-password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="••••••••"
+                disabled={isSubmitting || isNavigating}
+                className="w-full rounded-xl border border-neutral-800 bg-neutral-950 py-3 pl-10 pr-3.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+              />
+            </div>
           </div>
 
           {error && (
-            <p role="alert" className="flex gap-2 rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-              <AlertCircle size={17} className="mt-0.5 shrink-0" />
+            <p role="alert" className="flex items-start gap-2.5 rounded-xl border border-rose-900/40 bg-rose-950/40 p-3 text-xs text-rose-300 leading-relaxed">
+              <AlertCircle size={16} className="mt-0.5 shrink-0 text-rose-400" />
               <span>{error}</span>
             </p>
           )}
@@ -147,24 +172,29 @@ export default function ClientLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting || isNavigating}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-emerald-500/20 transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:cursor-wait disabled:opacity-60 active:scale-98"
           >
             {isSubmitting || isNavigating ? (
               <>
-                <RefreshCw size={17} className="animate-spin" /> Signing in…
+                <RefreshCw size={16} className="animate-spin" /> Signing in…
               </>
             ) : (
-              'Sign in'
+              'Sign in to portal'
             )}
           </button>
         </form>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-neutral-500">
-          <Shield size={14} />
-          <span>Editor or agency team member?</span>
-          <Link href="/editor/login" className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
-            Editor sign in
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400 px-1">
+          <Link href="/" className="inline-flex items-center gap-1.5 hover:text-white transition">
+            <ArrowLeft size={13} /> Back to home
           </Link>
+          <div className="flex items-center gap-1.5">
+            <Shield size={13} className="text-neutral-500" />
+            <span>Editor?</span>
+            <Link href="/editor/login" className="font-semibold text-emerald-400 hover:text-emerald-300 transition">
+              Editor sign in
+            </Link>
+          </div>
         </div>
       </div>
     </main>
