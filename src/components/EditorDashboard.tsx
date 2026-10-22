@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -24,6 +24,7 @@ import { EditorToolbar } from './EditorToolbar';
 import { ClientPortal } from './ClientPortal';
 import { ProjectMembersManager } from './ProjectMembersManager';
 import { ProjectDangerZone } from './ProjectDangerZone';
+import { ScriptEditorProvider } from '@/context/ScriptEditorContext';
 import { BrandLogo } from './BrandLogo';
 import { Clapperboard, LogOut, Shield, Eye, X, ArrowLeft } from 'lucide-react';
 
@@ -64,8 +65,14 @@ export const EditorDashboard: React.FC<Props> = ({
   const { currentUser, logout } = useAuth();
   const [tc, setTc] = useState('');
   const [preview, setPreview] = useState(false);
+  const [scriptEditorHandler, setScriptEditorHandler] = useState<() => void>(() => () => undefined);
+  const registerScriptEditor = useCallback((handler: () => void) => {
+    setScriptEditorHandler(() => handler);
+    return () => setScriptEditorHandler(() => () => undefined);
+  }, []);
 
   return (
+    <ScriptEditorProvider value={{ requestEdit: scriptEditorHandler, registerEditor: registerScriptEditor }}>
     <div className="min-h-screen bg-neutral-950 p-4 text-neutral-100 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Editor Workspace Header */}
@@ -160,7 +167,7 @@ export const EditorDashboard: React.FC<Props> = ({
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
           {/* Left Column: Script & Visual Moodboard */}
           <section className="space-y-6 lg:col-span-6">
-            <ScriptBox brief={brief} />
+            <ScriptBox brief={brief} editable />
             <VisualReferences
               references={brief?.references}
               projectId={project.project_id}
@@ -217,5 +224,6 @@ export const EditorDashboard: React.FC<Props> = ({
         )}
       </div>
     </div>
+    </ScriptEditorProvider>
   );
 };

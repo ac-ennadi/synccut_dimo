@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { 
@@ -12,6 +12,7 @@ import {
   Download
 } from 'lucide-react';
 import { migrateScriptToBlocks, ScriptBlocksEditor } from './ScriptBlocksEditor';
+import { useScriptEditor } from '@/context/ScriptEditorContext';
 
 function readVideoDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
@@ -42,6 +43,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onUpdateScript,
 }) => {
   const [activeModal, setActiveModal] = useState<'none' | 'newCut' | 'actionAlert' | 'editScript'>('none');
+  const { registerEditor } = useScriptEditor();
 
   // New Cut Form state. Duration is never asked for: it is read from the chosen
   // file, and the player falls back to the real media duration on playback.
@@ -62,6 +64,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   const [editingBrief, setEditingBrief] = useState(brief);
   const [logoDownloadError, setLogoDownloadError] = useState('');
   const [downloadingLogo, setDownloadingLogo] = useState(false);
+
+  useEffect(() => registerEditor(() => {
+    setEditingBrief({ ...brief, script_scenes: [], script_sections: migrateScriptToBlocks(brief.script_scenes ?? [], brief.script_sections ?? []) });
+    setActiveModal('editScript');
+  }), [brief, registerEditor]);
 
   const downloadClientLogo = async () => {
     if (!deliverable.logo_storage_path) return;

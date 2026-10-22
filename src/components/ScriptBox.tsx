@@ -3,12 +3,15 @@
 import React from 'react';
 import { CreativeBrief } from '@/types';
 import { Check, FileText, Lock } from 'lucide-react';
+import { useScriptEditor } from '@/context/ScriptEditorContext';
 
 interface ScriptBoxProps {
   brief: CreativeBrief;
+  editable?: boolean;
 }
 
-export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
+export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief, editable = false }) => {
+  const { requestEdit } = useScriptEditor();
   const scenes = Array.isArray(brief?.script_scenes) ? brief.script_scenes : [];
   const sections = Array.isArray(brief?.script_sections) ? brief.script_sections : [];
   const versionLabel = brief?.version_label || 'Untitled script';
@@ -51,12 +54,17 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
               Script, scene notes, and voiceover
             </p>
           </div>
+          <div className="flex items-center gap-2">
+          {editable && <button type="button" onClick={requestEdit} className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-emerald-500/50 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300">
+            <FileText className="h-3.5 w-3.5" /> Edit script
+          </button>}
           {isLocked && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
               <Lock className="h-3 w-3" />
               Locked
             </span>
           )}
+          </div>
         </div>
       </header>
 
