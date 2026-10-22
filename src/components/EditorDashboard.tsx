@@ -166,7 +166,7 @@ export const EditorDashboard: React.FC<Props> = ({
         {/* Two-Column Responsive Workspace */}
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
           {/* Left Column: Script & Visual Moodboard */}
-          <section className="space-y-6 lg:col-span-6">
+          <section className="space-y-0 lg:col-span-6">
             <ScriptBox brief={brief} editable />
             <VisualReferences
               references={brief?.references}

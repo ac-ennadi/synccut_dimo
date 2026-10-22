@@ -99,7 +99,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           
           {/* Creative Backbone: The Script & Brief */}
           {/* order-2 on mobile (below action items), order-1 on laptop (left column) */}
-          <section className="space-y-6 order-2 lg:order-1 lg:col-span-6">
+          <section className="space-y-0 order-2 lg:order-1 lg:col-span-6">
             <ScriptBox brief={brief} />
             <VisualReferences references={brief.references} />
           </section>
