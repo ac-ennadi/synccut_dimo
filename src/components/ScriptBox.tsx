@@ -14,6 +14,24 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
   const versionLabel = brief?.version_label || 'Untitled script';
   const isLocked = Boolean(brief?.is_locked);
   const hasBlockScript = sections.some((section) => Boolean(section.type));
+  const scriptDocument = sections.find((section) => section.type === 'document')?.content;
+  const renderedDocument = scriptDocument?.split('\n').map((rawLine, index) => {
+    const line = rawLine.trim();
+    if (!line) return <div key={`space-${index}`} className="h-3" />;
+    const heading = /^(#{1,3})\s+(.+)$/.exec(line);
+    if (heading?.[1].length === 1) return <h3 key={index} className="py-2 text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">{heading[2]}</h3>;
+    if (heading?.[1].length === 2) return <h4 key={index} className="py-2 text-xl font-semibold text-neutral-900 dark:text-neutral-100">{heading[2]}</h4>;
+    if (heading?.[1].length === 3) return <h5 key={index} className="py-2 text-lg font-semibold text-neutral-900 dark:text-neutral-100">{heading[2]}</h5>;
+    const voiceover = /^>\s*(?:\[Voice-over\]\s*)?(.*)$/.exec(line);
+    if (voiceover) return <blockquote key={index} className="my-2 border-l-2 border-emerald-500/70 pl-4 text-sm leading-6 text-neutral-700 dark:text-neutral-200"><span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-400">Voice-over</span><span className="italic">{voiceover[1]}</span></blockquote>;
+    const todo = /^[-*]\s+\[([ xX])\]\s+(.*)$/.exec(line);
+    if (todo) return <p key={index} className={`flex gap-2 py-1 text-sm leading-6 ${todo[1].trim() ? 'text-neutral-400 line-through' : 'text-neutral-700 dark:text-neutral-300'}`}><span className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-neutral-400">{todo[1].trim() && <Check className="h-3 w-3" />}</span><span>{todo[2]}</span></p>;
+    const bullet = /^[-*]\s+(.*)$/.exec(line);
+    if (bullet) return <p key={index} className="flex gap-2 py-1 text-sm leading-6 text-neutral-700 dark:text-neutral-300"><span className="w-5 shrink-0 text-right text-neutral-400">•</span><span>{bullet[1]}</span></p>;
+    const numbered = /^(\d+)\.\s+(.*)$/.exec(line);
+    if (numbered) return <p key={index} className="flex gap-2 py-1 text-sm leading-6 text-neutral-700 dark:text-neutral-300"><span className="w-5 shrink-0 text-right text-neutral-400">{numbered[1]}.</span><span>{numbered[2]}</span></p>;
+    return <p key={index} className="whitespace-pre-wrap py-1 text-sm leading-6 text-neutral-600 dark:text-neutral-300">{line}</p>;
+  });
 
   return (
     <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
@@ -43,7 +61,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief }) => {
       </header>
 
       <div className="px-6 py-3">
-        {hasBlockScript ? sections.map((block, index) => {
+        {scriptDocument !== undefined ? <div className="py-2">{renderedDocument}</div> : hasBlockScript ? sections.map((block, index) => {
           const content = block.content.trim();
           if (!content) return null;
           const type = block.type ?? 'paragraph';

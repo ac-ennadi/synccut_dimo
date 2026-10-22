@@ -231,7 +231,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
                 id: typeof section.id === 'string' ? section.id : `section_${index + 1}`,
                 title: typeof section.title === 'string' ? section.title : '',
                 content: typeof section.content === 'string' ? section.content : '',
-                ...(typeof section.type === 'string' && ['paragraph', 'heading1', 'heading2', 'heading3', 'bullet', 'numbered', 'todo', 'voiceover'].includes(section.type) ? { type: section.type as ScriptBlockType } : {}),
+                ...(typeof section.type === 'string' && ['paragraph', 'heading1', 'heading2', 'heading3', 'bullet', 'numbered', 'todo', 'voiceover', 'document'].includes(section.type) ? { type: section.type as ScriptBlockType } : {}),
                 ...(typeof section.checked === 'boolean' ? { checked: section.checked } : {}),
               }))
               : base.brief.script_sections,

@@ -119,7 +119,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     }
   };
 
-  const updateScriptBlocks = (blocks: CreativeBrief['script_sections']) => setEditingBrief({ ...editingBrief, script_scenes: [], script_sections: blocks ?? [] });
+  const updateScriptBlocks = (content: string) => setEditingBrief({ ...editingBrief, script_scenes: [], script_sections: [{ id: 'script-document', title: '', content, type: 'document' }] });
 
   const handleSaveActionAlert = (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,7 +373,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-2"><div><h4 className="font-bold text-neutral-200">Script</h4><p className="mt-1 text-[11px] text-neutral-500">Write freely, then use slash commands to format blocks. Your changes save to this project for the client to review.</p></div><ScriptBlocksEditor blocks={editingBrief.script_sections ?? []} onChange={updateScriptBlocks} /></div>
+              <div className="space-y-2"><div><h4 className="font-bold text-neutral-200">Script document</h4><p className="mt-1 text-[11px] text-neutral-500">Write naturally in one document. Use the toolbar or Markdown shortcuts to format headings, lists, to-dos, and voice-over.</p></div><ScriptBlocksEditor value={editingBrief.script_sections?.find((section) => section.type === 'document')?.content ?? ''} onChange={updateScriptBlocks} /></div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
