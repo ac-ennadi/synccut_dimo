@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Deliverable, CreativeBrief, ActionRequiredBy, ScriptSection } from '@/types';
+import { Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { 
   Settings2, 
@@ -9,9 +9,9 @@ import {
   AlertCircle, 
   FileEdit, 
   X,
-  Trash2,
   Download
 } from 'lucide-react';
+import { migrateScriptToBlocks, ScriptBlocksEditor } from './ScriptBlocksEditor';
 
 function readVideoDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
@@ -119,35 +119,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     }
   };
 
-  const updateScene = (index: number, field: 'title' | 'timecode' | 'visual_description' | 'voiceover', value: string) => {
-    const scenes = editingBrief.script_scenes.map((scene, sceneIndex) => sceneIndex === index ? { ...scene, [field]: value } : scene);
-    setEditingBrief({ ...editingBrief, script_scenes: scenes });
-  };
-
-  const addScene = () => {
-    const nextNumber = editingBrief.script_scenes.reduce((max, scene) => Math.max(max, scene.scene_number), 0) + 1;
-    setEditingBrief({ ...editingBrief, script_scenes: [...editingBrief.script_scenes, { scene_number: nextNumber, title: '', timecode: '', visual_description: '', voiceover: '' }] });
-  };
-
-  const removeScene = (index: number) => {
-    const scenes = editingBrief.script_scenes
-      .filter((_, sceneIndex) => sceneIndex !== index)
-      .map((scene, sceneIndex) => ({ ...scene, scene_number: sceneIndex + 1 }));
-    setEditingBrief({ ...editingBrief, script_scenes: scenes });
-  };
-
-  const addScriptSection = () => {
-    const section: ScriptSection = { id: crypto.randomUUID(), title: '', content: '' };
-    setEditingBrief({ ...editingBrief, script_sections: [...(editingBrief.script_sections ?? []), section] });
-  };
-
-  const updateScriptSection = (id: string, field: 'title' | 'content', value: string) => {
-    setEditingBrief({ ...editingBrief, script_sections: (editingBrief.script_sections ?? []).map((section) => section.id === id ? { ...section, [field]: value } : section) });
-  };
-
-  const removeScriptSection = (id: string) => {
-    setEditingBrief({ ...editingBrief, script_sections: (editingBrief.script_sections ?? []).filter((section) => section.id !== id) });
-  };
+  const updateScriptBlocks = (blocks: CreativeBrief['script_sections']) => setEditingBrief({ ...editingBrief, script_scenes: [], script_sections: blocks ?? [] });
 
   const handleSaveActionAlert = (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,7 +174,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           </button>
 
           <button
-            onClick={() => { setEditingBrief(brief); setActiveModal('editScript'); }}
+            onClick={() => { setEditingBrief({ ...brief, script_scenes: [], script_sections: migrateScriptToBlocks(brief.script_scenes ?? [], brief.script_sections ?? []) }); setActiveModal('editScript'); }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold border border-neutral-700 transition-colors"
           >
             <FileEdit className="w-3.5 h-3.5 text-neutral-400" />
@@ -401,22 +373,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3"><span className="font-bold text-neutral-300">Scenes & Voiceover Lines</span><button type="button" onClick={addScene} className="rounded-lg border border-indigo-500/40 px-3 py-2 font-semibold text-indigo-300 hover:bg-indigo-950/40">+ Add scene</button></div>
-                {editingBrief.script_scenes.length === 0 && <p className="rounded-xl border border-dashed border-neutral-700 p-4 text-neutral-400">No scenes yet. Add a scene when the script is ready.</p>}
-                {editingBrief.script_scenes.map((scene, idx) => (
-                  <div key={scene.scene_number} className="p-3 rounded-xl border border-neutral-800 bg-neutral-950 space-y-2">
-                    <div className="flex items-center justify-between"><span className="font-semibold text-neutral-300">Scene {scene.scene_number}</span><button type="button" onClick={() => removeScene(idx)} className="inline-flex items-center gap-1 rounded-lg border border-neutral-800 px-2 py-1.5 text-neutral-400 hover:border-red-500/40 hover:text-red-300" aria-label={`Remove scene ${scene.scene_number}`}><Trash2 className="h-3.5 w-3.5" /> Remove scene</button></div>
-                    <div className="grid grid-cols-2 gap-2"><label className="text-[11px] text-neutral-400">Scene title<input value={scene.title} onChange={(e) => updateScene(idx, 'title', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Scene title" /></label><label className="text-[11px] text-neutral-400">Timecode<input value={scene.timecode} onChange={(e) => updateScene(idx, 'timecode', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="00:00–00:05" /></label></div>
-                    <label className="block text-[11px] text-neutral-400">Visual direction<textarea rows={2} value={scene.visual_description} onChange={(e) => updateScene(idx, 'visual_description', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Describe the shots or animation" /></label>
-                    <label className="block text-[11px] text-neutral-400">Voiceover<textarea rows={2} value={scene.voiceover} onChange={(e) => updateScene(idx, 'voiceover', e.target.value)} className="mt-1 w-full p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white" placeholder="Voiceover line for this scene" /></label>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-3 border-t border-neutral-800 pt-4"><div className="flex items-center justify-between gap-3"><span className="font-bold text-neutral-300">Additional script sections</span><button type="button" onClick={addScriptSection} className="rounded-lg border border-indigo-500/40 px-3 py-2 font-semibold text-indigo-300 hover:bg-indigo-950/40">+ Add section</button></div>
-                {(editingBrief.script_sections ?? []).map((section) => <div key={section.id} className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950 p-3"><div className="flex items-center gap-2"><input aria-label="Section title" value={section.title} onChange={(e) => updateScriptSection(section.id, 'title', e.target.value)} className="w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-white" placeholder="Section title" /><button type="button" onClick={() => removeScriptSection(section.id)} className="rounded-lg border border-neutral-800 p-2 text-neutral-400 hover:text-red-300" aria-label="Remove section"><X className="h-4 w-4" /></button></div><textarea value={section.content} onChange={(e) => updateScriptSection(section.id, 'content', e.target.value)} rows={3} className="w-full rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-white" placeholder="Add notes, instructions, or copy for this section" /></div>)}
-              </div>
+              <div className="space-y-2"><div><h4 className="font-bold text-neutral-200">Script</h4><p className="mt-1 text-[11px] text-neutral-500">Write freely, then use slash commands to format blocks. Your changes save to this project for the client to review.</p></div><ScriptBlocksEditor blocks={editingBrief.script_sections ?? []} onChange={updateScriptBlocks} /></div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <button

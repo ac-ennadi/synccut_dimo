@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType } from '@/types';
+import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType, ScriptBlockType } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
 import { normalizeProjectStatus } from '@/lib/project-status';
 import { normalizeProjectType } from '@/lib/project-type';
@@ -231,6 +231,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
                 id: typeof section.id === 'string' ? section.id : `section_${index + 1}`,
                 title: typeof section.title === 'string' ? section.title : '',
                 content: typeof section.content === 'string' ? section.content : '',
+                ...(typeof section.type === 'string' && ['paragraph', 'heading1', 'heading2', 'heading3', 'bullet', 'numbered', 'todo', 'voiceover'].includes(section.type) ? { type: section.type as ScriptBlockType } : {}),
+                ...(typeof section.checked === 'boolean' ? { checked: section.checked } : {}),
               }))
               : base.brief.script_sections,
             references: Array.isArray(savedBrief.references)
