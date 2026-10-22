@@ -7,7 +7,7 @@ import { CheckSquare2, Heading1, Heading2, Heading3, List, ListOrdered, MessageS
 export function migrateScriptToBlocks(scenes: { scene_number: number; title: string; timecode: string; visual_description: string; voiceover: string }[], sections: ScriptSection[] = []): ScriptSection[] {
   const lines: string[] = [];
   for (const scene of scenes) {
-    const heading = `${String(scene.scene_number).padStart(2, '0')}  ${scene.title}${scene.timecode ? `  [${scene.timecode}]` : ''}`.trim();
+    const heading = `${String(scene.scene_number).padStart(2, '0')} • ${scene.title}${scene.timecode ? ` [${scene.timecode}]` : ''}`.trim();
     if (heading) lines.push(`## ${heading}`);
     if (scene.visual_description) lines.push(scene.visual_description);
     if (scene.voiceover) lines.push(`> [Voice-over] ${scene.voiceover}`);
