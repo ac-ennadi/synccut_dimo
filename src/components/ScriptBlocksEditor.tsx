@@ -48,7 +48,7 @@ interface Props { blocks: ScriptSection[]; onChange: (blocks: ScriptSection[]) =
 export function ScriptBlocksEditor({ blocks, onChange }: Props) {
   const [slashBlock, setSlashBlock] = useState<string | null>(null);
   const refs = useRef<Record<string, HTMLTextAreaElement | null>>({});
-  const normalized = useMemo(() => blocks.map((block) => ({ ...block, type: block.type ?? 'paragraph' })), [blocks]);
+  const normalized: ScriptSection[] = useMemo(() => blocks.map((block) => ({ ...block, type: block.type ?? 'paragraph' })), [blocks]);
 
   const update = (id: string, patch: Partial<ScriptSection>) => onChange(normalized.map((block) => block.id === id ? { ...block, ...patch } : block));
   const insert = (type: ScriptBlockType, afterId?: string) => {
