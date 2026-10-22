@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import type { MoodboardReference } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { ImagePlus, Palette, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ImagePlus, Pencil, Plus, Trash2, X } from 'lucide-react';
 
 interface VisualReferencesProps {
   references: MoodboardReference[];
@@ -44,8 +44,8 @@ function ReferenceCard({ reference, projectId, onEdit, onRemove }: {
 
   const imageUrl = privateImageUrl || reference.image_url || '';
   return (
-    <article className="group relative inline-flex max-w-full items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-300 transition hover:border-neutral-700 hover:bg-neutral-900" title={[reference.category, reference.description].filter(Boolean).join(' · ')}>
-      {imageUrl && !imageFailed ? <img src={imageUrl} alt="" onError={() => setImageFailed(true)} className="h-4 w-4 shrink-0 rounded object-cover" /> : <span className="shrink-0 text-sm" aria-hidden="true">{reference.icon || '🎨'}</span>}
+    <article className="group relative inline-flex max-w-full items-center gap-1.5 rounded-md border border-neutral-800/90 bg-neutral-900/80 px-2 py-1 text-[10px] text-neutral-300 transition hover:border-neutral-700 hover:bg-neutral-900" title={[reference.category, reference.description].filter(Boolean).join(' · ')}>
+      {imageUrl && !imageFailed ? <img src={imageUrl} alt="" onError={() => setImageFailed(true)} className="h-3 w-3 shrink-0 rounded-sm object-cover" /> : <span className="shrink-0 text-[11px] leading-none" aria-hidden="true">{reference.icon || '🎨'}</span>}
       <span className="truncate">{reference.title || 'Untitled reference'}</span>
       {onEdit && <span className="ml-1 flex items-center gap-0.5 border-l border-neutral-700 pl-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100"><button type="button" aria-label={`Edit ${reference.title}`} onClick={onEdit} className="rounded p-1 text-neutral-400 hover:bg-neutral-800 hover:text-white"><Pencil className="h-3 w-3" /></button><button type="button" aria-label={`Remove ${reference.title}`} onClick={onRemove} className="rounded p-1 text-neutral-500 hover:bg-red-950 hover:text-red-300"><Trash2 className="h-3 w-3" /></button></span>}
     </article>
@@ -104,7 +104,7 @@ export const VisualReferences: React.FC<VisualReferencesProps> = ({ references =
   return (
     <section className="border-t border-neutral-800 pt-4" aria-labelledby="mood-board-title">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5"><Palette className="h-3.5 w-3.5 text-neutral-500"/><h2 id="mood-board-title" className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Visual references</h2></div>
+        <h2 id="mood-board-title" className="text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-500">Visual references</h2>
         {isEditing && <button type="button" onClick={beginNew} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white"><Plus className="h-3 w-3"/>Add reference</button>}
       </div>
       {safeReferences.length ? <div className="flex flex-wrap gap-2">{safeReferences.map((reference) => <ReferenceCard key={reference.id} reference={reference} projectId={projectId} onEdit={isEditing ? () => beginEdit(reference) : undefined} onRemove={isEditing ? () => onChange?.(safeReferences.filter((item) => item.id !== reference.id)) : undefined}/>)}</div> : <div className="flex items-center gap-2 text-xs text-neutral-500"><ImagePlus className="h-3.5 w-3.5"/><span>{isEditing ? 'Add a visual reference to capture the style, lighting, color, or motion.' : 'No visual references have been added yet.'}</span></div>}
