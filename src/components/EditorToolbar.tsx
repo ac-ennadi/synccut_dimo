@@ -180,13 +180,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
             <span>Manage Client Alert</span>
           </button>
 
-          <button
-            onClick={() => { setEditingBrief({ ...brief, script_scenes: [], script_sections: migrateScriptToBlocks(brief.script_scenes ?? [], brief.script_sections ?? []) }); setActiveModal('editScript'); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold border border-neutral-700 transition-colors"
-          >
-            <FileEdit className="w-3.5 h-3.5 text-neutral-400" />
-            <span>Edit Script / Brief</span>
-          </button>
         </div>
         {logoDownloadError && <p role="alert" className="mt-2 text-xs text-red-400">{logoDownloadError}</p>}
       </div>

@@ -44,8 +44,8 @@ function ReferenceCard({ reference, projectId, onEdit, onRemove }: {
 
   const imageUrl = privateImageUrl || reference.image_url || '';
   return (
-    <article className="group relative inline-flex max-w-full items-center gap-1.5 rounded-md border border-neutral-800/90 bg-neutral-900/80 px-2 py-1 text-[10px] text-neutral-300 transition hover:border-neutral-700 hover:bg-neutral-900" title={[reference.category, reference.description].filter(Boolean).join(' · ')}>
-      {imageUrl && !imageFailed ? <img src={imageUrl} alt="" onError={() => setImageFailed(true)} className="h-3 w-3 shrink-0 rounded-sm object-cover" /> : <span className="shrink-0 text-[11px] leading-none" aria-hidden="true">{reference.icon || '🎨'}</span>}
+    <article className="group relative inline-flex min-h-9 max-w-full items-center gap-2 rounded-lg border border-neutral-800/90 bg-neutral-900/80 px-3 py-1.5 text-xs text-neutral-200 transition hover:border-neutral-700 hover:bg-neutral-900 sm:text-[13px]" title={[reference.category, reference.description].filter(Boolean).join(' · ')}>
+      {imageUrl && !imageFailed ? <img src={imageUrl} alt="" onError={() => setImageFailed(true)} className="h-4 w-4 shrink-0 rounded-sm object-cover" /> : <span className="shrink-0 text-sm leading-none" aria-hidden="true">{reference.icon || '🎨'}</span>}
       <span className="truncate">{reference.title || 'Untitled reference'}</span>
       {onEdit && <span className="ml-1 flex items-center gap-0.5 border-l border-neutral-700 pl-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100"><button type="button" aria-label={`Edit ${reference.title}`} onClick={onEdit} className="rounded p-1 text-neutral-400 hover:bg-neutral-800 hover:text-white"><Pencil className="h-3 w-3" /></button><button type="button" aria-label={`Remove ${reference.title}`} onClick={onRemove} className="rounded p-1 text-neutral-500 hover:bg-red-950 hover:text-red-300"><Trash2 className="h-3 w-3" /></button></span>}
     </article>
