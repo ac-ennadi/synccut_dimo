@@ -53,7 +53,6 @@ export function LandingVideoGallery() {
             <figure key={video.src} className="min-w-0">
               <video
                 ref={(element) => { videoRefs.current[index] = element; }}
-                controls
                 muted
                 loop
                 playsInline
