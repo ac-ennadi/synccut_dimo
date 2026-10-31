@@ -42,7 +42,6 @@ interface Props {
   onUpdateScript: (b: CreativeBrief) => void;
   onAddNote: (n: Omit<FeedbackNote, 'id' | 'created_at'>) => void | Promise<void>;
   onApproveCut: () => void;
-  onUploadSuccess: (f: string, p: string) => void;
 }
 
 export const EditorDashboard: React.FC<Props> = ({
@@ -59,7 +58,6 @@ export const EditorDashboard: React.FC<Props> = ({
   onUpdateScript,
   onAddNote,
   onApproveCut,
-  onUploadSuccess,
 }) => {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
@@ -179,7 +177,7 @@ export const EditorDashboard: React.FC<Props> = ({
 
           {/* Right Column: Actions, Player, Feedback */}
           <section className="space-y-6 lg:col-span-6">
-            <ActionAlert deliverable={deliverable} projectId={project.project_id} canUpload={false} />
+            <ActionAlert deliverable={deliverable} isEditorView />
             <VideoPlayer deliverable={deliverable} onTimecodeSelected={setTc} onApproveCut={onApproveCut} />
             <FeedbackSection
               notes={deliverable?.feedback_notes}
@@ -216,7 +214,6 @@ export const EditorDashboard: React.FC<Props> = ({
                   deliverable={deliverable}
                   onAddNote={onAddNote}
                   onApproveCut={onApproveCut}
-                  onUploadSuccess={onUploadSuccess}
                 />
               </div>
             </div>

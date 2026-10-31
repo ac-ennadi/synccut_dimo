@@ -12,8 +12,8 @@ const features = [
     description: 'Publish a new version, see the review status, and record client approval in the project.',
   },
   {
-    title: 'A handoff for brand assets',
-    description: 'Clients can upload the logo files the editor needs, including SVG, EPS, AI, and PNG.',
+    title: 'Clear requests for brand assets',
+    description: 'Set a custom project alert that tells clients which logo or brand files the editor needs.',
   },
   {
     title: 'Private video playback',
@@ -45,7 +45,7 @@ export function ProjectFeaturesSection() {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Client workspace</p>
             <h3 id="client-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Review and respond.</h3>
             <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
-              Open the latest cut, leave notes while it plays, upload a requested logo, and approve the version when it’s ready.
+              Open the latest cut, leave notes while it plays, follow the project alert, and approve the version when it’s ready.
             </p>
           </section>
           <section aria-labelledby="editor-workspace-heading" className="border-[#d6d6d6] sm:border-l sm:pl-10">

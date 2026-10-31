@@ -11,7 +11,7 @@ function Workspace() {
   const { currentUser, isLoading } = useAuth();
   const {
     project, brief, deliverable, isProjectLoaded, isStatusSaving, updateProjectType, updateProjectTitle, updateDueDate, updateStatus, postNewCut,
-    setActionAlert, updateScript, addNote, approveCut, uploadSuccess,
+    setActionAlert, updateScript, addNote, approveCut,
   } = useProject();
 
   useEffect(() => {
@@ -37,7 +37,7 @@ function Workspace() {
 
   return <EditorDashboard project={project} brief={brief} deliverable={deliverable} isStatusSaving={isStatusSaving} onProjectTypeChange={updateProjectType} onProjectTitleChange={updateProjectTitle} onDueDateChange={updateDueDate} onStatusChange={updateStatus}
     onPostNewCut={postNewCut} onSetActionAlert={setActionAlert} onUpdateScript={updateScript}
-    onAddNote={addNote} onApproveCut={approveCut} onUploadSuccess={uploadSuccess} />;
+    onAddNote={addNote} onApproveCut={approveCut} />;
 }
 
 export default function EditorClientWorkspace({ projectId }: { projectId: string }) {

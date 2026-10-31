@@ -99,7 +99,7 @@ export const mockDeliverable: Deliverable = {
   duration_seconds: 65,
   uploaded_at: 'Today at 9:45 AM by DP Marcus',
   action_required_by: 'Client',
-  action_banner_text: 'Waiting on Client: Please upload your vector logo (.SVG or .AI)',
+  action_banner_text: 'Waiting on Client: Please provide your vector logo (.SVG or .AI)',
   approval_status: 'Pending',
   feedback_notes: [],
 };

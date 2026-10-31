@@ -20,7 +20,6 @@ interface ClientPortalProps {
   deliverable: Deliverable;
   onAddNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => void;
   onApproveCut: () => void;
-  onUploadSuccess: (fileName: string, storagePath: string) => void;
 }
 
 export const ClientPortal: React.FC<ClientPortalProps> = ({
@@ -29,7 +28,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   deliverable,
   onAddNote,
   onApproveCut,
-  onUploadSuccess,
 }) => {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
@@ -94,7 +92,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         <TopBar project={project} />
 
         {/* 2 & 3. Main Responsive Workspace */}
-        {/* On Phone (< lg): Action Items show first so clients can approve or upload instantly. On PC (lg+): 2 Columns side-by-side. */}
+        {/* On Phone (< lg): Action Items show first so clients can respond or approve immediately. On PC (lg+): 2 Columns side-by-side. */}
         <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Creative Backbone: The Script & Brief */}
@@ -109,8 +107,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           <section className="space-y-6 order-1 lg:order-2 lg:col-span-6">
             <ActionAlert
               deliverable={deliverable}
-              projectId={project.project_id}
-              onUploadSuccess={onUploadSuccess}
             />
 
             <VideoPlayer

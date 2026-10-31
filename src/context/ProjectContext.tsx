@@ -27,7 +27,6 @@ interface ContextValue extends ProjectState {
   updateScript: (brief: CreativeBrief) => void;
   addNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => Promise<void>;
   approveCut: () => void;
-  uploadSuccess: (fileName: string, storagePath: string) => void;
 }
 
 const Context = createContext<ContextValue | undefined>(undefined);
@@ -425,12 +424,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       : { ...current, deliverable: { ...current.deliverable, feedback_notes: [savedNote, ...current.deliverable.feedback_notes] } });
   }, [currentUser?.email, id, remote]);
 
-  const uploadSuccess = useCallback((fileName: string, storagePath: string) => {
-    const patch = { logo_file_name: fileName, logo_storage_path: storagePath, action_required_by: 'None' as const, action_banner_text: `Logo received: ${fileName}. The editor can download it from this project.` };
-    setState((current) => ({ ...current, deliverable: { ...current.deliverable, ...patch } }));
-    void savePatch({ deliverable: patch });
-  }, [savePatch]);
-
   const approveCut = useCallback(() => {
     const deliverablePatch = { approval_status: 'Approved' as const, action_required_by: 'None' as const, action_banner_text: 'The client approved this cut.' };
     setState((current) => ({
@@ -455,8 +448,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     updateScript,
     addNote,
     approveCut,
-    uploadSuccess,
-  }), [state, ready, id, projectLoadError, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, postNewCut, setActionAlert, updateScript, addNote, approveCut, uploadSuccess]);
+  }), [state, ready, id, projectLoadError, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, postNewCut, setActionAlert, updateScript, addNote, approveCut]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
 };

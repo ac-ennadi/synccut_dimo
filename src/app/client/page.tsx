@@ -166,7 +166,6 @@ function ClientWorkspace({ projectId }: { projectId: string }) {
     projectLoadError,
     addNote,
     approveCut,
-    uploadSuccess,
   } = useProject();
 
   if (!isProjectLoaded) {
@@ -206,7 +205,6 @@ function ClientWorkspace({ projectId }: { projectId: string }) {
       deliverable={deliverable}
       onAddNote={addNote}
       onApproveCut={approveCut}
-      onUploadSuccess={uploadSuccess}
     />
   );
 }
