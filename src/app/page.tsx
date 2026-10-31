@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingHero } from '@/components/landing/LandingHero';
-import { ProductPreviewMock } from '@/components/landing/ProductPreviewMock';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
-import { ComparisonSection } from '@/components/landing/ComparisonSection';
-import { FeaturesGridSection } from '@/components/landing/FeaturesGridSection';
-import { StatsAndCTASection } from '@/components/landing/StatsAndCTASection';
+import { ProjectFeaturesSection } from '@/components/landing/ProjectFeaturesSection';
+import { EditorCTASection } from '@/components/landing/EditorCTASection';
 
 export default function HomePage() {
   const router = useRouter();
@@ -30,27 +28,12 @@ export default function HomePage() {
   }
 
   return (
-    <main className="apple-shell min-h-screen w-full bg-neutral-950 text-neutral-100 selection:bg-blue-500/20 selection:text-neutral-950">
-      {/* 1. Header Navigation */}
+    <main className="apple-shell landing-home min-h-screen w-full bg-white text-neutral-100 selection:bg-blue-500/20 selection:text-neutral-950">
       <LandingHeader />
-
-      {/* 2. Hero Section */}
       <LandingHero />
-
-      {/* 3. Live Product Preview Mockup */}
-      <ProductPreviewMock />
-
-      {/* 4. How It Works - 3 Step Flow */}
       <HowItWorksSection />
-
-      {/* 5. Before vs SyncCut Comparison */}
-      <ComparisonSection />
-
-      {/* 6. Core Features Grid */}
-      <FeaturesGridSection />
-
-      {/* 7. Stats, Editor Callout, Final CTA & Footer */}
-      <StatsAndCTASection />
+      <ProjectFeaturesSection />
+      <EditorCTASection />
     </main>
   );
 }

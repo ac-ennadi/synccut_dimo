@@ -1,103 +1,44 @@
 'use client';
 
-import React from 'react';
-import { FileText, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
+const steps = [
+  {
+    number: '01',
+    title: 'Set up the project',
+    description: 'Add the brief, script, scene notes, and visual references your client needs.',
+  },
+  {
+    number: '02',
+    title: 'Share a cut',
+    description: 'Post a version for review. The client can watch it beside the project context.',
+  },
+  {
+    number: '03',
+    title: 'Resolve feedback',
+    description: 'Clients leave notes at the current timecode. Editors update the cut and track approval in the same project.',
+  },
+];
 
 export function HowItWorksSection() {
-  const steps = [
-    {
-      number: '01',
-      title: 'Contextual Script & Brief',
-      subtitle: 'Never lose the creative vision',
-      description:
-        'Clients review the video draft directly next to the approved script, scene breakdown, and voiceover text. No more guessing why a cut was made.',
-      icon: FileText,
-      badge: 'Step 01 • Alignment',
-      color: 'from-indigo-500/20 to-indigo-600/5',
-      borderColor: 'border-indigo-500/30',
-      iconColor: 'text-indigo-400',
-    },
-    {
-      number: '02',
-      title: 'Frame-Accurate Stamped Notes',
-      subtitle: 'Eliminate vague feedback emails',
-      description:
-        'Clients stamp exact timecodes with a single click. Every note is pinned to the exact second so editors know precisely what to tweak.',
-      icon: Clock,
-      badge: 'Step 02 • Precision',
-      color: 'from-emerald-500/20 to-emerald-600/5',
-      borderColor: 'border-emerald-500/30',
-      iconColor: 'text-emerald-400',
-    },
-    {
-      number: '03',
-      title: 'Live Stage Pipeline & Approval',
-      subtitle: 'Zero status check-in emails',
-      description:
-        'Both editor and client see the live project stage—Scripting, Shoot, Edit, or Final Review. When the cut is ready, approval takes one click.',
-      icon: CheckCircle2,
-      badge: 'Step 03 • Delivery',
-      color: 'from-teal-500/20 to-teal-600/5',
-      borderColor: 'border-teal-500/30',
-      iconColor: 'text-teal-400',
-    },
-  ];
-
   return (
-    <section id="how-it-works" className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      {/* Section Header */}
-      <div className="mx-auto max-w-3xl text-center space-y-3">
-        <span className="text-xs font-mono font-semibold uppercase tracking-widest text-emerald-400">
-          How It Works
-        </span>
-        <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
-          Three steps to frictionless video delivery
-        </h2>
-        <p className="text-neutral-400 text-base sm:text-lg">
-          Designed specifically for commercial editors, video agencies, and client marketing teams.
-        </p>
-      </div>
-
-      {/* 3 Step Cards Grid */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {steps.map((step) => {
-          const Icon = step.icon;
-          return (
-            <div
-              key={step.number}
-              className={`relative flex flex-col justify-between rounded-2xl border ${step.borderColor} bg-gradient-to-b ${step.color} p-6 sm:p-7 shadow-lg backdrop-blur-sm transition-all hover:-translate-y-1`}
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-neutral-900/80 px-3 py-1 text-xs font-mono font-semibold text-neutral-300 border border-neutral-800">
-                    {step.badge}
-                  </span>
-                  <div className={`p-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 ${step.iconColor}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold text-white tracking-tight">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs font-medium text-neutral-400 mt-1">
-                    {step.subtitle}
-                  </p>
-                </div>
-
-                <p className="text-sm text-neutral-300 leading-relaxed">
-                  {step.description}
-                </p>
+    <section id="how-it-works" className="landing-steps bg-[#f5f5f7] px-5 py-20 sm:px-8 sm:py-24">
+      <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-20">
+        <div className="max-w-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">How it works</p>
+          <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1d1d1f] sm:text-4xl">
+            From first brief to final approval.
+          </h2>
+        </div>
+        <ol className="divide-y divide-[#d6d6d6] border-y border-[#d6d6d6]">
+          {steps.map((step) => (
+            <li key={step.number} className="grid gap-2 py-6 sm:grid-cols-[3.5rem_1fr] sm:gap-4">
+              <span className="pt-1 text-sm font-medium tabular-nums text-[#86868b]">{step.number}</span>
+              <div>
+                <h3 className="text-lg font-semibold tracking-[-0.02em] text-[#1d1d1f]">{step.title}</h3>
+                <p className="mt-1.5 max-w-xl text-sm leading-6 text-[#707070]">{step.description}</p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-neutral-800/80 flex items-center justify-between text-xs font-mono text-neutral-500">
-                <span>STAGE {step.number}</span>
-                <span className="text-emerald-400 font-semibold">SyncCut Flow</span>
-              </div>
-            </div>
-          );
-        })}
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
