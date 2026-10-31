@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
 const videos = [
   { src: '/videos/position-01.mp4', label: 'Video 01' },
   { src: '/videos/position-02.mp4', label: 'Video 02' },
@@ -5,6 +9,32 @@ const videos = [
 ];
 
 export function LandingVideoGallery() {
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+
+  useEffect(() => {
+    const elements = videoRefs.current.filter((video): video is HTMLVideoElement => video !== null);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
+            void video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: [0, 0.55, 1] },
+    );
+
+    elements.forEach((video) => observer.observe(video));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section aria-labelledby="landing-videos-title" className="bg-white px-5 pb-20 sm:px-8 sm:pb-24">
       <div className="mx-auto max-w-6xl">
@@ -19,12 +49,15 @@ export function LandingVideoGallery() {
         </div>
 
         <div className="grid gap-5 md:grid-cols-3">
-          {videos.map((video) => (
+          {videos.map((video, index) => (
             <figure key={video.src} className="min-w-0">
               <video
+                ref={(element) => { videoRefs.current[index] = element; }}
                 controls
+                muted
+                loop
                 playsInline
-                preload="metadata"
+                preload="none"
                 aria-label={video.label}
                 className="aspect-video w-full rounded-2xl bg-black object-contain"
               >
