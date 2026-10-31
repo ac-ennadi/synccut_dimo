@@ -31,6 +31,27 @@ export async function POST(request: Request) {
     return Response.json({ error: isLogo ? 'Only a project client can upload its logo.' : 'You do not have editor access to this project.' }, { status: 403 });
   }
 
+  // Keep the storage bucket available even when the project's SQL migration
+  // has not yet been applied to the connected Supabase instance.
+  const { error: bucketLookupError } = await auth.admin.storage.getBucket(PROJECT_VIDEO_BUCKET);
+  if (bucketLookupError) {
+    const storageError = bucketLookupError as Error & { statusCode?: string; error?: string };
+    const lookupMessage = bucketLookupError.message.toLowerCase();
+    const bucketIsMissing = storageError.statusCode === '404' || storageError.error === 'NoSuchBucket' ||
+      lookupMessage.includes('not found') || lookupMessage.includes('does not exist');
+    if (!bucketIsMissing) {
+      return Response.json({ error: `Could not check project storage: ${bucketLookupError.message}` }, { status: 500 });
+    }
+
+    const { error: createBucketError } = await auth.admin.storage.createBucket(PROJECT_VIDEO_BUCKET, {
+      public: false,
+      fileSizeLimit: 536870912,
+    });
+    if (createBucketError && !createBucketError.message.toLowerCase().includes('already exists')) {
+      return Response.json({ error: `Project storage is unavailable: ${createBucketError.message}` }, { status: 500 });
+    }
+  }
+
   const folder = isLogo ? 'logos' : contentType.startsWith('image/') ? 'references' : 'videos';
   const path = `${projectId}/${folder}/${crypto.randomUUID()}-${fileName}`;
   const { data, error } = await auth.admin.storage.from(PROJECT_VIDEO_BUCKET).createSignedUploadUrl(path);
