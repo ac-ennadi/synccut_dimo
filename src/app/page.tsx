@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingHero } from '@/components/landing/LandingHero';
+import { LandingVideoGallery } from '@/components/landing/LandingVideoGallery';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProjectFeaturesSection } from '@/components/landing/ProjectFeaturesSection';
 import { EditorCTASection } from '@/components/landing/EditorCTASection';
@@ -31,6 +32,7 @@ export default function HomePage() {
     <main className="apple-shell landing-home min-h-screen w-full bg-white text-neutral-100 selection:bg-blue-500/20 selection:text-neutral-950">
       <LandingHeader />
       <LandingHero />
+      <LandingVideoGallery />
       <HowItWorksSection />
       <ProjectFeaturesSection />
       <EditorCTASection />
