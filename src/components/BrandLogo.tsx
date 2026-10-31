@@ -1,4 +1,7 @@
+'use client';
+
 import Image from 'next/image';
+import { useTheme } from '@/context/ThemeContext';
 
 interface BrandLogoProps {
   variant?: 'dark' | 'light';
@@ -11,7 +14,8 @@ export function BrandLogo({
   className = '',
   priority = false,
 }: BrandLogoProps) {
-  const src = variant === 'dark' ? '/logo-dark.svg' : '/logo-light.svg';
+  const { theme } = useTheme();
+  const src = variant === 'dark' || theme === 'dark' ? '/logo-dark.svg' : '/logo-light.svg';
 
   return (
     <Image

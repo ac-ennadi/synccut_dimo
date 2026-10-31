@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { DeleteProjectModal } from '@/components/DeleteProjectModal';
 import { BrandLogo } from '@/components/BrandLogo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface ProjectRow {
   project_id: string;
@@ -138,6 +139,7 @@ export default function EditorPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <span className="hidden text-sm text-neutral-400 sm:inline">Signed in as {currentUser.name}</span>
             <button
               type="button"

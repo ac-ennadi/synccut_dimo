@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function ClientError({
   error,
@@ -15,6 +16,7 @@ export default function ClientError({
 
   return (
     <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
+      <div className="fixed right-4 top-4 z-50"><ThemeToggle /></div>
       <section className="w-full max-w-md space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900/90 p-6 text-center shadow-xl backdrop-blur-md">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-950/60 border border-rose-800/40 text-rose-400 font-bold">
           !

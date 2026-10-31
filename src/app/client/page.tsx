@@ -8,6 +8,7 @@ import { ProjectProvider, useProject } from '@/context/ProjectContext';
 import { ClientPortal } from '@/components/ClientPortal';
 import { ArrowRight, BriefcaseBusiness, LogOut, Search } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string }) {
   const [isTakingLonger, setIsTakingLonger] = useState(false);
@@ -87,6 +88,7 @@ function ProjectChooser({
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <span className="hidden text-sm text-neutral-400 sm:inline">Signed in as {clientName}</span>
             <button
               type="button"

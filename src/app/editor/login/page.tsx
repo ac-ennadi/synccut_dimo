@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, Lock, Mail, RefreshCw, ArrowLeft, Clapperboard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { BrandLogo } from '@/components/BrandLogo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function EditorLoginPage() {
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function EditorLoginPage() {
 
   return (
     <main className="apple-shell auth-shell relative flex min-h-screen items-center justify-center bg-white p-4 text-neutral-100">
+      <div className="absolute right-4 top-4"><ThemeToggle /></div>
 
       {showLoading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-neutral-950/95 text-white backdrop-blur-xl" role="status" aria-live="polite">

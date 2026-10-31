@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import type { MoodboardReference } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { ImagePlus, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ImagePlus, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
 
 interface VisualReferencesProps {
   references: MoodboardReference[];
   projectId?: string;
+  scriptText?: string;
   onChange?: (references: MoodboardReference[]) => void;
 }
 
@@ -44,21 +45,69 @@ function ReferenceCard({ reference, projectId, onEdit, onRemove }: {
 
   const imageUrl = privateImageUrl || reference.image_url || '';
   return (
-    <article className="group relative inline-flex min-h-9 max-w-full items-center gap-2 rounded-lg border border-neutral-800/90 bg-neutral-900/80 px-3 py-1.5 text-xs text-neutral-200 transition hover:border-neutral-700 hover:bg-neutral-900 sm:text-[13px]" title={[reference.category, reference.description].filter(Boolean).join(' · ')}>
-      {imageUrl && !imageFailed ? <img src={imageUrl} alt="" onError={() => setImageFailed(true)} className="h-4 w-4 shrink-0 rounded-sm object-cover" /> : <ImagePlus className="h-4 w-4 shrink-0 text-[#0066cc]" aria-hidden="true" />}
-      <span className="truncate">{reference.title || 'Untitled reference'}</span>
-      {onEdit && <span className="ml-1 flex items-center gap-0.5 border-l border-neutral-700 pl-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100"><button type="button" aria-label={`Edit ${reference.title}`} onClick={onEdit} className="rounded p-1 text-neutral-400 hover:bg-neutral-800 hover:text-white"><Pencil className="h-3 w-3" /></button><button type="button" aria-label={`Remove ${reference.title}`} onClick={onRemove} className="rounded p-1 text-neutral-500 hover:bg-red-950 hover:text-red-300"><Trash2 className="h-3 w-3" /></button></span>}
+    <article className="group relative flex w-full min-w-0 items-start gap-3 border-b border-neutral-200 py-3 text-sm">
+      <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-neutral-100">
+        {imageUrl && !imageFailed ? <img src={imageUrl} alt="" onError={() => setImageFailed(true)} className="h-full w-full object-cover" /> : <ImagePlus className="h-4 w-4 text-[#0066cc]" aria-hidden="true" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] font-medium uppercase tracking-wide text-neutral-500">{reference.category || 'Reference'}</span>
+        <span className="mt-0.5 block truncate font-medium text-neutral-900">{reference.title || 'Untitled reference'}</span>
+        {reference.description && <span className="mt-1 block text-xs leading-5 text-neutral-600">{reference.description}</span>}
+      </span>
+      {onEdit && <span className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100"><button type="button" aria-label={`Edit ${reference.title}`} onClick={onEdit} className="rounded-full p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><Pencil className="h-3.5 w-3.5" /></button><button type="button" aria-label={`Remove ${reference.title}`} onClick={onRemove} className="rounded-full p-2 text-neutral-500 hover:bg-rose-50 hover:text-rose-700"><Trash2 className="h-3.5 w-3.5" /></button></span>}
     </article>
   );
 }
 
-export const VisualReferences: React.FC<VisualReferencesProps> = ({ references = [], projectId, onChange }) => {
+export const VisualReferences: React.FC<VisualReferencesProps> = ({ references = [], projectId, scriptText = '', onChange }) => {
   const safeReferences = references ?? [];
   const [draft, setDraft] = useState<MoodboardReference | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestionError, setSuggestionError] = useState('');
+  const [suggestionMessage, setSuggestionMessage] = useState('');
   const isEditing = Boolean(onChange && projectId);
+
+  const suggestFromScript = async () => {
+    if (!scriptText.trim() || !projectId || !onChange) return;
+    setIsSuggesting(true);
+    setSuggestionError('');
+    setSuggestionMessage('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Your editor session expired. Sign in again and retry.');
+      const response = await fetch('/api/editor/visual-references', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ projectId, scriptText }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not suggest visual references.');
+      const existingTitles = new Set(safeReferences.map((reference) => reference.title.trim().toLowerCase()));
+      const additions: MoodboardReference[] = (result.references ?? [])
+        .filter((reference: { title?: string }) => typeof reference.title === 'string' && !existingTitles.has(reference.title.trim().toLowerCase()))
+        .map((reference: { title: string; category: string; description: string }) => ({
+          id: crypto.randomUUID(),
+          title: reference.title,
+          category: reference.category || 'Style',
+          description: reference.description,
+          color_gradient: '#f5f5f7',
+          icon: '',
+        }));
+      if (!additions.length) {
+        setSuggestionMessage('These script-based references are already on the moodboard.');
+        return;
+      }
+      onChange([...safeReferences, ...additions]);
+      setSuggestionMessage(`Added ${additions.length} references based on the script.`);
+    } catch (caught) {
+      setSuggestionError(caught instanceof Error ? caught.message : 'Could not suggest visual references.');
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   const beginNew = () => { setDraft(emptyReference()); setImageFile(null); setError(''); };
   const beginEdit = (reference: MoodboardReference) => { setDraft({ ...reference }); setImageFile(null); setError(''); };
@@ -105,9 +154,16 @@ export const VisualReferences: React.FC<VisualReferencesProps> = ({ references =
     <section className="border-t border-neutral-800 pt-4" aria-labelledby="mood-board-title">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h2 id="mood-board-title" className="text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-500">Visual references</h2>
-        {isEditing && <button type="button" onClick={beginNew} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white"><Plus className="h-3 w-3"/>Add reference</button>}
+        {isEditing && <div className="flex flex-wrap items-center gap-1">
+          <button type="button" onClick={suggestFromScript} disabled={isSuggesting || !scriptText.trim()} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-[#0066cc] transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50">
+            <Sparkles className="h-3 w-3" />{isSuggesting ? 'Reading script…' : 'Suggest from script'}
+          </button>
+          <button type="button" onClick={beginNew} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"><Plus className="h-3 w-3"/>Add reference</button>
+        </div>}
       </div>
-      {safeReferences.length ? <div className="flex flex-wrap gap-2">{safeReferences.map((reference) => <ReferenceCard key={reference.id} reference={reference} projectId={projectId} onEdit={isEditing ? () => beginEdit(reference) : undefined} onRemove={isEditing ? () => onChange?.(safeReferences.filter((item) => item.id !== reference.id)) : undefined}/>)}</div> : <div className="flex items-center gap-2 text-xs text-neutral-500"><ImagePlus className="h-3.5 w-3.5"/><span>{isEditing ? 'Add a visual reference to capture the style, lighting, color, or motion.' : 'No visual references have been added yet.'}</span></div>}
+      {suggestionError && <p className="mb-2 text-xs text-[#b42318]" role="alert">{suggestionError}</p>}
+      {suggestionMessage && <p className="mb-2 text-xs text-neutral-500" role="status">{suggestionMessage}</p>}
+      {safeReferences.length ? <div className="border-t border-neutral-200">{safeReferences.map((reference) => <ReferenceCard key={reference.id} reference={reference} projectId={projectId} onEdit={isEditing ? () => beginEdit(reference) : undefined} onRemove={isEditing ? () => onChange?.(safeReferences.filter((item) => item.id !== reference.id)) : undefined}/>)}</div> : <div className="flex items-center gap-2 text-xs text-neutral-500"><ImagePlus className="h-3.5 w-3.5"/><span>{isEditing ? 'Add a visual reference to capture the style, lighting, color, or motion.' : 'No visual references have been added yet.'}</span></div>}
 
       {draft && <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm"><form onSubmit={saveReference} className="my-auto w-full max-w-xl space-y-4 rounded-2xl border border-neutral-700 bg-neutral-900 p-5 text-sm shadow-2xl sm:p-6"><header className="flex items-center justify-between border-b border-neutral-800 pb-3"><div><h3 className="font-semibold text-white">{safeReferences.some((reference) => reference.id === draft.id) ? 'Edit reference' : 'Add a mood board reference'}</h3><p className="mt-1 text-xs text-neutral-400">Add an image and explain what the team should take from it.</p></div><button type="button" onClick={closeEditor} className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-800 hover:text-white" aria-label="Close"><X className="h-4 w-4"/></button></header>
         <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs text-neutral-300">Title<input required value={draft.title} onChange={(event) => updateDraft('title', event.target.value)} placeholder="Warm sunset lighting" className="mt-1.5 w-full rounded-lg border border-neutral-700 bg-neutral-950 p-2.5 text-sm text-white"/></label><label className="text-xs text-neutral-300">Category<input value={draft.category} onChange={(event) => updateDraft('category', event.target.value)} placeholder="Lighting, Motion, Color…" className="mt-1.5 w-full rounded-lg border border-neutral-700 bg-neutral-950 p-2.5 text-sm text-white"/></label></div>

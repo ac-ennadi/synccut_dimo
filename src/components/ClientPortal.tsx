@@ -13,6 +13,7 @@ import { VideoPlayer } from './VideoPlayer';
 import { FeedbackSection } from './FeedbackSection';
 import { ArrowLeft, LogOut, UserCheck } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import { ThemeToggle } from './ThemeToggle';
 
 interface ClientPortalProps {
   project: Project;
@@ -60,6 +61,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {projectIds.length > 1 && (
               <button
                 type="button"

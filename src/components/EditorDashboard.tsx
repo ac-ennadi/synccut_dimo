@@ -26,6 +26,7 @@ import { ProjectMembersManager } from './ProjectMembersManager';
 import { ProjectDangerZone } from './ProjectDangerZone';
 import { ScriptEditorProvider } from '@/context/ScriptEditorContext';
 import { BrandLogo } from './BrandLogo';
+import { ThemeToggle } from './ThemeToggle';
 import { Clapperboard, LogOut, Shield, Eye, X, ArrowLeft } from 'lucide-react';
 
 interface Props {
@@ -99,6 +100,7 @@ export const EditorDashboard: React.FC<Props> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <ThemeToggle />
             <Link
               href="/editor"
               className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-300 hover:bg-neutral-800 hover:text-white transition shadow-sm"
@@ -169,6 +171,11 @@ export const EditorDashboard: React.FC<Props> = ({
             <VisualReferences
               references={brief?.references}
               projectId={project.project_id}
+              scriptText={[
+                brief?.target_audience ? `Target audience: ${brief.target_audience}` : '',
+                ...(brief?.script_scenes ?? []).map((scene) => [scene.title, scene.visual_description, scene.voiceover].filter(Boolean).join('. ')),
+                ...(brief?.script_sections ?? []).map((section) => [section.title, section.content].filter(Boolean).join('\n')),
+              ].filter(Boolean).join('\n').slice(0, 16000)}
               onChange={(references: MoodboardReference[]) =>
                 onUpdateScript({ ...brief, references })
               }

@@ -6,6 +6,10 @@ SyncCut is a shared workspace for video editors, producers, and clients. It brin
 
 Instead of managing feedback across email threads, chat messages, cloud folders, and disconnected documents, teams can move a project from brief to final cut in one place.
 
+## Script-based visual suggestions
+
+Editors can ask SyncCut to suggest four written visual references from a project's audience, scenes, voiceover, and script. Suggestions are added to the project moodboard as editable notes. To enable this feature, set `OPENAI_API_KEY` in the server environment (for local development, use `.env.local`; for a hosted app, use the host's server-side secrets). Keep this key server-side and do not use a `NEXT_PUBLIC_` variable.
+
 ## Built for the full production relationship
 
 ### Editors and producers

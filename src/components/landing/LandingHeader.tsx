@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function LandingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,6 +32,7 @@ export function LandingHeader() {
 
         {/* Desktop Action Buttons */}
         <div className="hidden items-center gap-4 md:flex">
+          <ThemeToggle />
           <Link
             href="/client/login"
             className="text-xs font-medium text-neutral-600 transition hover:text-neutral-950"
@@ -47,15 +49,18 @@ export function LandingHeader() {
         </div>
 
         {/* Mobile Hamburger Toggle */}
-        <button
-          type="button"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950 md:hidden"
-          aria-expanded={mobileMenuOpen}
-          aria-label="Toggle navigation menu"
-        >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+            aria-expanded={mobileMenuOpen}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
