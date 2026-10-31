@@ -5,25 +5,14 @@ import { Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { 
   Settings2, 
-  Upload, 
   AlertCircle, 
   FileEdit, 
   X,
-  Download
+  Download,
+  Film
 } from 'lucide-react';
 import { migrateScriptToBlocks, ScriptBlocksEditor } from './ScriptBlocksEditor';
 import { useScriptEditor } from '@/context/ScriptEditorContext';
-
-function readVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve) => {
-    const video = document.createElement('video');
-    const url = URL.createObjectURL(file);
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => { const duration = Number.isFinite(video.duration) ? Math.round(video.duration) : 0; URL.revokeObjectURL(url); resolve(duration); };
-    video.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
-    video.src = url;
-  });
-}
 
 interface EditorToolbarProps {
   deliverable: Deliverable;
@@ -45,14 +34,11 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   const [activeModal, setActiveModal] = useState<'none' | 'newCut' | 'actionAlert' | 'editScript'>('none');
   const { registerEditor } = useScriptEditor();
 
-  // New Cut Form state. Duration is never asked for: it is read from the chosen
-  // file, and the player falls back to the real media duration on playback.
+  // New Cut Form state. Video files are managed outside SyncCut; editors paste
+  // a hosted review URL here.
   const [cutVersion, setCutVersion] = useState('');
   const [cutUrl, setCutUrl] = useState('');
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
-  const [videoDuration, setVideoDuration] = useState(0);
+  const [publishError, setPublishError] = useState('');
 
   // Action Banner state
   const [alertText, setAlertText] = useState(
@@ -88,42 +74,14 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     finally { setDownloadingLogo(false); }
   };
 
-  const handlePublishCut = async (e: React.FormEvent) => {
+  const handlePublishCut = (e: React.FormEvent) => {
     e.preventDefault();
-    setUploadError('');
-    setIsUploading(true);
-    try {
-      const videoUrl = cutUrl.trim();
-      let videoStoragePath: string | undefined;
-      // Detected when the file is picked, with a re-read here as a fallback.
-      let duration = videoDuration;
-      if (videoFile) {
-        if (videoFile.size > 512 * 1024 * 1024) throw new Error('This video is larger than the 512 MB per-file limit.');
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) throw new Error('Your editor session expired. Sign in again and retry.');
-        const ticketResponse = await fetch('/api/video/upload-ticket', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ projectId, fileName: videoFile.name, contentType: videoFile.type }),
-        });
-        const ticket = await ticketResponse.json();
-        if (!ticketResponse.ok) throw new Error(ticket.error || 'Could not prepare video upload.');
-        const { error } = await supabase.storage.from('project-videos').uploadToSignedUrl(ticket.path, ticket.token, videoFile, { contentType: videoFile.type, upsert: false });
-        if (error) throw error;
-        videoStoragePath = ticket.path;
-        if (!duration) duration = await readVideoDuration(videoFile);
-      }
-      if (!videoUrl && !videoStoragePath) throw new Error('Choose a video file or enter a video URL.');
-      onPostNewCut({ version: cutVersion, videoUrl, videoStoragePath, duration });
-      setVideoFile(null);
-      setCutUrl('');
-      setVideoDuration(0);
-      setActiveModal('none');
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'Video upload failed. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
+    const videoUrl = cutUrl.trim();
+    if (!videoUrl) { setPublishError('Enter a hosted video URL.'); return; }
+    onPostNewCut({ version: cutVersion, videoUrl, duration: 0 });
+    setCutUrl('');
+    setPublishError('');
+    setActiveModal('none');
   };
 
   const updateScriptBlocks = (content: string) => setEditingBrief({ ...editingBrief, script_scenes: [], script_sections: [{ id: 'script-document', title: '', content, type: 'document' }] });
@@ -168,7 +126,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
             onClick={() => setActiveModal('newCut')}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Film className="w-3.5 h-3.5" />
             <span>Publish New Cut</span>
           </button>
 
@@ -190,7 +148,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           <div className="w-full max-w-lg rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl space-y-4 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Upload className="w-4 h-4 text-indigo-400" />
+                <Film className="w-4 h-4 text-indigo-400" />
                 Publish New Video Cut to Client
               </h3>
               <button onClick={() => setActiveModal('none')} className="text-neutral-400 hover:text-white">
@@ -212,29 +170,22 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </div>
 
               <div>
-                <label className="block text-neutral-300 font-semibold mb-1">Upload video file</label>
-                <input type="file" accept="video/*" onChange={async (e) => { const file = e.target.files?.[0] ?? null; setVideoFile(file); setUploadError(''); if (file) { setCutUrl(''); setVideoDuration(await readVideoDuration(file)); } else setVideoDuration(0); }} className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-300 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-800 file:px-3 file:py-2 file:text-neutral-100" />
-                {videoFile && <p className="mt-1 text-[11px] text-neutral-400">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB{videoDuration ? ` · ${Math.floor(videoDuration / 60)}:${String(videoDuration % 60).padStart(2, '0')}` : ''}</p>}
-                <p className="mt-1 text-[11px] text-neutral-500">The file uploads directly to the project video storage. Large files may take a few minutes.</p>
-              </div>
-
-              <div>
-                <label className="block text-neutral-300 font-semibold mb-1">Or paste a hosted video URL</label>
+                <label className="block text-neutral-300 font-semibold mb-1">Hosted video URL</label>
                 <input
                   type="text"
                   value={cutUrl}
-                  onChange={(e) => setCutUrl(e.target.value)}
+                  onChange={(e) => { setCutUrl(e.target.value); setPublishError(''); }}
                   placeholder="Google Drive share link, MP4, WebM, or embed link"
-                  disabled={Boolean(videoFile)}
+                  required
                   className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-mono text-[11px] focus:outline-none focus:border-indigo-500"
                 />
                 <p className="mt-1 text-[11px] text-neutral-500">For Google Drive, set the file’s General access to “Anyone with the link” and Viewer.</p>
               </div>
 
-              {uploadError && <p role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-2.5 text-red-300">{uploadError}</p>}
+              {publishError && <p role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-2.5 text-red-300">{publishError}</p>}
 
               <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-neutral-300 leading-relaxed text-[11px]">
-                <strong>What happens:</strong> Publishing replaces the current video in the client portal. The client can review it and leave notes; the duration is read from the video file.
+                <strong>What happens:</strong> Publishing replaces the current video in the client portal. The client can review it and leave notes; playback reads the video duration automatically.
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -247,10 +198,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading || (!videoFile && !cutUrl.trim())}
+                  disabled={!cutUrl.trim()}
                   className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold disabled:cursor-wait disabled:opacity-60"
                 >
-                  {isUploading ? 'Uploading video…' : 'Publish Cut to Client'}
+                  Publish Cut to Client
                 </button>
               </div>
             </form>
