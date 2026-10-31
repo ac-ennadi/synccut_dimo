@@ -117,7 +117,7 @@ function ProjectChooser({
               className="w-full bg-transparent py-2.5 text-sm placeholder:text-neutral-500 outline-none"
             />
           </label>
-          <div className="min-w-0 divide-y divide-neutral-200 border-t border-neutral-200">
+          <div className="min-w-0 space-y-3">
             {visibleProjects.map((projectId) => {
               const index = projectIds.indexOf(projectId);
               const label = projectTitles[projectId] || `Project ${index + 1}`;
@@ -127,7 +127,7 @@ function ProjectChooser({
                   type="button"
                   disabled={isOpening}
                   onClick={() => onOpenProject(projectId)}
-                  className="group relative flex min-h-0 min-w-0 w-full max-w-full items-center justify-between gap-6 overflow-hidden bg-transparent py-5 text-left transition-colors hover:text-[#0071e3] disabled:cursor-wait disabled:opacity-60"
+                  className="group relative flex min-h-0 min-w-0 w-full max-w-full items-center justify-between gap-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 text-left transition-colors hover:border-[#9bc8f3] disabled:cursor-wait disabled:opacity-60"
                 >
                   <span className="min-w-0">
                     <span className="mb-2 block text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">

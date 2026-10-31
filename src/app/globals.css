@@ -95,6 +95,7 @@ a { color: inherit; text-decoration: none; }
 .apple-shell [class*="bg-indigo-800"] { background-color: #eef6fd !important; }
 .apple-shell [class*="bg-indigo-600"] { background-color: #0071e3 !important; }
 .apple-shell [class*="bg-indigo-600"][class~="text-white"] { color: #fff !important; }
+.apple-shell [class*="bg-[#0071e3]"] { color: #fff !important; }
 .apple-shell .apple-primary { color: #fff !important; }
 .apple-shell [class*="border-indigo-"] { border-color: #b8d8f8 !important; }
 .apple-shell [class*="bg-emerald-950"],
@@ -122,10 +123,6 @@ a { color: inherit; text-decoration: none; }
 .apple-shell [class*="bg-black/"] { background-color: rgb(29 29 31 / 28%) !important; }
 .apple-shell :is(button, a)[class*="bg-emerald-600"],
 .apple-shell :is(button, a)[class*="bg-emerald-500"] { color: #fff !important; }
-.apple-shell button { border-radius: 9999px; }
-.apple-shell :is(a, button)[class*="bg-"] { border-radius: 9999px; }
-.apple-shell [class*="rounded-2xl"],
-.apple-shell [class*="rounded-3xl"] { border-radius: 28px !important; }
 .apple-shell :where(input, textarea, select) { color: #1d1d1f; }
 .apple-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 .apple-shell select {

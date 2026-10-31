@@ -233,11 +233,11 @@ export default function EditorPage() {
             <p className="mt-1 text-xs text-neutral-400">{projects.length ? 'Try another search term.' : 'Click "Create project" above to set up your first workspace.'}</p>
           </div>
         ) : (
-          <section className="min-w-0 divide-y divide-neutral-200 border-t border-neutral-200">
+          <section className="min-w-0 space-y-3">
             {filtered.map((project) => (
               <article
                 key={project.project_id}
-                className="group relative min-w-0 overflow-hidden bg-transparent transition-colors hover:bg-neutral-100/70"
+                className="group relative min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-5 transition-colors hover:border-[#9bc8f3]"
               >
                 <button
                   type="button"
