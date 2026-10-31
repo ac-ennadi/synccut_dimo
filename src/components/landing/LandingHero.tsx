@@ -23,7 +23,7 @@ export function LandingHero() {
             Keep the video, approved script, and frame-accurate feedback together. Clients see what matters. Editors always know what to do next.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/client/login" className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#0071e3] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0077ed] active:scale-[.98]">
+            <Link href="/client/login" className="apple-primary group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#0071e3] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0077ed] active:scale-[.98]">
               Open client portal <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link href="/editor/login" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-6 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50">

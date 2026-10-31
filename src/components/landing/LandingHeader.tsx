@@ -45,7 +45,7 @@ export function LandingHeader() {
           </Link>
           <Link
             href="/client/login"
-            className="group inline-flex items-center gap-2 rounded-full bg-[#0071e3] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#0077ed] active:scale-98"
+            className="apple-primary group inline-flex items-center gap-2 rounded-full bg-[#0071e3] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#0077ed] active:scale-98"
           >
             <span>Open workspace</span>
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -107,7 +107,7 @@ export function LandingHeader() {
             <div className="pt-3 border-t border-neutral-800 flex flex-col gap-2.5">
               <Link
                 href="/client/login"
-                className="flex items-center justify-center gap-2 rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-semibold text-white shadow-sm"
+                className="apple-primary flex items-center justify-center gap-2 rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-semibold text-white shadow-sm"
               >
                 <span>Open client workspace</span>
                 <ArrowRight className="h-3.5 w-3.5" />

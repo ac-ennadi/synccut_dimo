@@ -37,11 +37,11 @@ export function StatsAndCTASection() {
 
       {/* Editor Spotlight Callout (#for-editors) */}
       <section id="for-editors" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-neutral-900/80 to-neutral-950 p-8 sm:p-12 shadow-2xl backdrop-blur-md">
+        <div className="editor-spotlight relative overflow-hidden rounded-3xl border p-8 sm:p-12 shadow-2xl">
           {/* Subtle glow */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"
+            className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-[#9bbcff]/25 blur-3xl"
           />
 
           <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
@@ -50,10 +50,10 @@ export function StatsAndCTASection() {
                 <Clapperboard className="h-3.5 w-3.5 text-indigo-400" />
                 <span>Made for Video Editors & Post Houses</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1d1d1f] leading-tight">
                 One page for them.
                 <br />
-                <span className="text-indigo-400">Fewer revisions for you.</span>
+                <span className="text-[#0066cc]">Fewer revisions for you.</span>
               </h2>
               <p className="text-neutral-300 text-sm sm:text-base leading-relaxed">
                 Stop wrestling with endless revision spreadsheets, timestamp confusion, and missing assets.
@@ -64,14 +64,14 @@ export function StatsAndCTASection() {
             <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
               <Link
                 href="/editor/login"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-500 active:scale-98"
+                className="apple-primary inline-flex items-center justify-center gap-2 rounded-full bg-[#0071e3] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0066cc] active:scale-98"
               >
                 <Clapperboard className="h-4 w-4" />
                 <span>Open Editor Cockpit</span>
               </Link>
               <Link
                 href="/client/login"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-700 bg-neutral-900/80 px-6 py-3.5 text-sm font-semibold text-neutral-300 transition hover:bg-neutral-800 hover:text-white"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[#d2d2d7] bg-white px-6 py-3.5 text-sm font-semibold text-[#424245] transition hover:bg-[#f5f8ff] hover:text-[#1d1d1f]"
               >
                 <span>Client Portal Demo</span>
                 <ArrowRight className="h-4 w-4" />
@@ -97,7 +97,7 @@ export function StatsAndCTASection() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link
               href="/client/login"
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-[#0071e3] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0077ed] active:scale-98"
+              className="apple-primary inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-[#0071e3] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0077ed] active:scale-98"
             >
               <span>Get Started Now</span>
               <ArrowRight className="h-4 w-4" />
