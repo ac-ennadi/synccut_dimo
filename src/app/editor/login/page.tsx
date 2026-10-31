@@ -60,7 +60,7 @@ export default function EditorLoginPage() {
   const showLoading = !loadingTimedOut && (isRestoring || isSubmitting || isNavigating);
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100 overflow-hidden">
+    <main className="apple-shell relative flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100 overflow-hidden">
       {/* Ambient background glow */}
       <div
         aria-hidden="true"
@@ -102,7 +102,7 @@ export default function EditorLoginPage() {
       <div className="w-full max-w-md space-y-6 z-10">
         <header className="space-y-3 text-center">
           <Link href="/" aria-label="SyncCut home" className="inline-flex justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-            <BrandLogo variant="dark" className="h-8 w-auto sm:h-9" priority />
+            <BrandLogo variant="light" className="h-8 w-auto sm:h-9" priority />
           </Link>
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-950/40 px-3 py-0.5 text-[11px] font-mono font-semibold uppercase tracking-wider text-indigo-300">

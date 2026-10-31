@@ -97,7 +97,7 @@ export function StatsAndCTASection() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link
               href="/client/login"
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-7 py-3.5 text-sm font-bold text-neutral-950 shadow-xl shadow-emerald-500/25 transition hover:brightness-110 active:scale-98"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-[#0071e3] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0077ed] active:scale-98"
             >
               <span>Get Started Now</span>
               <ArrowRight className="h-4 w-4" />
@@ -111,7 +111,7 @@ export function StatsAndCTASection() {
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
             <Link href="/" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
-              <BrandLogo variant="dark" className="h-6 w-auto" />
+              <BrandLogo variant="light" className="h-6 w-auto" />
             </Link>
             <span className="hidden sm:inline text-neutral-700" aria-hidden="true">•</span>
             <span className="text-xs text-neutral-400">

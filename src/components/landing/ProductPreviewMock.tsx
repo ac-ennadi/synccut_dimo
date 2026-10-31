@@ -269,7 +269,7 @@ export function ProductPreviewMock() {
               {/* Video Player Mock */}
               <div className="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-md">
                 {/* Simulated video frame */}
-                <div className="relative aspect-video w-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex items-center justify-center group">
+                <div className="demo-video-stage relative aspect-video w-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex items-center justify-center group">
                   {/* Subtle video background art */}
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-950/40 via-neutral-950/80 to-neutral-950" />
                   <div className="relative text-center space-y-2 z-10">

@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #08090c;
-  --foreground: #f6f7fb;
-  --surface: #101116;
-  --surface-raised: #15171e;
-  --line: rgba(255, 255, 255, .1);
-  --muted: #a5a8b5;
-  --soft: #737785;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --surface: #ffffff;
+  --surface-raised: #fbfbfd;
+  --line: #d2d2d7;
+  --muted: #6e6e73;
+  --soft: #86868b;
   --emerald: #10b981;
   --emerald-bright: #34d399;
-  --indigo: #818cf8;
-  --font-ui: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --indigo: #0071e3;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Arial, sans-serif;
 }
 
 @theme inline {
@@ -27,7 +27,7 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
 a { color: inherit; text-decoration: none; }
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
-::selection { background: rgba(16, 185, 129, .28); color: white; }
+::selection { background: rgba(0, 113, 227, .18); color: #1d1d1f; }
 
 /* Accessibility & focus */
 :where(a, button, input, textarea, select, [role="button"]):focus-visible {
@@ -42,4 +42,120 @@ a { color: inherit; text-decoration: none; }
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* SyncCut's Duo direction: a calm system canvas, side-by-side work, and clear role colors. */
+.apple-shell {
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --surface: #fff;
+  --surface-raised: #fbfbfd;
+  --line: #d2d2d7;
+  --muted: #6e6e73;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  color-scheme: light;
+}
+
+.apple-shell [class*="bg-neutral-950"] { background-color: #f5f5f7 !important; }
+.apple-shell > header.sticky {
+  background-color: rgb(245 245 247 / 86%) !important;
+  border-color: rgb(210 210 215 / 72%) !important;
+}
+.apple-shell [class*="bg-neutral-900"] { background-color: #fff !important; }
+.apple-shell [class*="bg-neutral-800"] { background-color: #f0f0f2 !important; }
+.apple-shell [class*="bg-neutral-700"] { background-color: #e5e5ea !important; }
+.apple-shell [class*="from-neutral-950"] { --tw-gradient-from: #f5f5f7 !important; }
+.apple-shell [class*="from-neutral-900"] { --tw-gradient-from: #fff !important; }
+.apple-shell [class*="via-neutral-950"] { --tw-gradient-via: #f5f5f7 !important; }
+.apple-shell [class*="to-neutral-950"] { --tw-gradient-to: #f5f5f7 !important; }
+.apple-shell [class*="to-neutral-900"] { --tw-gradient-to: #fff !important; }
+.apple-shell [class*="border-neutral-900"],
+.apple-shell [class*="border-neutral-800"],
+.apple-shell [class*="border-neutral-700"] { border-color: #d2d2d7 !important; }
+.apple-shell [class*="border-neutral-600"] { border-color: #c7c7cc !important; }
+.apple-shell [class~="text-white"],
+.apple-shell [class*="text-neutral-100"],
+.apple-shell [class*="text-neutral-200"] { color: #1d1d1f !important; }
+.apple-shell [class*="text-neutral-300"] { color: #424245 !important; }
+.apple-shell [class*="text-neutral-400"] { color: #6e6e73 !important; }
+.apple-shell [class*="text-neutral-500"],
+.apple-shell [class*="text-neutral-600"] { color: #86868b !important; }
+.apple-shell [class*="text-indigo-"] { color: #0071e3 !important; }
+.apple-shell [class*="bg-indigo-950"],
+.apple-shell [class*="bg-indigo-900"],
+.apple-shell [class*="bg-indigo-800"] { background-color: #eef6fd !important; }
+.apple-shell [class*="bg-indigo-600"] { background-color: #0071e3 !important; }
+.apple-shell [class*="bg-indigo-600"][class~="text-white"] { color: #fff !important; }
+.apple-shell [class*="border-indigo-"] { border-color: #b8d8f8 !important; }
+.apple-shell [class*="bg-emerald-950"],
+.apple-shell [class*="bg-emerald-900"],
+.apple-shell [class*="bg-emerald-800"] { background-color: #eaf7ef !important; }
+.apple-shell [class*="text-emerald-400"],
+.apple-shell [class*="text-emerald-300"],
+.apple-shell [class*="text-emerald-200"] { color: #18794e !important; }
+.apple-shell [class*="bg-rose-950"],
+.apple-shell [class*="bg-rose-900"] { background-color: #fff0f0 !important; }
+.apple-shell [class*="text-rose-400"] { color: #b42318 !important; }
+.apple-shell [class*="bg-amber-950"],
+.apple-shell [class*="bg-amber-900"] { background-color: #fff7e6 !important; }
+.apple-shell [class*="text-amber-300"],
+.apple-shell [class*="text-amber-400"] { color: #8a4b08 !important; }
+.apple-shell [class*="shadow-2xl"],
+.apple-shell [class*="shadow-xl"],
+.apple-shell [class*="shadow-lg"] { --tw-shadow-color: rgb(29 29 31 / 8%) !important; }
+.apple-shell :where(input, textarea, select) { color: #1d1d1f; }
+.apple-shell :where(input, textarea, select)::placeholder { color: #86868b; }
+.apple-shell :where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline-color: #0071e3;
+}
+
+.duo-hero {
+  background: radial-gradient(ellipse at 78% 48%, rgba(225, 237, 250, .66), transparent 34%), #f5f5f7;
+}
+.duo-hero h1 { text-wrap: balance; }
+.duo-stage { perspective: 1500px; }
+.duo-device { position: relative; z-index: 1; transform: rotateY(-3deg) rotateX(1deg); }
+.duo-hinge {
+  position: absolute;
+  z-index: 2;
+  top: 15%;
+  bottom: 15%;
+  left: 61.5%;
+  width: 1px;
+  pointer-events: none;
+  background: linear-gradient(transparent, rgba(125, 125, 130, .18) 18%, rgba(125, 125, 130, .18) 82%, transparent);
+}
+.duo-video {
+  isolation: isolate;
+  background: linear-gradient(155deg, #404851 0%, #111820 48%, #07090d 100%);
+}
+.duo-video-art {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 66% 29%, rgba(255, 205, 145, .82), transparent 5%),
+    radial-gradient(ellipse at 58% 43%, rgba(222, 133, 85, .65), transparent 19%),
+    linear-gradient(155deg, transparent 38%, rgba(13, 19, 24, .1) 39%, rgba(6, 9, 12, .86) 100%),
+    linear-gradient(135deg, #657479, #26383c 48%, #161d20);
+}
+.duo-video > :not(.duo-video-art) { position: relative; z-index: 1; }
+.duo-video [class*="text-white"] { color: #fff !important; }
+.apple-shell .video-stage[class*="bg-neutral-950"],
+.video-stage [class*="bg-neutral-950"],
+.demo-video-stage [class*="bg-neutral-950"] { background-color: #050608 !important; }
+.apple-shell .demo-video-stage { background-image: linear-gradient(145deg, #303c45, #080a0d) !important; }
+.video-stage [class*="from-neutral-900"] { --tw-gradient-from: #14171b !important; }
+.video-stage [class*="via-neutral-950"] { --tw-gradient-via: #050608 !important; }
+.video-stage [class*="to-neutral-900"] { --tw-gradient-to: #14171b !important; }
+.video-stage [class*="text-neutral-400"] { color: #a1a1a6 !important; }
+.video-stage [class*="text-neutral-300"] { color: #d2d2d7 !important; }
+.video-stage [class*="text-white"] { color: #fff !important; }
+.demo-video-stage [class*="text-white"] { color: #fff !important; }
+.demo-video-stage [class*="text-neutral-400"] { color: #a1a1a6 !important; }
+.video-stage [class*="text-emerald-400"] { color: #34d399 !important; }
+
+@media (max-width: 639px) {
+  .duo-device { transform: none; }
+  .duo-hinge { display: none; }
 }

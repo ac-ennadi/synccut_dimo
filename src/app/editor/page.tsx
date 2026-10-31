@@ -28,7 +28,7 @@ function EditorLoadingScreen() {
   }, []);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
+    <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
       <section className="w-full max-w-md space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-2xl shadow-indigo-950/30 sm:p-8" role="status" aria-live="polite">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/20">
           <div className="h-6 w-6 rounded-lg border-2 border-indigo-400/80" />
@@ -127,12 +127,12 @@ export default function EditorPage() {
     .some((value) => value.toLowerCase().includes(normalizedQuery)));
 
   return (
-    <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-950 p-4 text-neutral-100 sm:p-8">
+    <main className="apple-shell min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-950 p-4 text-neutral-100 sm:p-8">
       <div className="mx-auto w-full min-w-0 max-w-6xl space-y-7">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-5">
           <div className="flex min-w-0 items-center gap-4">
             <Link href="/" aria-label="SyncCut home" className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-              <BrandLogo variant="dark" className="h-9 w-auto shrink-0 object-contain object-left" priority />
+              <BrandLogo variant="light" className="h-9 w-auto shrink-0 object-contain object-left" priority />
             </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
               <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-indigo-400">Editor</p>

@@ -23,14 +23,14 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500/20 border-t-emerald-400" />
+      <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-200 border-t-[#0071e3]" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen w-full bg-neutral-950 text-neutral-100 selection:bg-emerald-500/30 selection:text-white">
+    <main className="apple-shell min-h-screen w-full bg-neutral-950 text-neutral-100 selection:bg-blue-500/20 selection:text-neutral-950">
       {/* 1. Header Navigation */}
       <LandingHeader />
 

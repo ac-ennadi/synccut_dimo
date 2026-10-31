@@ -42,14 +42,14 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 p-4 sm:p-6 lg:p-8">
+    <div className="apple-shell client-portal min-h-screen bg-neutral-950 text-neutral-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Navigation Bar: Pure Client Identity */}
         <header className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-800">
           <div className="flex min-w-0 items-center gap-4">
             <Link href="/" aria-label="SyncCut home" className="flex h-10 w-[170px] shrink-0 items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-              <BrandLogo variant="dark" className="h-8 w-auto object-contain object-left" priority />
+              <BrandLogo variant="light" className="h-8 w-auto object-contain object-left" priority />
             </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
               <div className="text-[10px] uppercase font-bold leading-4 tracking-wider text-emerald-400">

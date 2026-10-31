@@ -23,7 +23,7 @@ function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string })
     : ['Verifying your session', 'Loading assigned projects', 'Preparing your client portal'];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/95 p-4 text-white backdrop-blur-xl" role="status" aria-live="polite">
+    <div className="apple-shell fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/95 p-4 text-white backdrop-blur-xl" role="status" aria-live="polite">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-emerald-950/30 sm:p-8">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/10 ring-1 ring-emerald-300/20">
@@ -93,12 +93,12 @@ function ProjectChooser({
   });
 
   return (
-    <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-950 p-4 text-neutral-100 sm:p-8">
+    <main className="apple-shell min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-950 p-4 text-neutral-100 sm:p-8">
       <div className="mx-auto w-full min-w-0 max-w-6xl space-y-7">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-5">
           <div className="flex min-w-0 items-center gap-4">
             <Link href="/" aria-label="SyncCut home" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-sm">
-              <BrandLogo variant="dark" className="h-9 w-auto shrink-0 object-contain object-left" priority />
+              <BrandLogo variant="light" className="h-9 w-auto shrink-0 object-contain object-left" priority />
             </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
               <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-emerald-400">Client</p>
@@ -191,7 +191,7 @@ function ClientWorkspace({ projectId }: { projectId: string }) {
   if (!isProjectLoaded) {
     if (projectLoadError) {
       return (
-        <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
+        <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
           <section className="w-full max-w-lg space-y-4 rounded-2xl border border-rose-900/50 bg-neutral-900/90 p-6 text-center shadow-xl backdrop-blur-md">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-950/60 border border-rose-800/40 text-rose-400 font-bold">
               !

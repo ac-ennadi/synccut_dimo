@@ -73,7 +73,7 @@ export const EditorDashboard: React.FC<Props> = ({
 
   return (
     <ScriptEditorProvider value={{ requestEdit: scriptEditorHandler, registerEditor: registerScriptEditor }}>
-    <div className="min-h-screen bg-neutral-950 p-4 text-neutral-100 sm:p-6 lg:p-8">
+    <div className="apple-shell editor-dashboard min-h-screen bg-neutral-950 p-4 text-neutral-100 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Editor Workspace Header */}
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-4">
@@ -83,7 +83,7 @@ export const EditorDashboard: React.FC<Props> = ({
               aria-label="Back to projects"
               className="flex items-center gap-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
-              <BrandLogo variant="dark" className="h-8 w-auto shrink-0 object-contain object-left" priority />
+              <BrandLogo variant="light" className="h-8 w-auto shrink-0 object-contain object-left" priority />
             </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
               <div className="flex items-center gap-2">

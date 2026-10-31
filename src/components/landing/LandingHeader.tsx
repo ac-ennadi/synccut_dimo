@@ -13,7 +13,7 @@ export function LandingHeader() {
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
-          <BrandLogo variant="dark" className="h-7 w-auto sm:h-8" priority />
+          <BrandLogo variant="light" className="h-7 w-auto sm:h-8" priority />
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -45,7 +45,7 @@ export function LandingHeader() {
           </Link>
           <Link
             href="/client/login"
-            className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-xs font-semibold text-neutral-950 shadow-md shadow-emerald-500/20 transition-all hover:brightness-110 active:scale-98"
+            className="group inline-flex items-center gap-2 rounded-full bg-[#0071e3] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#0077ed] active:scale-98"
           >
             <span>Open workspace</span>
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -107,7 +107,7 @@ export function LandingHeader() {
             <div className="pt-3 border-t border-neutral-800 flex flex-col gap-2.5">
               <Link
                 href="/client/login"
-                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-xs font-semibold text-neutral-950 shadow-md"
+                className="flex items-center justify-center gap-2 rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-semibold text-white shadow-sm"
               >
                 <span>Open client workspace</span>
                 <ArrowRight className="h-3.5 w-3.5" />
