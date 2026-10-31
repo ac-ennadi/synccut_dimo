@@ -177,7 +177,7 @@ export const EditorDashboard: React.FC<Props> = ({
 
           {/* Right Column: Actions, Player, Feedback */}
           <section className="space-y-6 lg:col-span-6">
-            <ActionAlert deliverable={deliverable} isEditorView />
+            <ActionAlert deliverable={deliverable} />
             <VideoPlayer deliverable={deliverable} onTimecodeSelected={setTc} onApproveCut={onApproveCut} />
             <FeedbackSection
               notes={deliverable?.feedback_notes}
