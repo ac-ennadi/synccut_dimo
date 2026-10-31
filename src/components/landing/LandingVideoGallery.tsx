@@ -3,9 +3,24 @@
 import { useEffect, useRef } from 'react';
 
 const videos = [
-  { src: '/videos/position-01.mp4', label: 'Video 01' },
-  { src: '/videos/position-02.mp4', label: 'Video 02' },
-  { src: '/videos/position-03.mp4', label: 'Video 03' },
+  {
+    src: '/videos/position-01.mp4',
+    label: '01',
+    title: 'Keep the brief with the cut',
+    description: 'Give clients one place to find the approved script, scene notes, and visual references.',
+  },
+  {
+    src: '/videos/position-02.mp4',
+    label: '02',
+    title: 'Make feedback specific',
+    description: 'Clients can leave a note while watching, with the video time attached for the editor.',
+  },
+  {
+    src: '/videos/position-03.mp4',
+    label: '03',
+    title: 'Keep revisions moving',
+    description: 'Share new cuts, follow review status, and record approval in the same project.',
+  },
 ];
 
 export function LandingVideoGallery() {
@@ -63,7 +78,11 @@ export function LandingVideoGallery() {
                 <source src={video.src} type="video/mp4" />
                 Your browser does not support embedded video.
               </video>
-              <figcaption className="mt-2 text-xs text-[#707070]">{video.label}</figcaption>
+              <figcaption className="pt-4">
+                <p className="text-xs font-medium tabular-nums text-[#86868b]">{video.label}</p>
+                <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[#1d1d1f]">{video.title}</h3>
+                <p className="mt-2 max-w-sm text-sm leading-6 text-[#707070]">{video.description}</p>
+              </figcaption>
             </figure>
           ))}
         </div>
