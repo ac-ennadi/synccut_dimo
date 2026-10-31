@@ -236,7 +236,7 @@ export function ProjectMembersManager({ projectId }: { projectId: string }) {
         )}
         <button
           disabled={saving}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-xs font-bold text-neutral-950 shadow-md transition hover:brightness-110 disabled:opacity-60 sm:col-span-2"
+          className="apple-primary inline-flex items-center justify-center gap-2 rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[#0066cc] disabled:opacity-60 sm:col-span-2"
         >
           <UserPlus size={15} /> {saving ? 'Adding user…' : 'Add User to Project'}
         </button>

@@ -15,7 +15,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
+    <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
       <section className="w-full max-w-md space-y-5 rounded-2xl border border-neutral-800 bg-neutral-900/90 p-6 text-center shadow-2xl backdrop-blur-md">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-950/60 border border-rose-800/50 text-rose-400 font-bold text-lg">
           !

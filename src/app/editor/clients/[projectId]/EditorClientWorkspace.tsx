@@ -20,13 +20,11 @@ function Workspace() {
 
   if (isLoading || !currentUser || currentUser.role !== 'Editor' || !isProjectLoaded) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950 p-6 text-white backdrop-blur-md" role="status" aria-live="polite">
+      <div className="apple-shell fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950 p-6 text-white" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/20">
-            <div className="h-5 w-5 rounded-md border-2 border-indigo-400/80" />
-          </div>
-          <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
-            <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-indigo-400 to-blue-400" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#e6e6e8] border-t-[#0071e3]" />
+          <div className="h-1 w-full max-w-xs overflow-hidden rounded-full bg-[#e6e6e8]">
+            <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-[#0071e3]" />
           </div>
           <div className="space-y-1">
             <p className="text-sm font-semibold">Opening project workspace…</p>

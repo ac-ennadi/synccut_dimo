@@ -241,8 +241,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
                 title: typeof reference.title === 'string' ? reference.title : '',
                 category: typeof reference.category === 'string' ? reference.category : 'Reference',
                 description: typeof reference.description === 'string' ? reference.description : '',
-                color_gradient: typeof reference.color_gradient === 'string' ? reference.color_gradient : 'from-slate-800 via-neutral-700 to-slate-900',
-                icon: typeof reference.icon === 'string' ? reference.icon : '🎨',
+                color_gradient: typeof reference.color_gradient === 'string' ? reference.color_gradient : '#f5f5f7',
+                icon: typeof reference.icon === 'string' ? reference.icon : '',
                 image_url: typeof reference.image_url === 'string' ? reference.image_url : undefined,
                 image_storage_path: typeof reference.image_storage_path === 'string' ? reference.image_storage_path : undefined,
               }))

@@ -68,19 +68,12 @@ export default function ClientLoginPage() {
   const showLoading = !loadingTimedOut && (isRestoring || isSubmitting || isNavigating);
 
   return (
-    <main className="apple-shell relative flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100 overflow-hidden">
-      {/* Background ambient lighting */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-indigo-500/15 blur-[120px] rounded-full"
-      />
+    <main className="apple-shell auth-shell relative flex min-h-screen items-center justify-center bg-white p-4 text-neutral-100">
 
       {showLoading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-neutral-950/95 text-white backdrop-blur-xl" role="status" aria-live="polite">
           <div className="flex flex-col items-center gap-4 text-center px-4 max-w-sm">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-400/20 shadow-lg">
-              <LockKeyhole className="h-6 w-6 text-emerald-400" />
-            </div>
+            <LockKeyhole className="h-5 w-5 text-[#0071e3]" />
             <div className="space-y-1">
               <h3 className="text-base font-bold text-white">
                 {isRestoring ? 'Checking session' : 'Opening client portal'}
@@ -89,14 +82,14 @@ export default function ClientLoginPage() {
                 {isRestoring ? 'Restoring your authenticated session…' : 'Verifying credentials and loading your projects…'}
               </p>
             </div>
-            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10 mt-2">
-              <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-emerald-400 to-teal-300" />
+            <div className="mt-2 h-1 w-full max-w-xs overflow-hidden rounded-full bg-[#e6e6e8]">
+              <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-[#0071e3]" />
             </div>
             {isTakingLonger && (
               <div className="mt-4 w-full rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
                 <p className="text-sm font-semibold text-amber-200">Still connecting</p>
                 <p className="mt-1 text-xs leading-5 text-neutral-400">Supabase is taking longer than expected. If this reaches 15 seconds, the loading screen will close.</p>
-                <button type="button" onClick={() => window.location.reload()} className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">
+                <button type="button" onClick={() => window.location.reload()} className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#0071e3] px-3 py-2 text-xs font-medium text-white hover:bg-[#0066cc]">
                   <RefreshCw size={13} /> Refresh page
                 </button>
               </div>
@@ -111,16 +104,13 @@ export default function ClientLoginPage() {
             <BrandLogo variant="light" className="h-8 w-auto sm:h-9" priority />
           </Link>
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-0.5 text-[11px] font-mono font-semibold uppercase tracking-wider text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Private Client Access
-            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">Client portal</p>
             <h1 className="text-2xl font-bold tracking-tight text-white">Client Review Portal</h1>
             <p className="text-xs text-neutral-400">Sign in with the access credentials provided by your editor.</p>
           </div>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900/80 p-6 sm:p-7 shadow-2xl backdrop-blur-md">
+        <form onSubmit={handleSubmit} className="space-y-5 border-t border-neutral-200 pt-6">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300" htmlFor="client-email">
               Client Email
@@ -172,7 +162,7 @@ export default function ClientLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting || isNavigating}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-emerald-500/20 transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:cursor-wait disabled:opacity-60 active:scale-98"
+            className="apple-primary flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0071e3] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0066cc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting || isNavigating ? (
               <>
@@ -191,7 +181,7 @@ export default function ClientLoginPage() {
           <div className="flex items-center gap-1.5">
             <Shield size={13} className="text-neutral-500" />
             <span>Editor?</span>
-            <Link href="/editor/login" className="font-semibold text-emerald-400 hover:text-emerald-300 transition">
+            <Link href="/editor/login" className="font-semibold text-[#0071e3] hover:text-[#0066cc] transition">
               Editor sign in
             </Link>
           </div>

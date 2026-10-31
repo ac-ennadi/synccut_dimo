@@ -9,7 +9,7 @@
   --muted: #6e6e73;
   --soft: #86868b;
   --emerald: #10b981;
-  --emerald-bright: #34d399;
+  --emerald-bright: #0071e3;
   --indigo: #0071e3;
   --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Arial, sans-serif;
 }
@@ -17,7 +17,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-ui);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -56,6 +56,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--foreground) !important;
   color-scheme: light;
 }
+.auth-shell.apple-shell { --background: #fff; background-color: #fff !important; }
 .landing-home.apple-shell {
   --background: #fff;
   background-color: #fff !important;
@@ -85,6 +86,9 @@ a { color: inherit; text-decoration: none; }
 .apple-shell [class*="text-neutral-400"] { color: #6e6e73 !important; }
 .apple-shell [class*="text-neutral-500"],
 .apple-shell [class*="text-neutral-600"] { color: #86868b !important; }
+.apple-shell [class*="text-white/"] { color: #424245 !important; }
+.apple-shell [class*="bg-white/"] { background-color: #fafafc !important; }
+.apple-shell [class*="border-white/"] { border-color: #d6d6d6 !important; }
 .apple-shell [class*="text-indigo-"] { color: #0071e3 !important; }
 .apple-shell [class*="bg-indigo-950"],
 .apple-shell [class*="bg-indigo-900"],
@@ -101,16 +105,41 @@ a { color: inherit; text-decoration: none; }
 .apple-shell [class*="text-emerald-200"] { color: #18794e !important; }
 .apple-shell [class*="bg-rose-950"],
 .apple-shell [class*="bg-rose-900"] { background-color: #fff0f0 !important; }
+.apple-shell [class*="border-rose-900"],
+.apple-shell [class*="border-rose-800"] { border-color: #f1c7c5 !important; }
 .apple-shell [class*="text-rose-400"] { color: #b42318 !important; }
 .apple-shell [class*="bg-amber-950"],
-.apple-shell [class*="bg-amber-900"] { background-color: #fff7e6 !important; }
+.apple-shell [class*="bg-amber-900"],
+.apple-shell [class*="bg-amber-400/"] { background-color: #fff7e6 !important; }
+.apple-shell [class*="border-amber-400"] { border-color: #ead7ad !important; }
+.apple-shell [class*="text-amber-200"],
 .apple-shell [class*="text-amber-300"],
 .apple-shell [class*="text-amber-400"] { color: #8a4b08 !important; }
-.apple-shell [class*="shadow-2xl"],
-.apple-shell [class*="shadow-xl"],
-.apple-shell [class*="shadow-lg"] { --tw-shadow-color: rgb(29 29 31 / 8%) !important; }
+.apple-shell [class*="shadow-"] { box-shadow: none !important; }
+.apple-shell [class*="backdrop-blur"] { backdrop-filter: none !important; }
+.apple-shell [class*="hover:-translate"] { transform: none !important; }
+.apple-shell [class*="active:scale"] { transform: none !important; }
+.apple-shell [class*="bg-black/"] { background-color: rgb(29 29 31 / 28%) !important; }
+.apple-shell :is(button, a)[class*="bg-emerald-600"],
+.apple-shell :is(button, a)[class*="bg-emerald-500"] { color: #fff !important; }
+.apple-shell button { border-radius: 9999px; }
+.apple-shell :is(a, button)[class*="bg-"] { border-radius: 9999px; }
+.apple-shell [class*="rounded-2xl"],
+.apple-shell [class*="rounded-3xl"] { border-radius: 28px !important; }
 .apple-shell :where(input, textarea, select) { color: #1d1d1f; }
+.apple-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.apple-shell select {
+  border-color: #86868b !important;
+  border-radius: 9999px;
+  background-color: #fff !important;
+}
+.apple-shell textarea {
+  border-color: #d6d6d6 !important;
+  border-radius: 14px;
+  background-color: #fff !important;
+}
 .apple-shell :where(input, textarea, select)::placeholder { color: #86868b; }
+.apple-shell :where(h1, h2, h3, h4) { font-weight: 600 !important; letter-spacing: -0.02em; }
 .apple-shell :where(a, button, input, textarea, select, [role="button"]):focus-visible {
   outline-color: #0071e3;
 }
@@ -123,4 +152,6 @@ a { color: inherit; text-decoration: none; }
 .video-stage [class*="text-neutral-400"] { color: #a1a1a6 !important; }
 .video-stage [class*="text-neutral-300"] { color: #d2d2d7 !important; }
 .video-stage [class*="text-white"] { color: #fff !important; }
+.video-stage [class*="text-white/"] { color: rgb(255 255 255 / 78%) !important; }
+.video-stage [class*="bg-white/"] { background-color: rgb(255 255 255 / 10%) !important; }
 .video-stage [class*="text-emerald-400"] { color: #34d399 !important; }

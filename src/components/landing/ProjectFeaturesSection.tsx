@@ -15,6 +15,10 @@ const features = [
     title: 'A handoff for brand assets',
     description: 'Clients can upload the logo files the editor needs, including SVG, EPS, AI, and PNG.',
   },
+  {
+    title: 'Private video playback',
+    description: 'Private project videos are served with signed playback links that expire.',
+  },
 ];
 
 export function ProjectFeaturesSection() {
@@ -35,6 +39,23 @@ export function ProjectFeaturesSection() {
             </div>
           ))}
         </dl>
+
+        <div className="mt-12 grid gap-10 border-t border-[#d6d6d6] pt-8 sm:grid-cols-2 sm:gap-16">
+          <section aria-labelledby="client-workspace-heading">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Client workspace</p>
+            <h3 id="client-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Review and respond.</h3>
+            <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
+              Open the latest cut, leave notes while it plays, upload a requested logo, and approve the version when it’s ready.
+            </p>
+          </section>
+          <section aria-labelledby="editor-workspace-heading" className="border-[#d6d6d6] sm:border-l sm:pl-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Editor workspace</p>
+            <h3 id="editor-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Manage the project.</h3>
+            <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
+              Publish a new cut, update the project stage and script, and manage the people who can review it.
+            </p>
+          </section>
+        </div>
       </div>
     </section>
   );

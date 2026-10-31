@@ -29,12 +29,10 @@ function EditorLoadingScreen() {
 
   return (
     <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 p-4 text-neutral-100">
-      <section className="w-full max-w-md space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-2xl shadow-indigo-950/30 sm:p-8" role="status" aria-live="polite">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-400/20">
-          <div className="h-6 w-6 rounded-lg border-2 border-indigo-400/80" />
-        </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-indigo-400 to-blue-400" />
+      <section className="w-full max-w-md space-y-4 p-6 text-center sm:p-8" role="status" aria-live="polite">
+        <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-[#e6e6e8] border-t-[#0071e3]" />
+        <div className="h-1 overflow-hidden rounded-full bg-[#e6e6e8]">
+          <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-[#0071e3]" />
         </div>
         <div>
           <h1 className="text-base font-bold">Loading editor dashboard</h1>
@@ -42,13 +40,13 @@ function EditorLoadingScreen() {
         </div>
         {isTakingLonger && (
           <div className="space-y-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-left">
-            <p className="text-sm font-semibold text-amber-200">This is taking longer than expected</p>
-            <p className="text-xs leading-5 text-neutral-400">Supabase may be waking up or your session may have expired. Retry safely or sign in again.</p>
+            <p className="text-sm font-semibold">Still loading</p>
+            <p className="text-xs leading-5 text-neutral-400">Check your connection, then retry or sign in again.</p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">
+              <button type="button" onClick={() => window.location.reload()} className="rounded-full bg-[#0071e3] px-3 py-2 text-xs font-medium text-white hover:bg-[#0066cc]">
                 Retry connection
               </button>
-              <a href="/editor/login" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-white/10">
+              <a href="/editor/login" className="rounded-full border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-100">
                 Sign in again
               </a>
             </div>
@@ -136,7 +134,7 @@ export default function EditorPage() {
             </Link>
             <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
               <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-indigo-400">Editor</p>
-              <h1 className="text-2xl font-bold leading-7 text-white">Project Cockpit</h1>
+              <h1 className="text-2xl font-bold leading-7 text-white">Editor projects</h1>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -159,7 +157,7 @@ export default function EditorPage() {
           <button
             type="button"
             onClick={() => { setShowForm((current) => !current); setMessage(null); }}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-xs font-bold text-neutral-950 shadow-md shadow-emerald-500/20 transition hover:brightness-110 active:scale-98"
+            className="apple-primary inline-flex items-center gap-2 rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[#0066cc]"
           >
             <FolderPlus size={15} /> Create project
           </button>
@@ -201,7 +199,7 @@ export default function EditorPage() {
               </label>
               <button
                 disabled={saving}
-                className="rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-xs font-bold text-neutral-950 shadow-md transition hover:brightness-110 disabled:opacity-60 sm:col-span-2"
+                className="apple-primary rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[#0066cc] disabled:opacity-60 sm:col-span-2"
               >
                 {saving ? 'Creating project workspace…' : 'Create Project'}
               </button>
@@ -235,25 +233,25 @@ export default function EditorPage() {
             <p className="mt-1 text-xs text-neutral-400">{projects.length ? 'Try another search term.' : 'Click "Create project" above to set up your first workspace.'}</p>
           </div>
         ) : (
-          <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <section className="min-w-0 divide-y divide-neutral-200 border-t border-neutral-200">
             {filtered.map((project) => (
               <article
                 key={project.project_id}
-                className="group relative min-w-0 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 transition-all hover:border-indigo-500/50 hover:bg-neutral-900/90 hover:shadow-xl backdrop-blur-sm"
+                className="group relative min-w-0 overflow-hidden bg-transparent transition-colors hover:bg-neutral-100/70"
               >
                 <button
                   type="button"
                   onClick={() => setPendingDelete(project)}
                   aria-label={`Delete project ${project.title}`}
                   title="Delete project"
-                  className="absolute right-3 top-3 z-10 rounded-lg p-2 text-neutral-500 transition-colors hover:bg-rose-950/50 hover:text-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-2 text-neutral-500 transition-colors hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 >
                   <Trash2 size={15} />
                 </button>
                 <Link
                   href={`/editor/clients/${encodeURIComponent(project.project_id)}`}
                   onClick={() => setOpeningProjectId(project.project_id)}
-                  className="block p-5 focus-visible:outline-none"
+                  className="block py-5 pr-14 focus-visible:outline-none"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 pr-8">

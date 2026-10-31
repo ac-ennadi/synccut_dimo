@@ -234,7 +234,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               {uploadError && <p role="alert" className="rounded-lg border border-red-900 bg-red-950/40 p-2.5 text-red-300">{uploadError}</p>}
 
               <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-neutral-300 leading-relaxed text-[11px]">
-                💡 <strong>What happens:</strong> Publishing replaces the current video in the client portal, where the client can review it and leave notes. The length is read from the video itself.
+                <strong>What happens:</strong> Publishing replaces the current video in the client portal. The client can review it and leave notes; the duration is read from the video file.
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

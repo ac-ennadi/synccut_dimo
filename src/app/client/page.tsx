@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ProjectProvider, useProject } from '@/context/ProjectContext';
 import { ClientPortal } from '@/components/ClientPortal';
-import { ArrowRight, BriefcaseBusiness, Check, Circle, LogOut, RefreshCw, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, LogOut, Search } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 
 function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string }) {
@@ -18,49 +18,30 @@ function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string })
   }, []);
 
   const isProject = /project|workspace/i.test(label);
-  const steps = isProject
-    ? ['Verifying project access', 'Loading project brief and deliverables', 'Preparing your review workspace']
-    : ['Verifying your session', 'Loading assigned projects', 'Preparing your client portal'];
+  const loadingLabel = isProject ? 'Verifying project access' : 'Loading assigned projects';
 
   return (
-    <div className="apple-shell fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/95 p-4 text-white backdrop-blur-xl" role="status" aria-live="polite">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-emerald-950/30 sm:p-8">
+    <div className="apple-shell fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/95 p-4 text-white" role="status" aria-live="polite">
+      <div className="w-full max-w-md p-6 sm:p-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/10 ring-1 ring-emerald-300/20">
-            <ShieldCheck className="h-6 w-6 text-emerald-300" />
-          </div>
+          <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[#d2d2d7] border-t-[#0071e3]" />
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Secure connection</p>
-            <p className="mt-1 text-base font-bold">{label}</p>
-            <p className="mt-1 text-xs text-neutral-400">Securely connecting to your Supabase workspace</p>
+            <p className="text-base font-semibold">{label}</p>
+            <p className="mt-1 text-sm text-neutral-500">{loadingLabel}</p>
           </div>
-        </div>
-
-        <div className="mt-7 space-y-3">
-          {steps.map((step, index) => (
-            <div key={step} className="flex items-center gap-3 text-sm">
-              {index === 0 ? <Check className="h-4 w-4 text-emerald-400" /> : <Circle className="h-3.5 w-3.5 text-neutral-600" />}
-              <span className={index === 0 ? 'text-neutral-200' : 'text-neutral-500'}>{step}</span>
-              {index === 0 && <RefreshCw className="ml-auto h-3.5 w-3.5 animate-spin text-emerald-400" />}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-7 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full w-1/3 animate-[loading-bar_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-emerald-400 to-teal-300" />
         </div>
 
         {isTakingLonger && (
-          <div className="mt-6 space-y-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4">
-            <p className="text-sm font-semibold text-amber-200">This is taking longer than expected</p>
+          <div className="mt-6 space-y-3 border-t border-neutral-200 pt-4">
+            <p className="text-sm font-semibold">Still loading</p>
             <p className="text-xs leading-5 text-neutral-400">
-              Supabase may be waking up or your session may have expired. You can retry safely or sign in again.
+              Check your connection, then retry or sign in again.
             </p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500">
+              <button type="button" onClick={() => window.location.reload()} className="rounded-full bg-[#0071e3] px-3 py-2 text-xs font-medium text-white hover:bg-[#0066cc]">
                 Retry connection
               </button>
-              <a href="/client/login" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-white/10">
+              <a href="/client/login" className="rounded-full border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-100">
                 Sign in again
               </a>
             </div>
@@ -127,7 +108,7 @@ function ProjectChooser({
             </div>
           </div>
           <label className="flex w-full max-w-lg items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/80 px-3.5 py-1 text-neutral-100 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-            <span className="text-neutral-500">⌕</span>
+            <Search size={15} className="shrink-0 text-neutral-500" aria-hidden="true" />
             <input
               aria-label="Search projects"
               placeholder="Search projects by name..."
@@ -136,7 +117,7 @@ function ProjectChooser({
               className="w-full bg-transparent py-2.5 text-sm placeholder:text-neutral-500 outline-none"
             />
           </label>
-          <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="min-w-0 divide-y divide-neutral-200 border-t border-neutral-200">
             {visibleProjects.map((projectId) => {
               const index = projectIds.indexOf(projectId);
               const label = projectTitles[projectId] || `Project ${index + 1}`;
@@ -146,7 +127,7 @@ function ProjectChooser({
                   type="button"
                   disabled={isOpening}
                   onClick={() => onOpenProject(projectId)}
-                  className="group relative flex min-h-48 min-w-0 w-full max-w-full flex-col justify-between overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 text-left shadow-sm backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-neutral-900/90 hover:shadow-lg disabled:cursor-wait disabled:opacity-60"
+                  className="group relative flex min-h-0 min-w-0 w-full max-w-full items-center justify-between gap-6 overflow-hidden bg-transparent py-5 text-left transition-colors hover:text-[#0071e3] disabled:cursor-wait disabled:opacity-60"
                 >
                   <span className="min-w-0">
                     <span className="mb-2 block text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
@@ -156,8 +137,8 @@ function ProjectChooser({
                       {label}
                     </span>
                   </span>
-                  <span className="mt-6 flex items-center justify-between border-t border-neutral-800/80 pt-4 text-xs font-semibold text-neutral-400 group-hover:text-neutral-300">
-                    <span>Open workspace</span>
+                  <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-neutral-500 group-hover:text-[#0071e3]">
+                    <span>Open</span>
                     <ArrowRight className="shrink-0 text-neutral-500 transition group-hover:translate-x-1 group-hover:text-emerald-400" size={17} />
                   </span>
                 </button>
@@ -202,7 +183,7 @@ function ClientWorkspace({ projectId }: { projectId: string }) {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm"
+                className="rounded-full bg-[#0071e3] px-4 py-2 text-xs font-medium text-white hover:bg-[#0066cc]"
               >
                 Try again
               </button>

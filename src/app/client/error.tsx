@@ -14,7 +14,7 @@ export default function ClientError({
   }, [error]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
+    <main className="apple-shell flex min-h-screen items-center justify-center bg-neutral-950 p-6 text-neutral-100">
       <section className="w-full max-w-md space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900/90 p-6 text-center shadow-xl backdrop-blur-md">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-950/60 border border-rose-800/40 text-rose-400 font-bold">
           !
@@ -34,7 +34,7 @@ export default function ClientError({
           <button
             type="button"
             onClick={() => reset()}
-            className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm"
+            className="rounded-full bg-[#0071e3] px-4 py-2 text-xs font-medium text-white hover:bg-[#0066cc]"
           >
             Try again
           </button>
