@@ -209,6 +209,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
             ...base.project,
             ...restoredProject,
             project_type: projectType,
+            video_aspect_ratio: restoredProject.video_aspect_ratio === '9:16' ? '9:16' : '16:9',
             status: normalizeProjectStatus(restoredProject.status, projectType),
           },
           brief: {
@@ -292,7 +293,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
             const projectType = normalizeProjectType(incoming.project?.project_type ?? current.project.project_type);
             return {
               project: incoming.project
-                ? { ...incoming.project, project_type: projectType, status: normalizeProjectStatus(incoming.project.status, projectType) }
+                ? {
+                  ...incoming.project,
+                  project_type: projectType,
+                  video_aspect_ratio: incoming.project.video_aspect_ratio === '9:16' ? '9:16' : incoming.project.video_aspect_ratio === '16:9' ? '16:9' : current.project.video_aspect_ratio,
+                  status: normalizeProjectStatus(incoming.project.status, projectType),
+                }
                 : current.project,
               brief: incoming.brief ?? current.brief,
               // Realtime rows never carry notes, so the local list stays authoritative.

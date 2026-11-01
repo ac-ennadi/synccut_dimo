@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { DeleteProjectModal } from '@/components/DeleteProjectModal';
 import { BrandLogo } from '@/components/BrandLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import type { VideoAspectRatio } from '@/types';
 
 interface ProjectRow {
   project_id: string;
@@ -16,6 +17,7 @@ interface ProjectRow {
   company_name: string;
   members: { email: string; display_name: string; company_name: string }[];
   projectType: 'after_effects' | 'premiere_pro';
+  videoAspectRatio: VideoAspectRatio;
   status: string;
   latestCut: string;
 }
@@ -66,7 +68,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro' });
+  const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro', videoAspectRatio: '16:9' as VideoAspectRatio });
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ProjectRow | null>(null);
@@ -111,7 +113,7 @@ export default function EditorPage() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Could not create project.');
-      setDetails({ projectName: '', companyName: '', projectType: 'premiere_pro' });
+      setDetails({ projectName: '', companyName: '', projectType: 'premiere_pro', videoAspectRatio: '16:9' });
       setMessage({ error: false, text: 'Project created. Add client users from the project workspace.' });
       setShowForm(false);
       await loadProjects();
@@ -199,6 +201,34 @@ export default function EditorPage() {
                   <option value="after_effects">After Effects — animation / motion graphics workflow</option>
                 </select>
               </label>
+              <fieldset className="grid gap-2 sm:col-span-2">
+                <legend className="text-xs font-medium text-neutral-300">Video format</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {([
+                    { value: '16:9', title: 'Landscape · 16:9', description: 'YouTube, websites, and widescreen video' },
+                    { value: '9:16', title: 'Vertical · 9:16', description: 'Reels, TikTok, and Shorts' },
+                  ] as const).map((option) => (
+                    <label key={option.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors focus-within:ring-2 focus-within:ring-[#0071e3] ${details.videoAspectRatio === option.value ? 'border-[#0071e3] bg-[#0071e3]/10' : 'border-neutral-800 bg-neutral-950 hover:border-neutral-700'}`}>
+                      <input
+                        type="radio"
+                        name="videoAspectRatio"
+                        value={option.value}
+                        checked={details.videoAspectRatio === option.value}
+                        onChange={() => setDetails({ ...details, videoAspectRatio: option.value })}
+                        className="sr-only"
+                      />
+                      <span aria-hidden="true" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${details.videoAspectRatio === option.value ? 'border-[#0071e3]/50' : 'border-neutral-800'}`}>
+                        <span className={`rounded-[2px] border-2 ${details.videoAspectRatio === option.value ? 'border-[#0071e3]' : 'border-neutral-500'} ${option.value === '16:9' ? 'aspect-video w-7' : 'aspect-[9/16] h-7'}`} />
+                      </span>
+                      <span>
+                        <span className="block text-sm font-medium text-neutral-100">{option.title}</span>
+                        <span className="mt-0.5 block text-xs text-neutral-400">{option.description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[11px] text-neutral-500">This format is set for the project and can’t be changed after creation.</p>
+              </fieldset>
               <button
                 disabled={saving}
                 className="apple-primary rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[#0066cc] disabled:opacity-60 sm:col-span-2"
@@ -266,6 +296,7 @@ export default function EditorPage() {
                   <div className="mt-4 flex items-center gap-2 text-xs text-neutral-400">
                     <Users size={14} className="text-neutral-500" />
                     <span>{project.members.length} {project.members.length === 1 ? 'member' : 'members'}</span>
+                    <span className="ml-2 rounded-full border border-neutral-800 px-2 py-0.5 text-[10px]">{project.videoAspectRatio}</span>
                   </div>
                   <p className="mt-1 min-h-4 truncate text-[11px] text-neutral-500">
                     {project.members.map((member) => member.display_name).join(', ') || 'No client members assigned yet'}

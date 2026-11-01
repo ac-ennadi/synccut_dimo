@@ -27,6 +27,7 @@ export const mockProject: Project = {
   client_id: 'Ayoub',
   title: 'Project: Rivo Co-Working',
   project_type: 'premiere_pro',
+  video_aspect_ratio: '16:9',
   status: 'Shooting',
   start_date: '2026-10-01',
   due_date: 'Friday, Nov 14',

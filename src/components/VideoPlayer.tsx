@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Deliverable } from '@/types';
+import type { Deliverable, VideoAspectRatio } from '@/types';
 import { Film, Copy, Check, CheckCircle, Play, Pause, Maximize2, Volume2, VolumeX, ExternalLink } from 'lucide-react';
 import { onSignOut, supabase } from '@/lib/supabase';
 import { formatRelativeTime } from '@/lib/formatters';
 
 interface VideoPlayerProps {
   deliverable: Deliverable;
+  videoAspectRatio?: VideoAspectRatio;
   onTimecodeSelected?: (timecode: string) => void;
   onApproveCut?: () => void;
 }
@@ -76,14 +77,13 @@ function getGoogleDriveViewUrl(rawUrl: string): string | null {
   }
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecodeSelected, onApproveCut }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspectRatio = '16:9', onTimecodeSelected, onApproveCut }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerFrameRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState<'landscape' | 'portrait'>('landscape');
   const [currentTime, setCurrentTime] = useState(0);
   // Starts from the stored duration and is corrected by the media's own metadata
   // as soon as it loads, so a stale or missing value is never shown.
@@ -216,11 +216,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, onTimecod
     <section onKeyDown={handleKeyDown} tabIndex={-1} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-labelledby="video-title">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-2"><Film className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /><h2 id="video-title" className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Video review</h2></div>
-        <div className="flex flex-wrap items-center gap-2"><div className="inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-700" role="group" aria-label="Video aspect ratio"><button type="button" aria-pressed={aspectRatio === 'landscape'} onClick={() => setAspectRatio('landscape')} className={`rounded-md px-2 py-1 text-[11px] font-medium ${aspectRatio === 'landscape' ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>16:9</button><button type="button" aria-pressed={aspectRatio === 'portrait'} onClick={() => setAspectRatio('portrait')} className={`rounded-md px-2 py-1 text-[11px] font-medium ${aspectRatio === 'portrait' ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>9:16</button></div><span className="text-xs text-neutral-600 dark:text-neutral-300">{deliverable.version_number}</span>{isApproved && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><Check className="h-3.5 w-3.5" /> Approved</span>}</div>
+        <div className="flex flex-wrap items-center gap-2"><span className="rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-medium text-neutral-600 dark:border-neutral-700 dark:text-neutral-300" aria-label={`Project video format ${videoAspectRatio}`}>{videoAspectRatio}</span><span className="text-xs text-neutral-600 dark:text-neutral-300">{deliverable.version_number}</span>{isApproved && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><Check className="h-3.5 w-3.5" /> Approved</span>}</div>
       </div>
 
-      <div ref={playerFrameRef} className={`video-stage flex justify-center overflow-hidden rounded-xl bg-neutral-950 ${aspectRatio === 'landscape' ? 'w-full' : 'w-full'}`}>
-      <div className={`relative overflow-hidden bg-neutral-950 ${aspectRatio === 'landscape' ? 'aspect-video w-full' : 'h-[min(70vh,700px)] max-h-[70vh] max-w-full aspect-[9/16]'}`}>
+      <div ref={playerFrameRef} className="video-stage flex w-full justify-center overflow-hidden rounded-xl bg-neutral-950">
+      <div className={`relative overflow-hidden bg-neutral-950 ${videoAspectRatio === '16:9' ? 'aspect-video w-full' : 'h-[min(70vh,700px)] max-h-[70vh] max-w-full aspect-[9/16]'}`}>
         {videoUrl ? (
           isDirectVideo ? (
             <video ref={videoRef} src={videoUrl} muted={isMuted} playsInline preload="metadata" className="h-full w-full bg-black object-contain" onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />

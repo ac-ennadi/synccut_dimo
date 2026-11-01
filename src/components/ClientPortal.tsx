@@ -113,6 +113,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 
             <VideoPlayer
               deliverable={deliverable}
+              videoAspectRatio={project.video_aspect_ratio ?? '16:9'}
               onTimecodeSelected={(tc) => setCurrentTimecode(tc)}
               onApproveCut={onApproveCut}
             />
