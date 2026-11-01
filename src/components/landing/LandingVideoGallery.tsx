@@ -55,9 +55,9 @@ export function LandingVideoGallery() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-end justify-between gap-4 border-t border-[#d6d6d6] pt-5">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#707070]">Video gallery</p>
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#707070]">How SyncCut works</p>
             <h2 id="landing-videos-title" className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[#1d1d1f] sm:text-3xl">
-              Watch the cuts.
+              From first brief to final approval.
             </h2>
           </div>
           <span className="pb-1 text-xs tabular-nums text-[#86868b]">01 — 03</span>
