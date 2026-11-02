@@ -227,10 +227,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspe
           ) : googleDrivePreviewUrl ? (
             <>
               <iframe src={googleDrivePreviewUrl} title={`${deliverable.version_number} video`} className="hidden h-full w-full border-0 sm:block" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-              <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center text-white sm:hidden">
-                <span className="grid h-14 w-14 place-items-center rounded-full bg-white/10"><Play className="h-6 w-6"/></span>
-                <div><p className="text-sm font-semibold">Open this video in Google Drive</p><p className="mt-1 text-xs leading-relaxed text-neutral-400">Drive’s embedded controls are difficult to use on a phone. Open the video directly for full mobile playback controls.</p></div>
-                <a href={googleDriveViewUrl ?? videoUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-neutral-950 active:scale-[0.98]"><ExternalLink className="h-4 w-4"/>Open video</a>
+              <div className="flex h-full min-h-0 flex-col items-center justify-center gap-2 px-4 py-3 text-center text-white sm:hidden">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10"><Play className="h-5 w-5"/></span>
+                <div className="max-w-sm"><p className="text-[13px] font-semibold">Watch this cut in Google Drive</p><p className="mt-1 text-[11px] leading-4 text-neutral-400">Open in Drive for full playback controls.</p></div>
+                <a href={googleDriveViewUrl ?? videoUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-white px-4 text-xs font-semibold text-neutral-950 active:scale-[0.98]"><ExternalLink className="h-3.5 w-3.5"/>Open video</a>
               </div>
             </>
           ) : (
