@@ -168,7 +168,7 @@ export const EditorDashboard: React.FC<Props> = ({
         {/* Two-Column Responsive Workspace */}
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
           {/* Script-related content and video-related content flow in separate columns. */}
-          <section className="min-w-0 space-y-0 lg:col-span-6">
+          <section className="order-2 min-w-0 space-y-0 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} editable />
             <VisualReferences
               references={brief?.references}
@@ -184,7 +184,7 @@ export const EditorDashboard: React.FC<Props> = ({
             />
           </section>
 
-          <section className="min-w-0 space-y-6 lg:col-span-6">
+          <section className="order-1 min-w-0 space-y-6 lg:order-none lg:col-span-6">
             <ActionAlert deliverable={deliverable} />
             <VideoPlayer deliverable={deliverable} videoAspectRatio={project.video_aspect_ratio ?? '16:9'} onTimecodeSelected={setTc} onApproveCut={onApproveCut} />
             <FeedbackSection
