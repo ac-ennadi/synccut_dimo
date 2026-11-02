@@ -102,7 +102,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         {/* On Phone (< lg): Action Items show first so clients can respond or approve immediately. On PC (lg+): 2 Columns side-by-side. */}
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
           {/* Each column flows independently so feedback stays with the video while references follow the script. */}
-          <section className="order-2 min-w-0 space-y-0 lg:order-none lg:col-span-6">
+          <section className="order-2 min-w-0 space-y-4 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} />
             <SceneTasks brief={brief} />
             <VisualReferences references={brief.references} />

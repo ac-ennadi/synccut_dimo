@@ -84,7 +84,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief, editable = false })
         {scenes.map((scene) => (
           <section
             key={scene.scene_number}
-            className="group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 border-b border-neutral-100 py-6 last:border-0 dark:border-neutral-800/80"
+            className="group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 border-b border-neutral-100 py-4 last:border-0 dark:border-neutral-800/80"
           >
             <div className="pt-1 text-center font-mono text-xs font-semibold text-indigo-500 dark:text-indigo-400">
               {String(scene.scene_number).padStart(2, '0')}
@@ -102,7 +102,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief, editable = false })
                 </p>
               )}
               {scene.voiceover && (
-                <blockquote className="mt-4 border-l-2 border-indigo-400/70 pl-4 text-sm leading-6 text-neutral-700 dark:text-neutral-200">
+                <blockquote className="mt-3 border-l-2 border-indigo-400/70 pl-4 text-sm leading-6 text-neutral-700 dark:text-neutral-200">
                   <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Voiceover</span>
                   <span className="italic">&ldquo;{scene.voiceover}&rdquo;</span>
                 </blockquote>
@@ -111,7 +111,7 @@ export const ScriptBox: React.FC<ScriptBoxProps> = ({ brief, editable = false })
           </section>
         ))}
         {sections.filter((section) => section.title.trim() || section.content.trim()).map((section) => (
-          <article key={section.id} className="border-b border-neutral-100 py-6 last:border-0 dark:border-neutral-800/80">
+          <article key={section.id} className="border-b border-neutral-100 py-4 last:border-0 dark:border-neutral-800/80">
             {section.title.trim() && <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">{section.title}</h3>}
             {section.content.trim() && <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-600 dark:text-neutral-300">{section.content}</p>}
           </article>
