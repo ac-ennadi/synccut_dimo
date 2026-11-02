@@ -91,8 +91,8 @@ export function FinalHandoff({ handoff, currentVersion, approvalStatus, editable
 
       <form onSubmit={save} className="mt-4 space-y-4">
         <p className="text-xs text-neutral-500 dark:text-neutral-400">This handoff is for cut <strong className="font-semibold text-neutral-700 dark:text-neutral-300">{currentVersion}</strong>.</p>
-        <label className="block space-y-2 text-xs font-medium tracking-[-0.01em] text-[#1d1d1f] dark:text-neutral-300">
-          Delivery notes
+        <label className="block text-xs font-medium tracking-[-0.01em] text-[#1d1d1f] dark:text-neutral-300">
+          <span className="mb-2 block">Delivery notes</span>
           <textarea rows={3} value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Add export details or a note for the client." className="min-h-24 w-full resize-y rounded-[18px] border border-[#d6d6d6] bg-[#fafafc] px-4 py-3 text-sm font-normal leading-6 tracking-[-0.01em] text-[#1d1d1f] outline-none placeholder:text-[#86868b] focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/15 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500" />
         </label>
 

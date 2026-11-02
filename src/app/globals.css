@@ -96,7 +96,7 @@ a { color: inherit; text-decoration: none; }
 .apple-shell [class*="bg-indigo-800"] { background-color: #eef6fd !important; }
 .apple-shell [class*="bg-indigo-600"] { background-color: #0071e3 !important; }
 .apple-shell [class*="bg-indigo-600"][class~="text-white"] { color: #fff !important; }
-.apple-shell [class*="bg-[#0071e3]"] { color: #fff !important; }
+.apple-shell [class~="bg-[#0071e3]"] { color: #fff !important; }
 .apple-shell .apple-primary { color: #fff !important; }
 .apple-shell [class*="border-indigo-"] { border-color: #b8d8f8 !important; }
 .apple-shell [class*="bg-emerald-950"],
@@ -210,7 +210,7 @@ a { color: inherit; text-decoration: none; }
 .dark .apple-shell [class*="border-[#e2aaa7]"] { border-color: #48484a !important; }
 .dark .apple-shell [class*="bg-[#fff5f5]"] { background-color: #2c2020 !important; }
 .dark .apple-shell [class*="text-[#b42318]"] { color: #ff8a80 !important; }
-.dark .apple-shell [class*="bg-[#0071e3]"] { color: #fff !important; }
+.dark .apple-shell [class~="bg-[#0071e3]"] { color: #fff !important; }
 .dark .apple-shell :where(input, textarea, select) { color: #f5f5f7; }
 .dark .apple-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 .dark .apple-shell select,
