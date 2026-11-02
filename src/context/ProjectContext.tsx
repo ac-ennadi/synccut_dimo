@@ -182,25 +182,29 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
             .eq('project_id', id)
             .order('created_at', { ascending: false }),
         ]);
-        let notesRes = initialNotesRes;
-        if (notesRes.error && /column .* does not exist|schema cache|PGRST204/i.test(notesRes.error.message)) {
+        type FeedbackQueryRow = { id: string; author_name: string | null; timecode: string | null; content: string; created_at: string; status?: string | null; cut_version?: string | null };
+        let noteRows: FeedbackQueryRow[] = initialNotesRes.data ?? [];
+        let notesError = initialNotesRes.error;
+        if (notesError && /column .* does not exist|schema cache|PGRST204/i.test(notesError.message)) {
           // Keep existing feedback visible while the new status migration is pending.
-          notesRes = await supabase.from('project_feedback_notes')
+          const legacyNotesRes = await supabase.from('project_feedback_notes')
             .select('id,author_name,timecode,content,created_at')
             .eq('project_id', id)
             .order('created_at', { ascending: false });
+          noteRows = legacyNotesRes.data ?? [];
+          notesError = legacyNotesRes.error;
         }
 
         if (stateRes.error) throw stateRes.error;
-        if (notesRes.error) {
+        if (notesError) {
           // Feedback is optional for opening a project. A missing feedback
           // migration or policy must not prevent clients from reviewing a cut.
-          console.warn('Could not load project feedback notes.', notesRes.error);
+          console.warn('Could not load project feedback notes.', notesError);
         }
         if (cancelled) return;
 
         const row = stateRes.data;
-        const notes = notesRes.error ? [] : notesRes.data ?? [];
+        const notes = notesError ? [] : noteRows;
         const saved = row?.state as Partial<ProjectState> | null;
         const projectType = normalizeProjectType(saved?.project?.project_type);
         const restoredProject = { ...(saved?.project ?? base.project) };
