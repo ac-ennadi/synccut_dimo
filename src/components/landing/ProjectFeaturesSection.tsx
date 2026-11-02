@@ -4,12 +4,28 @@ const features = [
     description: 'Keep the approved script, scene breakdown, and visual references with the project.',
   },
   {
-    title: 'Feedback at the right moment',
-    description: 'Add a note while watching. The current video time is attached to the feedback.',
+    title: 'AI task suggestions from the script',
+    description: 'Get a practical first pass for the edit, then add tasks, remove what does not fit, and track each scene’s progress.',
   },
   {
-    title: 'Cuts and approvals in one place',
-    description: 'Publish a new version, see the review status, and record client approval in the project.',
+    title: 'Feedback with a clear status',
+    description: 'Clients can leave timecoded notes. Editors can mark each one open, in progress, or resolved.',
+  },
+  {
+    title: 'Current and previous cuts',
+    description: 'Switch between the latest version and the cut before it while staying in the project workspace.',
+  },
+  {
+    title: 'A final check before publishing',
+    description: 'Work through checks for picture, sound, titles, and playback before sending a cut to the client.',
+  },
+  {
+    title: 'Templates for the format',
+    description: 'Start with a social short, brand film, or motion explainer. The template sets the video format and review checklist.',
+  },
+  {
+    title: 'Final delivery in the same project',
+    description: 'After approval, add delivery links and notes so clients know which files are ready and what to do next.',
   },
   {
     title: 'Clear requests for brand assets',
@@ -28,7 +44,7 @@ export function ProjectFeaturesSection() {
         <div className="max-w-xl">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">What’s included</p>
           <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1d1d1f] sm:text-4xl">
-            The details stay with the project.
+            The edit, review, and handoff stay connected.
           </h2>
         </div>
         <dl className="mt-10 grid gap-x-16 sm:grid-cols-2">
@@ -45,14 +61,14 @@ export function ProjectFeaturesSection() {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Client workspace</p>
             <h3 id="client-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Review and respond.</h3>
             <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
-              Open the latest cut, leave notes while it plays, follow the project alert, and approve the version when it’s ready.
+              Watch the latest or previous cut, leave notes at a timecode, follow their status, and approve the version when it’s ready.
             </p>
           </section>
           <section aria-labelledby="editor-workspace-heading" className="border-[#d6d6d6] sm:border-l sm:pl-10">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Editor workspace</p>
             <h3 id="editor-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Manage the project.</h3>
             <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
-              Publish a new cut, update the project stage and script, and manage the people who can review it.
+              Turn the script into editable tasks, run the publish checklist, and prepare approved files for delivery.
             </p>
           </section>
         </div>

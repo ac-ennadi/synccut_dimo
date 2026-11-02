@@ -3,18 +3,18 @@
 const steps = [
   {
     number: '01',
-    title: 'Set up the project',
-    description: 'Add the brief, script, scene notes, and visual references your client needs.',
+    title: 'Choose a project setup',
+    description: 'Start from a social short, brand film, or motion explainer template, then add the brief, script, and visual references.',
   },
   {
     number: '02',
-    title: 'Share a cut',
-    description: 'Post a version for review. The client can watch it beside the project context.',
+    title: 'Build the edit plan',
+    description: 'Get task suggestions from the script. Add, remove, and update tasks as the scenes move through the edit.',
   },
   {
     number: '03',
-    title: 'Resolve feedback',
-    description: 'Clients leave notes at the current timecode. Editors update the cut and track approval in the same project.',
+    title: 'Review, revise, deliver',
+    description: 'Run the checks before publishing, compare cuts, and track timecoded notes. After approval, share the final files and delivery notes.',
   },
 ];
 
