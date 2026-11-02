@@ -187,7 +187,7 @@ export const EditorDashboard: React.FC<Props> = ({
           {/* Script-related content and video-related content flow in separate columns. */}
           <section className="order-2 min-w-0 space-y-0 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} editable />
-            <SceneTasks brief={brief} editable onChange={onUpdateScript} />
+            <SceneTasks brief={brief} projectId={project.project_id} editable onChange={onUpdateScript} />
             <VisualReferences
               references={brief?.references}
               projectId={project.project_id}

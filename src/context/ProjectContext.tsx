@@ -291,7 +291,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
               ? savedBrief.editing_tasks.filter(isRecord).map((task, index) => ({
                 id: typeof task.id === 'string' ? task.id : `task_${index + 1}`,
                 title: typeof task.title === 'string' ? task.title : 'Untitled scene',
+                scene_title: typeof task.scene_title === 'string' ? task.scene_title : undefined,
                 timecode: typeof task.timecode === 'string' ? task.timecode : undefined,
+                source: task.source === 'ai' ? 'ai' : 'manual',
                 status: task.status === 'in_edit' || task.status === 'ready_for_review' || task.status === 'done' ? task.status : 'not_started',
               }))
               : [],

@@ -8,7 +8,7 @@ export type UserRole='Client'|'Editor'|'Producer'|'Admin';
 export type ActionRequiredBy='Client'|'Editor'|'None';
 export type ApprovalStatus='Pending'|'Approved'|'Revisions Requested';
 export interface PublishChecklistItem{id:string;label:string;checked:boolean}
-export interface EditingTask{id:string;title:string;timecode?:string;status:EditingTaskStatus}
+export interface EditingTask{id:string;title:string;scene_title?:string;timecode?:string;source?:'ai'|'manual';status:EditingTaskStatus}
 export interface CutVersion{id:string;version_number:string;video_url:string;video_storage_path?:string;duration_seconds:number;uploaded_at:string}
 export interface FinalDeliveryAsset{id:string;label:string;url:string}
 export interface FinalHandoff{status:'preparing'|'ready';notes:string;assets:FinalDeliveryAsset[];cut_version:string}
