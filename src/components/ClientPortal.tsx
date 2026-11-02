@@ -96,9 +96,10 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
         {/* 2 & 3. Main Responsive Workspace */}
         {/* On Phone (< lg): Action Items show first so clients can respond or approve immediately. On PC (lg+): 2 Columns side-by-side. */}
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-          {/* Keep the script and review player in the first row. The reference and feedback blocks below share a row, so their position follows the script height. */}
-          <section className="order-2 min-w-0 lg:order-none lg:col-span-6">
+          {/* Each column flows independently so feedback stays with the video while references follow the script. */}
+          <section className="order-2 min-w-0 space-y-0 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} />
+            <VisualReferences references={brief.references} />
           </section>
 
           <section className="order-1 min-w-0 space-y-6 lg:order-none lg:col-span-6">
@@ -112,13 +113,6 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
               onTimecodeSelected={(tc) => setCurrentTimecode(tc)}
               onApproveCut={onApproveCut}
             />
-          </section>
-
-          <section className="order-3 min-w-0 lg:order-none lg:col-span-6">
-            <VisualReferences references={brief.references} />
-          </section>
-
-          <section className="order-4 min-w-0 lg:order-none lg:col-span-6">
             <FeedbackSection
               notes={deliverable.feedback_notes}
               currentTimecode={currentTimecode}

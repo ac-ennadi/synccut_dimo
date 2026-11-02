@@ -167,17 +167,9 @@ export const EditorDashboard: React.FC<Props> = ({
 
         {/* Two-Column Responsive Workspace */}
         <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-          {/* The lower reference and feedback row starts after the taller script/player column. */}
-          <section className="min-w-0 lg:col-span-6">
+          {/* Script-related content and video-related content flow in separate columns. */}
+          <section className="min-w-0 space-y-0 lg:col-span-6">
             <ScriptBox brief={brief} editable />
-          </section>
-
-          <section className="min-w-0 space-y-6 lg:col-span-6">
-            <ActionAlert deliverable={deliverable} />
-            <VideoPlayer deliverable={deliverable} videoAspectRatio={project.video_aspect_ratio ?? '16:9'} onTimecodeSelected={setTc} onApproveCut={onApproveCut} />
-          </section>
-
-          <section className="min-w-0 lg:col-span-6">
             <VisualReferences
               references={brief?.references}
               projectId={project.project_id}
@@ -192,7 +184,9 @@ export const EditorDashboard: React.FC<Props> = ({
             />
           </section>
 
-          <section className="min-w-0 lg:col-span-6">
+          <section className="min-w-0 space-y-6 lg:col-span-6">
+            <ActionAlert deliverable={deliverable} />
+            <VideoPlayer deliverable={deliverable} videoAspectRatio={project.video_aspect_ratio ?? '16:9'} onTimecodeSelected={setTc} onApproveCut={onApproveCut} />
             <FeedbackSection
               notes={deliverable?.feedback_notes}
               currentTimecode={tc}
