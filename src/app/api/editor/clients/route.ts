@@ -3,6 +3,7 @@ import { authorizeEditor, hasProjectAccess, listProjectFiles } from '@/lib/edito
 import { PROJECT_VIDEO_BUCKET } from '@/lib/project-storage';
 import { normalizeProjectStatus } from '@/lib/project-status';
 import { normalizeProjectType } from '@/lib/project-type';
+import { createPublishChecklist, PROJECT_TEMPLATES } from '@/lib/project-templates';
 
 interface MemberRow { email: string; display_name: string; company_name: string }
 
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
   if (membersError || statesError) return Response.json({ error: membersError?.message ?? statesError?.message }, { status: 500 });
 
   const stateByProject = new Map((states ?? []).map((row) => [row.project_id, row.state as {
-    project?: { title?: string; status?: string; project_type?: string; video_aspect_ratio?: string };
+    project?: { title?: string; status?: string; project_type?: string; video_aspect_ratio?: string; template_id?: string };
     deliverable?: { version_number?: string };
   }]));
   const membersByProject = new Map<string, MemberRow[]>();
@@ -50,6 +51,7 @@ export async function GET(request: Request) {
       company_name: projectMembers[0]?.company_name ?? '',
       members: projectMembers,
       projectType,
+      templateId: state?.project?.template_id ?? 'brand_film',
       videoAspectRatio: state?.project?.video_aspect_ratio === '9:16' ? '9:16' : '16:9',
       status: normalizeProjectStatus(state?.project?.status, projectType),
       latestCut: state?.deliverable?.version_number ?? 'No video uploaded',
@@ -65,19 +67,20 @@ export async function POST(request: Request) {
   try { auth = await authorizeEditor(request); } catch { return Response.json({ error: 'Server setup is incomplete.' }, { status: 500 }); }
   if ('error' in auth) return Response.json({ error: auth.error }, { status: auth.status });
 
-  let body: { action?: string; projectName?: string; companyName?: string; projectType?: string; videoAspectRatio?: string };
+  let body: { action?: string; projectName?: string; companyName?: string; projectType?: string; videoAspectRatio?: string; templateId?: string };
   try { body = await request.json(); } catch { return Response.json({ error: 'Invalid form data.' }, { status: 400 }); }
   const projectName = body.projectName?.trim().replace(/[\x00-\x1F\x7F]/g, '').slice(0, 150);
   const companyName = body.companyName?.trim().replace(/[\x00-\x1F\x7F]/g, '').slice(0, 150);
   const projectType = body.projectType === 'after_effects' ? 'after_effects' : body.projectType === 'premiere_pro' ? 'premiere_pro' : null;
   const videoAspectRatio = body.videoAspectRatio === '16:9' || body.videoAspectRatio === '9:16' ? body.videoAspectRatio : null;
+  const template = PROJECT_TEMPLATES.find((item) => item.id === body.templateId);
   if (body.action !== 'create-project') return Response.json({ error: 'Choose a valid project action.' }, { status: 400 });
-  if (!projectName || !companyName || projectName.length < 2 || companyName.length < 2 || !projectType || !videoAspectRatio) {
-    return Response.json({ error: 'Enter a project name, company name, project type, and video format.' }, { status: 400 });
+  if (!projectName || !companyName || projectName.length < 2 || companyName.length < 2 || !projectType || !videoAspectRatio || !template) {
+    return Response.json({ error: 'Enter a project name, company name, project template, project type, and video format.' }, { status: 400 });
   }
 
   const projectId = `project_${crypto.randomUUID()}`;
-  const project = { ...mockProject, project_id: projectId, client_id: '', title: projectName, project_type: projectType, video_aspect_ratio: videoAspectRatio, status: 'Scripting' as const };
+  const project = { ...mockProject, project_id: projectId, client_id: '', title: projectName, project_type: projectType, video_aspect_ratio: videoAspectRatio, template_id: template.id, publish_checklist: createPublishChecklist(template.id), status: 'Scripting' as const };
   const brief = { ...mockBrief, brief_id: `brief_${projectId}`, project_id: projectId, version_label: 'Script draft', is_locked: false, target_audience: '', script_scenes: [], script_sections: [] };
   const deliverable = { ...mockDeliverable, deliverable_id: `deliverable_${projectId}`, project_id: projectId, video_url: '', feedback_notes: [], uploaded_at: 'No video uploaded yet', action_required_by: 'Editor' as const, action_banner_text: 'Add the first video cut when it is ready.' };
   const { error: stateError } = await auth.admin.from('project_portal_state').insert({

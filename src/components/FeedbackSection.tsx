@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FeedbackNote } from '@/types';
+import type { FeedbackNote, FeedbackStatus } from '@/types';
 import { MessageSquare, Send, Clock, CheckCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/lib/formatters';
@@ -14,19 +14,26 @@ const formatManualTimecode = (value: string) => {
 interface FeedbackSectionProps {
   notes?: FeedbackNote[];
   currentTimecode: string;
+  currentCutVersion?: string;
   onAddNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => void | Promise<void>;
+  canManageNotes?: boolean;
+  onUpdateStatus?: (noteId: string, status: FeedbackStatus) => Promise<void>;
 }
 
 export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   notes = [],
   currentTimecode,
+  currentCutVersion,
   onAddNote,
+  canManageNotes = false,
+  onUpdateStatus,
 }) => {
   const safeNotes = Array.isArray(notes) ? notes : [];
   const [content, setContent] = useState('');
   const [manualTimecode, setManualTimecode] = useState('');
   const [timecodeTag, setTimecodeTag] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [updatingNoteId, setUpdatingNoteId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const { currentUser } = useAuth();
   const hasCompleteManualTimecode = /^\d{2}:\d{2}$/.test(manualTimecode);
@@ -41,6 +48,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
       await onAddNote({
         author_name: currentUser?.name || 'Team member',
         timecode: timecodeTag || undefined,
+        cut_version: currentCutVersion,
         content: content.trim(),
       });
       setContent('');
@@ -60,6 +68,19 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
       ? (hasCompleteManualTimecode ? manualTimecode : '')
       : currentTimecode;
     if (timecode) setTimecodeTag(timecode);
+  };
+
+  const handleStatusChange = async (noteId: string, status: FeedbackStatus) => {
+    if (!onUpdateStatus) return;
+    setUpdatingNoteId(noteId);
+    setErrorMessage('');
+    try {
+      await onUpdateStatus(noteId, status);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not update the feedback status.');
+    } finally {
+      setUpdatingNoteId(null);
+    }
   };
 
   return (
@@ -133,7 +154,9 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                 Fix: in Supabase, open the SQL Editor and run{' '}
                 <code className="rounded bg-rose-100 px-1 font-mono dark:bg-rose-950">supabase/migrations/20261011_concurrent_project_edits.sql</code>{' '}
                 and{' '}
-                <code className="rounded bg-rose-100 px-1 font-mono dark:bg-rose-950">20261011_project_member_feedback_attribution.sql</code>, then reload this page.
+                <code className="rounded bg-rose-100 px-1 font-mono dark:bg-rose-950">supabase/migrations/20261011_project_member_feedback_attribution.sql</code>{' '}
+                plus{' '}
+                <code className="rounded bg-rose-100 px-1 font-mono dark:bg-rose-950">supabase/migrations/20261102_editor_workflows.sql</code>, then reload this page.
               </p>
             )}
           </div>
@@ -161,7 +184,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
               key={note.id}
               className="p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40 text-xs space-y-1"
             >
-              <div className="flex items-center justify-between text-[11px]">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-neutral-900 dark:text-neutral-100">
                     {note.author_name}
@@ -171,8 +194,28 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                       ⏱ {note.timecode}
                     </span>
                   )}
+                  {note.cut_version && <span className="text-[10px] text-neutral-500">{note.cut_version}</span>}
                 </div>
-                <span className="text-neutral-400 text-[10px]">{formatRelativeTime(note.created_at)}</span>
+                <div className="flex items-center gap-2">
+                  {canManageNotes ? (
+                    <select
+                      aria-label={`Update status for feedback by ${note.author_name}`}
+                      value={note.status ?? 'open'}
+                      disabled={updatingNoteId === note.id}
+                      onChange={(event) => void handleStatusChange(note.id, event.target.value as FeedbackStatus)}
+                      className="rounded-full border border-neutral-200 bg-white px-2 py-1 text-[10px] font-medium text-neutral-700 outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+                    >
+                      <option value="open">Open</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="resolved">Resolved</option>
+                    </select>
+                  ) : (
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${note.status === 'resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : note.status === 'in_progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300' : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'}`}>
+                      {note.status === 'resolved' ? 'Resolved' : note.status === 'in_progress' ? 'In progress' : 'Open'}
+                    </span>
+                  )}
+                  <span className="text-neutral-400 text-[10px]">{formatRelativeTime(note.created_at)}</span>
+                </div>
               </div>
               <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
                 {note.content}

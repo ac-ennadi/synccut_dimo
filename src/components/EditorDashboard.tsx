@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -11,6 +11,9 @@ import {
   ProjectType,
   ActionRequiredBy,
   FeedbackNote,
+  FeedbackStatus,
+  FinalHandoff as FinalHandoffData,
+  PublishChecklistItem,
   MoodboardReference,
 } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -27,6 +30,9 @@ import { ProjectDangerZone } from './ProjectDangerZone';
 import { ScriptEditorProvider } from '@/context/ScriptEditorContext';
 import { BrandLogo } from './BrandLogo';
 import { ThemeToggle } from './ThemeToggle';
+import { SceneTasks } from './SceneTasks';
+import { FinalHandoff } from './FinalHandoff';
+import { createPublishChecklist } from '@/lib/project-templates';
 import { Clapperboard, LogOut, Shield, Eye, X, ArrowLeft } from 'lucide-react';
 
 interface Props {
@@ -43,6 +49,9 @@ interface Props {
   onUpdateScript: (b: CreativeBrief) => void;
   onAddNote: (n: Omit<FeedbackNote, 'id' | 'created_at'>) => void | Promise<void>;
   onApproveCut: () => void;
+  onUpdateFeedbackStatus: (noteId: string, status: FeedbackStatus) => Promise<void>;
+  onUpdatePublishChecklist: (items: PublishChecklistItem[]) => void;
+  onUpdateFinalHandoff: (handoff: FinalHandoffData) => void;
 }
 
 export const EditorDashboard: React.FC<Props> = ({
@@ -59,16 +68,22 @@ export const EditorDashboard: React.FC<Props> = ({
   onUpdateScript,
   onAddNote,
   onApproveCut,
+  onUpdateFeedbackStatus,
+  onUpdatePublishChecklist,
+  onUpdateFinalHandoff,
 }) => {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   const [tc, setTc] = useState('');
+  const [reviewVersion, setReviewVersion] = useState(deliverable.version_number);
   const [preview, setPreview] = useState(false);
   const [scriptEditorHandler, setScriptEditorHandler] = useState<() => void>(() => () => undefined);
   const registerScriptEditor = useCallback((handler: () => void) => {
     setScriptEditorHandler(() => handler);
     return () => setScriptEditorHandler(() => () => undefined);
   }, []);
+
+  useEffect(() => setReviewVersion(deliverable.version_number), [deliverable.version_number]);
 
   return (
     <ScriptEditorProvider value={{ requestEdit: scriptEditorHandler, registerEditor: registerScriptEditor }}>
@@ -144,6 +159,8 @@ export const EditorDashboard: React.FC<Props> = ({
           deliverable={deliverable}
           brief={brief}
           projectId={project.project_id}
+          reviewChecklist={project.publish_checklist ?? createPublishChecklist(project.template_id ?? 'brand_film')}
+          onUpdateReviewChecklist={onUpdatePublishChecklist}
           onPostNewCut={onPostNewCut}
           onSetActionAlert={onSetActionAlert}
           onUpdateScript={onUpdateScript}
@@ -170,6 +187,7 @@ export const EditorDashboard: React.FC<Props> = ({
           {/* Script-related content and video-related content flow in separate columns. */}
           <section className="order-2 min-w-0 space-y-0 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} editable />
+            <SceneTasks brief={brief} editable onChange={onUpdateScript} />
             <VisualReferences
               references={brief?.references}
               projectId={project.project_id}
@@ -186,12 +204,16 @@ export const EditorDashboard: React.FC<Props> = ({
 
           <section className="order-1 min-w-0 space-y-6 lg:order-none lg:col-span-6">
             <ActionAlert deliverable={deliverable} />
-            <VideoPlayer deliverable={deliverable} videoAspectRatio={project.video_aspect_ratio ?? '16:9'} onTimecodeSelected={setTc} onApproveCut={onApproveCut} />
+            <VideoPlayer deliverable={deliverable} videoAspectRatio={project.video_aspect_ratio ?? '16:9'} previousCut={deliverable.cut_history?.[0]} onTimecodeSelected={setTc} onCutChange={setReviewVersion} onApproveCut={onApproveCut} />
             <FeedbackSection
               notes={deliverable?.feedback_notes}
               currentTimecode={tc}
+              currentCutVersion={reviewVersion}
               onAddNote={onAddNote}
+              canManageNotes
+              onUpdateStatus={onUpdateFeedbackStatus}
             />
+            <FinalHandoff handoff={deliverable.final_handoff} currentVersion={deliverable.version_number} approvalStatus={deliverable.approval_status} editable onSave={onUpdateFinalHandoff} />
           </section>
         </main>
 

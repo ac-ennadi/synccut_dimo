@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Deliverable, CreativeBrief, ActionRequiredBy } from '@/types';
+import { Deliverable, CreativeBrief, ActionRequiredBy, PublishChecklistItem } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { 
   Settings2, 
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { migrateScriptToBlocks, ScriptBlocksEditor } from './ScriptBlocksEditor';
 import { useScriptEditor } from '@/context/ScriptEditorContext';
+import { checklistIsComplete } from '@/lib/project-templates';
 
 function readVideoDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
@@ -33,6 +34,8 @@ interface EditorToolbarProps {
   deliverable: Deliverable;
   brief: CreativeBrief;
   projectId: string;
+  reviewChecklist: PublishChecklistItem[];
+  onUpdateReviewChecklist: (items: PublishChecklistItem[]) => void;
   onPostNewCut: (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => void;
   onSetActionAlert: (actionBy: ActionRequiredBy, bannerText: string) => void;
   onUpdateScript: (newScript: CreativeBrief) => void;
@@ -42,6 +45,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   deliverable,
   brief,
   projectId,
+  reviewChecklist,
+  onUpdateReviewChecklist,
   onPostNewCut,
   onSetActionAlert,
   onUpdateScript,
@@ -94,6 +99,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   const handlePublishCut = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadError('');
+    if (!checklistIsComplete(reviewChecklist)) {
+      setUploadError('Complete every review check before publishing this cut.');
+      return;
+    }
     setIsUploading(true);
     try {
       const videoUrl = cutUrl.trim();
@@ -213,6 +222,24 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 />
               </div>
 
+              <fieldset className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950/60 p-3">
+                <legend className="text-neutral-200 font-semibold">Before you publish</legend>
+                <div className="flex justify-end">
+                  <span className="text-[10px] text-neutral-500">{reviewChecklist.filter((item) => item.checked).length}/{reviewChecklist.length} complete</span>
+                </div>
+                {reviewChecklist.map((item) => (
+                  <label key={item.id} className="flex cursor-pointer items-start gap-2.5 text-[11px] leading-5 text-neutral-300">
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={(event) => onUpdateReviewChecklist(reviewChecklist.map((current) => current.id === item.id ? { ...current, checked: event.target.checked } : current))}
+                      className="mt-1 h-3.5 w-3.5 shrink-0 accent-indigo-500"
+                    />
+                    <span>{item.label}</span>
+                  </label>
+                ))}
+              </fieldset>
+
               <div>
                 <label className="block text-neutral-300 font-semibold mb-1">Upload video file</label>
                 <input type="file" accept="video/*" onChange={async (e) => { const file = e.target.files?.[0] ?? null; setVideoFile(file); setUploadError(''); if (file) { setCutUrl(''); setVideoDuration(await readVideoDuration(file)); } else setVideoDuration(0); }} className="w-full p-2 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-300 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-800 file:px-3 file:py-2 file:text-neutral-100" />
@@ -249,7 +276,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading || (!videoFile && !cutUrl.trim())}
+                  disabled={isUploading || (!videoFile && !cutUrl.trim()) || !checklistIsComplete(reviewChecklist)}
                   className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold disabled:cursor-wait disabled:opacity-60"
                 >
                   {isUploading ? 'Uploading video…' : 'Publish Cut to Client'}

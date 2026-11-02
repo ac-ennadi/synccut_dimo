@@ -10,7 +10,7 @@ function Workspace() {
   const router = useRouter();
   const { currentUser, isLoading } = useAuth();
   const {
-    project, brief, deliverable, isProjectLoaded, isStatusSaving, updateProjectType, updateProjectTitle, updateDueDate, updateStatus, postNewCut,
+    project, brief, deliverable, isProjectLoaded, isStatusSaving, updateProjectType, updateProjectTitle, updateDueDate, updateStatus, updatePublishChecklist, updateFinalHandoff, updateFeedbackStatus, postNewCut,
     setActionAlert, updateScript, addNote, approveCut,
   } = useProject();
 
@@ -37,7 +37,7 @@ function Workspace() {
 
   return <EditorDashboard project={project} brief={brief} deliverable={deliverable} isStatusSaving={isStatusSaving} onProjectTypeChange={updateProjectType} onProjectTitleChange={updateProjectTitle} onDueDateChange={updateDueDate} onStatusChange={updateStatus}
     onPostNewCut={postNewCut} onSetActionAlert={setActionAlert} onUpdateScript={updateScript}
-    onAddNote={addNote} onApproveCut={approveCut} />;
+    onAddNote={addNote} onApproveCut={approveCut} onUpdateFeedbackStatus={updateFeedbackStatus} onUpdatePublishChecklist={updatePublishChecklist} onUpdateFinalHandoff={updateFinalHandoff} />;
 }
 
 export default function EditorClientWorkspace({ projectId }: { projectId: string }) {

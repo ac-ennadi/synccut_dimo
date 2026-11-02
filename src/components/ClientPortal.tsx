@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Project, CreativeBrief, Deliverable, FeedbackNote } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,8 @@ import { FeedbackSection } from './FeedbackSection';
 import { ArrowLeft, LogOut, UserCheck } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { ThemeToggle } from './ThemeToggle';
+import { SceneTasks } from './SceneTasks';
+import { FinalHandoff } from './FinalHandoff';
 
 interface ClientPortalProps {
   project: Project;
@@ -33,7 +35,10 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   const [currentTimecode, setCurrentTimecode] = useState('');
+  const [reviewVersion, setReviewVersion] = useState(deliverable.version_number);
   const projectIds = currentUser?.project_ids ?? (currentUser?.project_id ? [currentUser.project_id] : []);
+
+  useEffect(() => setReviewVersion(deliverable.version_number), [deliverable.version_number]);
 
   const handleLogout = () => {
     logout();
@@ -99,6 +104,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
           {/* Each column flows independently so feedback stays with the video while references follow the script. */}
           <section className="order-2 min-w-0 space-y-0 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} />
+            <SceneTasks brief={brief} />
             <VisualReferences references={brief.references} />
           </section>
 
@@ -110,14 +116,18 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
             <VideoPlayer
               deliverable={deliverable}
               videoAspectRatio={project.video_aspect_ratio ?? '16:9'}
+              previousCut={deliverable.cut_history?.[0]}
               onTimecodeSelected={(tc) => setCurrentTimecode(tc)}
+              onCutChange={setReviewVersion}
               onApproveCut={onApproveCut}
             />
             <FeedbackSection
               notes={deliverable.feedback_notes}
               currentTimecode={currentTimecode}
+              currentCutVersion={reviewVersion}
               onAddNote={onAddNote}
             />
+            <FinalHandoff handoff={deliverable.final_handoff} currentVersion={deliverable.version_number} approvalStatus={deliverable.approval_status} />
           </section>
 
         </main>

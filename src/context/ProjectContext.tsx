@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, Project, ProjectStatus, ProjectType, ScriptBlockType } from '@/types';
+import type { ActionRequiredBy, CreativeBrief, Deliverable, FeedbackNote, FeedbackStatus, FinalHandoff, Project, ProjectStatus, ProjectType, PublishChecklistItem, ScriptBlockType } from '@/types';
 import { mockBrief, mockDeliverable, mockProject } from '@/lib/mock-data';
+import { createPublishChecklist, PROJECT_TEMPLATES } from '@/lib/project-templates';
 import { normalizeProjectStatus } from '@/lib/project-status';
 import { normalizeProjectType } from '@/lib/project-type';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -22,10 +23,13 @@ interface ContextValue extends ProjectState {
   updateProjectType: (projectType: ProjectType) => void;
   updateProjectTitle: (title: string) => void;
   updateDueDate: (dueDate: string) => void;
+  updatePublishChecklist: (items: PublishChecklistItem[]) => void;
+  updateFinalHandoff: (handoff: FinalHandoff) => void;
   postNewCut: (cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => void;
   setActionAlert: (actionBy: ActionRequiredBy, text: string) => void;
   updateScript: (brief: CreativeBrief) => void;
   addNote: (note: Omit<FeedbackNote, 'id' | 'created_at'>) => Promise<void>;
+  updateFeedbackStatus: (noteId: string, status: FeedbackStatus) => Promise<void>;
   approveCut: () => void;
 }
 
@@ -80,7 +84,7 @@ function describeFeedbackError(error: { message?: string; code?: string; details
     return `You are signed in as ${email ?? 'this account'}, but the database is not letting this account add notes to project ${projectId ?? 'this project'}. This is usually a missing row-level-security policy — see the steps below.`;
   }
 
-  if (/column .* does not exist|does not exist|PGRST204/i.test(message)) return 'The feedback table is missing a column from the latest migration. Ask the developer to run the feedback migrations.';
+  if (/column .* does not exist|does not exist|PGRST204/i.test(message)) return 'The feedback table is missing a column. Apply supabase/migrations/20261102_editor_workflows.sql in the Supabase SQL Editor, then reload this project.';
   if (/foreign key|violates|not present/i.test(message) || code === '23503') return 'This project is missing its state record, so notes cannot be attached to it. The editor should re-create the project.';
   return `Could not save your feedback: ${message || 'the server rejected it.'}`;
 }
@@ -170,14 +174,22 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
       const base = cachedState ?? seed ?? makeInitialState(id, stableUser);
       try {
         // Parallel fetch of project state and feedback notes
-        const [stateRes, notesRes] = await Promise.all([
+        const [stateRes, initialNotesRes] = await Promise.all([
           supabase.from('project_portal_state').select('state').eq('project_id', id).maybeSingle(),
           supabase
             .from('project_feedback_notes')
-            .select('id,author_name,timecode,content,created_at')
+            .select('id,author_name,timecode,content,created_at,status,cut_version')
             .eq('project_id', id)
             .order('created_at', { ascending: false }),
         ]);
+        let notesRes = initialNotesRes;
+        if (notesRes.error && /column .* does not exist|schema cache|PGRST204/i.test(notesRes.error.message)) {
+          // Keep existing feedback visible while the new status migration is pending.
+          notesRes = await supabase.from('project_feedback_notes')
+            .select('id,author_name,timecode,content,created_at')
+            .eq('project_id', id)
+            .order('created_at', { ascending: false });
+        }
 
         if (stateRes.error) throw stateRes.error;
         if (notesRes.error) {
@@ -200,16 +212,40 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
             timecode: typeof note.timecode === 'string' ? note.timecode : undefined,
             content: typeof note.content === 'string' ? note.content : '',
             created_at: typeof note.created_at === 'string' ? note.created_at : new Date().toISOString(),
+            status: note.status === 'resolved' || note.status === 'in_progress' ? note.status : 'open',
+            cut_version: typeof note.cut_version === 'string' ? note.cut_version : undefined,
           })) as FeedbackNote[];
 
         const savedBrief = (saved?.brief ?? {}) as Partial<CreativeBrief>;
         const savedDeliverable = (saved?.deliverable ?? {}) as Partial<Deliverable>;
+        const templateId = PROJECT_TEMPLATES.some((template) => template.id === restoredProject.template_id)
+          ? restoredProject.template_id!
+          : 'brand_film';
+        const savedChecklist = Array.isArray(restoredProject.publish_checklist)
+          ? restoredProject.publish_checklist.filter(isRecord).map((item, index) => ({
+            id: typeof item.id === 'string' ? item.id : `review_${index + 1}`,
+            label: typeof item.label === 'string' ? item.label : 'Review item',
+            checked: item.checked === true,
+          }))
+          : createPublishChecklist(templateId);
+        const cleanCutHistory = Array.isArray(savedDeliverable.cut_history)
+          ? savedDeliverable.cut_history.filter(isRecord).flatMap((cut, index) => typeof cut.version_number === 'string' ? [{
+            id: typeof cut.id === 'string' ? cut.id : `cut_${index + 1}`,
+            version_number: cut.version_number,
+            video_url: typeof cut.video_url === 'string' ? cut.video_url : '',
+            video_storage_path: typeof cut.video_storage_path === 'string' ? cut.video_storage_path : undefined,
+            duration_seconds: typeof cut.duration_seconds === 'number' ? cut.duration_seconds : 0,
+            uploaded_at: typeof cut.uploaded_at === 'string' ? cut.uploaded_at : '',
+          }] : [])
+          : [];
         const fullProjectState: ProjectState = {
           project: {
             ...base.project,
             ...restoredProject,
             project_type: projectType,
             video_aspect_ratio: restoredProject.video_aspect_ratio === '9:16' ? '9:16' : '16:9',
+            template_id: templateId,
+            publish_checklist: savedChecklist,
             status: normalizeProjectStatus(restoredProject.status, projectType),
           },
           brief: {
@@ -247,11 +283,20 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
                 image_storage_path: typeof reference.image_storage_path === 'string' ? reference.image_storage_path : undefined,
               }))
               : base.brief.references,
+            editing_tasks: Array.isArray(savedBrief.editing_tasks)
+              ? savedBrief.editing_tasks.filter(isRecord).map((task, index) => ({
+                id: typeof task.id === 'string' ? task.id : `task_${index + 1}`,
+                title: typeof task.title === 'string' ? task.title : 'Untitled scene',
+                timecode: typeof task.timecode === 'string' ? task.timecode : undefined,
+                status: task.status === 'in_edit' || task.status === 'ready_for_review' || task.status === 'done' ? task.status : 'not_started',
+              }))
+              : [],
           },
           deliverable: {
             ...base.deliverable,
             ...savedDeliverable,
             video_url: savedDeliverable.video_url?.includes('sample-cut-guid') ? '' : savedDeliverable.video_url ?? '',
+            cut_history: cleanCutHistory,
             feedback_notes: cleanNotes,
           },
         };
@@ -311,6 +356,16 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
           setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === note.id)
             ? current
             : { ...current, deliverable: { ...current.deliverable, feedback_notes: [note, ...current.deliverable.feedback_notes] } });
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'project_feedback_notes', filter: `project_id=eq.${id}` }, (event) => {
+          const updated = event.new as FeedbackNote;
+          setState((current) => ({
+            ...current,
+            deliverable: {
+              ...current.deliverable,
+              feedback_notes: current.deliverable.feedback_notes.map((note) => note.id === updated.id ? { ...note, status: updated.status ?? 'open' } : note),
+            },
+          }));
         });
       channel.subscribe((status, error) => {
         if (status === 'CHANNEL_ERROR') {
@@ -363,6 +418,16 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     saveProjectFields({ due_date: dueDate });
   }, [saveProjectFields]);
 
+  const updatePublishChecklist = useCallback((items: PublishChecklistItem[]) => {
+    setState((current) => ({ ...current, project: { ...current.project, publish_checklist: items } }));
+    saveProjectFields({ publish_checklist: items });
+  }, [saveProjectFields]);
+
+  const updateFinalHandoff = useCallback((handoff: FinalHandoff) => {
+    setState((current) => ({ ...current, deliverable: { ...current.deliverable, final_handoff: handoff } }));
+    void savePatch({ deliverable: { final_handoff: handoff } });
+  }, [savePatch]);
+
   const updateProjectTitle = useCallback((title: string) => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
@@ -371,27 +436,44 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   }, [saveProjectFields]);
 
   const postNewCut = useCallback((cut: { version: string; videoUrl: string; videoStoragePath?: string; duration: number }) => {
+    const previous = state.deliverable;
+    const savedCut = previous.video_url || previous.video_storage_path
+      ? {
+        id: crypto.randomUUID(),
+        version_number: previous.version_number,
+        video_url: previous.video_url,
+        video_storage_path: previous.video_storage_path,
+        duration_seconds: previous.duration_seconds,
+        uploaded_at: previous.uploaded_at,
+      }
+      : null;
+    const cutHistory = savedCut
+      ? [savedCut, ...(previous.cut_history ?? [])].slice(0, 10)
+      : previous.cut_history ?? [];
+    const resetChecklist = (state.project.publish_checklist ?? createPublishChecklist(state.project.template_id ?? 'brand_film'))
+      .map((item) => ({ ...item, checked: false }));
     const deliverablePatch = {
       version_number: cut.version,
       video_url: cut.videoUrl,
-      video_storage_path: cut.videoStoragePath,
+      video_storage_path: cut.videoStoragePath ?? '',
       duration_seconds: cut.duration,
+      cut_history: cutHistory,
       uploaded_at: 'Just now by Editor',
       approval_status: 'Pending' as const,
       action_required_by: 'Client' as const,
       action_banner_text: `Review ${cut.version} and leave your notes below`,
+      ...(previous.final_handoff ? { final_handoff: { ...previous.final_handoff, status: 'preparing' as const, cut_version: cut.version } } : {}),
     };
     const advances = ['Scripting', 'Pre-Production', 'Shooting'].includes(projectStatusRef.current);
     const status = advances ? 'Editing' : projectStatusRef.current;
-    // The cut and the stage advance are written as one merged patch instead of
-    // one round trip per field.
+    const projectPatch = { ...(advances ? { status } : {}), publish_checklist: resetChecklist };
     setState((current) => ({
-      project: { ...current.project, status },
-      brief: current.brief,
+      ...current,
+      project: { ...current.project, ...projectPatch },
       deliverable: { ...current.deliverable, ...deliverablePatch },
     }));
-    void savePatch({ deliverable: deliverablePatch, ...(advances ? { project: { status } } : {}) });
-  }, [savePatch]);
+    void savePatch({ deliverable: deliverablePatch, project: projectPatch });
+  }, [savePatch, state]);
 
   const setActionAlert = useCallback((actionBy: ActionRequiredBy, text: string) => {
     const patch = { action_required_by: actionBy, action_banner_text: text };
@@ -405,14 +487,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
   }, [savePatch]);
 
   const addNote = useCallback(async (note: Omit<FeedbackNote, 'id' | 'created_at'>) => {
-    const newNote: FeedbackNote = { ...note, author_email: currentUser?.email, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    const newNote: FeedbackNote = {
+      ...note,
+      status: note.status ?? 'open',
+      cut_version: note.cut_version ?? state.deliverable.version_number,
+      author_email: currentUser?.email,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+    };
     if (!remote) {
       setState((current) => ({ ...current, deliverable: { ...current.deliverable, feedback_notes: [newNote, ...current.deliverable.feedback_notes] } }));
       return;
     }
     const { data, error } = await supabase.from('project_feedback_notes')
       .insert({ ...newNote, project_id: id })
-      .select('id,author_name,timecode,content,created_at')
+      .select('id,author_name,timecode,content,created_at,status,cut_version')
       .single();
     if (error) {
       // This is the one write that runs straight from the browser under row
@@ -428,7 +517,35 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     setState((current) => current.deliverable.feedback_notes.some((existing) => existing.id === savedNote.id)
       ? current
       : { ...current, deliverable: { ...current.deliverable, feedback_notes: [savedNote, ...current.deliverable.feedback_notes] } });
-  }, [currentUser?.email, id, remote]);
+  }, [currentUser?.email, id, remote, state.deliverable.version_number]);
+
+  const updateFeedbackStatus = useCallback(async (noteId: string, status: FeedbackStatus) => {
+    if (!remote) {
+      setState((current) => ({
+        ...current,
+        deliverable: {
+          ...current.deliverable,
+          feedback_notes: current.deliverable.feedback_notes.map((note) => note.id === noteId ? { ...note, status } : note),
+        },
+      }));
+      return;
+    }
+    const { data, error } = await supabase.from('project_feedback_notes')
+      .update({ status })
+      .eq('project_id', id)
+      .eq('id', noteId)
+      .select('id,status')
+      .single();
+    if (error) throw new Error(error.message || 'Could not update feedback status.');
+    const saved = data as { id: string; status: FeedbackStatus };
+    setState((current) => ({
+      ...current,
+      deliverable: {
+        ...current.deliverable,
+        feedback_notes: current.deliverable.feedback_notes.map((note) => note.id === saved.id ? { ...note, status: saved.status } : note),
+      },
+    }));
+  }, [id, remote]);
 
   const approveCut = useCallback(() => {
     const deliverablePatch = { approval_status: 'Approved' as const, action_required_by: 'None' as const, action_banner_text: 'The client approved this cut.' };
@@ -448,13 +565,16 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode; projectId?: 
     updateStatus,
     updateProjectTitle,
     updateDueDate,
+    updatePublishChecklist,
+    updateFinalHandoff,
     updateProjectType,
     postNewCut,
     setActionAlert,
     updateScript,
     addNote,
+    updateFeedbackStatus,
     approveCut,
-  }), [state, ready, id, projectLoadError, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, postNewCut, setActionAlert, updateScript, addNote, approveCut]);
+  }), [state, ready, id, projectLoadError, pendingStatusSaves, updateStatus, updateProjectType, updateProjectTitle, updateDueDate, updatePublishChecklist, updateFinalHandoff, postNewCut, setActionAlert, updateScript, addNote, updateFeedbackStatus, approveCut]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
 };

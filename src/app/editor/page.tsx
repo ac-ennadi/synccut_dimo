@@ -9,7 +9,8 @@ import { supabase } from '@/lib/supabase';
 import { DeleteProjectModal } from '@/components/DeleteProjectModal';
 import { BrandLogo } from '@/components/BrandLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import type { VideoAspectRatio } from '@/types';
+import type { ProjectTemplateId, VideoAspectRatio } from '@/types';
+import { getProjectTemplate, PROJECT_TEMPLATES } from '@/lib/project-templates';
 
 interface ProjectRow {
   project_id: string;
@@ -17,6 +18,7 @@ interface ProjectRow {
   company_name: string;
   members: { email: string; display_name: string; company_name: string }[];
   projectType: 'after_effects' | 'premiere_pro';
+  templateId: ProjectTemplateId;
   videoAspectRatio: VideoAspectRatio;
   status: string;
   latestCut: string;
@@ -69,7 +71,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro', videoAspectRatio: '16:9' as VideoAspectRatio });
+  const [details, setDetails] = useState({ projectName: '', companyName: '', projectType: 'premiere_pro', templateId: 'brand_film' as ProjectTemplateId, videoAspectRatio: '16:9' as VideoAspectRatio });
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ProjectRow | null>(null);
@@ -118,7 +120,7 @@ export default function EditorPage() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Could not create project.');
-      setDetails({ projectName: '', companyName: '', projectType: 'premiere_pro', videoAspectRatio: '16:9' });
+      setDetails({ projectName: '', companyName: '', projectType: 'premiere_pro', templateId: 'brand_film', videoAspectRatio: '16:9' });
       setMessage({ error: false, text: 'Project created. Add client users from the project workspace.' });
       setShowForm(false);
       await loadProjects();
@@ -194,6 +196,21 @@ export default function EditorPage() {
                 minLength={2}
                 className="rounded-xl border border-neutral-800 bg-neutral-950 px-3.5 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
+              <label className="grid gap-1.5 text-xs font-medium text-neutral-300 sm:col-span-2">
+                Project template
+                <select
+                  aria-label="Project template"
+                  value={details.templateId}
+                  onChange={(event) => {
+                    const template = getProjectTemplate(event.target.value);
+                    setDetails({ ...details, templateId: template.id, projectType: template.projectType, videoAspectRatio: template.videoAspectRatio });
+                  }}
+                  className="rounded-xl border border-neutral-800 bg-neutral-950 px-3.5 py-2.5 text-sm text-neutral-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  {PROJECT_TEMPLATES.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+                </select>
+                <span className="text-[11px] font-normal text-neutral-500">{getProjectTemplate(details.templateId).description} You can adjust the workflow and video format below.</span>
+              </label>
               <label className="grid gap-1.5 text-xs font-medium text-neutral-300 sm:col-span-2">
                 Project workflow type
                 <select
@@ -294,7 +311,7 @@ export default function EditorPage() {
                     <div className="min-w-0 pr-8">
                       <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">{project.company_name || 'Project'}</p>
                       <h3 className="mt-1 truncate text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">{project.title}</h3>
-                      <p className="mt-1.5 text-xs font-semibold text-indigo-400">{project.projectType === 'after_effects' ? 'After Effects • Animation' : 'Premiere Pro • Live Action'}</p>
+                      <p className="mt-1.5 text-xs font-semibold text-indigo-400">{getProjectTemplate(project.templateId).name} · {project.projectType === 'after_effects' ? 'After Effects · Animation' : 'Premiere Pro · Live Action'} · {project.videoAspectRatio}</p>
                     </div>
                     <ArrowUpRight size={17} className="shrink-0 text-neutral-500 group-hover:text-indigo-400 transition" />
                   </div>

@@ -1,4 +1,5 @@
 import { Project, CreativeBrief, Deliverable, User } from '@/types';
+import { createPublishChecklist } from '@/lib/project-templates';
 
 // ── Demo user accounts (used by loginAs() quick-access in dev mode) ──────────
 
@@ -28,6 +29,8 @@ export const mockProject: Project = {
   title: 'Project: Rivo Co-Working',
   project_type: 'premiere_pro',
   video_aspect_ratio: '16:9',
+  template_id: 'brand_film',
+  publish_checklist: createPublishChecklist('brand_film'),
   status: 'Shooting',
   start_date: '2026-10-01',
   due_date: 'Friday, Nov 14',

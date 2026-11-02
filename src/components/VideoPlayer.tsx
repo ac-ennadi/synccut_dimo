@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import type { Deliverable, VideoAspectRatio } from '@/types';
+import type { CutVersion, Deliverable, VideoAspectRatio } from '@/types';
 import { Film, Copy, Check, CheckCircle, Play, Pause, Maximize2, Volume2, VolumeX, ExternalLink } from 'lucide-react';
 import { onSignOut, supabase } from '@/lib/supabase';
 import { formatRelativeTime } from '@/lib/formatters';
@@ -9,7 +9,9 @@ import { formatRelativeTime } from '@/lib/formatters';
 interface VideoPlayerProps {
   deliverable: Deliverable;
   videoAspectRatio?: VideoAspectRatio;
+  previousCut?: CutVersion;
   onTimecodeSelected?: (timecode: string) => void;
+  onCutChange?: (version: string) => void;
   onApproveCut?: () => void;
 }
 
@@ -77,20 +79,27 @@ function getGoogleDriveViewUrl(rawUrl: string): string | null {
   }
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspectRatio = '16:9', onTimecodeSelected, onApproveCut }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspectRatio = '16:9', previousCut, onTimecodeSelected, onCutChange, onApproveCut }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerFrameRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showPreviousCut, setShowPreviousCut] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   // Starts from the stored duration and is corrected by the media's own metadata
   // as soon as it loads, so a stale or missing value is never shown.
   const [mediaDuration, setMediaDuration] = useState(deliverable?.duration_seconds || 0);
   const [signedVideoUrl, setSignedVideoUrl] = useState('');
+  const [signedPreviousVideoUrl, setSignedPreviousVideoUrl] = useState('');
   const [videoLoadError, setVideoLoadError] = useState('');
-  const videoUrl = deliverable?.video_url?.trim() || signedVideoUrl;
+  const showingPreviousCut = Boolean(previousCut && showPreviousCut);
+  const currentVideoUrl = deliverable?.video_url?.trim() || signedVideoUrl;
+  const previousVideoUrl = previousCut?.video_url?.trim() || signedPreviousVideoUrl;
+  const videoUrl = showingPreviousCut ? previousVideoUrl : currentVideoUrl;
+  const videoVersion = showingPreviousCut ? previousCut?.version_number ?? '' : deliverable.version_number;
+  const activeDuration = showingPreviousCut ? previousCut?.duration_seconds ?? 0 : deliverable?.duration_seconds || 0;
   const isDirectVideo = /\.(mp4|webm|ogg|mov|m4v)(?:$|[?#])/i.test(videoUrl);
   const googleDrivePreviewUrl = getGoogleDrivePreviewUrl(videoUrl);
   const googleDriveViewUrl = getGoogleDriveViewUrl(videoUrl);
@@ -102,9 +111,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspe
 
   useEffect(() => {
     setCurrentTime(0);
-    setMediaDuration(deliverable?.duration_seconds || 0);
+    setMediaDuration(activeDuration);
     setIsPlaying(false);
-  }, [videoUrl, deliverable?.duration_seconds]);
+  }, [videoUrl, activeDuration]);
+
+  useEffect(() => {
+    onCutChange?.(showingPreviousCut ? previousCut?.version_number ?? deliverable.version_number : deliverable.version_number);
+  }, [showingPreviousCut, previousCut?.version_number, deliverable.version_number, onCutChange]);
 
   useEffect(() => {
     const updateFullscreen = () => setIsFullscreen(document.fullscreenElement === playerFrameRef.current);
@@ -127,6 +140,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspe
     void loadPrivateVideo();
     return () => { cancelled = true; };
   }, [deliverable?.project_id, deliverable?.video_storage_path]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadPreviousVideo = async () => {
+      if (!previousCut?.video_storage_path || !deliverable?.project_id) { setSignedPreviousVideoUrl(''); return; }
+      try {
+        const url = await getPlaybackTicket(deliverable.project_id, previousCut.video_storage_path);
+        if (!cancelled) setSignedPreviousVideoUrl(url);
+      } catch (error) {
+        if (!cancelled) setVideoLoadError(error instanceof Error ? error.message : 'Could not load the previous cut.');
+      }
+    };
+    void loadPreviousVideo();
+    return () => { cancelled = true; };
+  }, [deliverable?.project_id, previousCut?.video_storage_path]);
 
   const handleCopyLink = async () => {
     if (!videoUrl || !navigator.clipboard) return;
@@ -216,17 +244,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspe
     <section onKeyDown={handleKeyDown} tabIndex={-1} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-labelledby="video-title">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-2"><Film className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /><h2 id="video-title" className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Video review</h2></div>
-        <div className="flex flex-wrap items-center gap-2"><span className="rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-medium text-neutral-600 dark:border-neutral-700 dark:text-neutral-300" aria-label={`Project video format ${videoAspectRatio}`}>{videoAspectRatio}</span><span className="text-xs text-neutral-600 dark:text-neutral-300">{deliverable.version_number}</span>{isApproved && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><Check className="h-3.5 w-3.5" /> Approved</span>}</div>
+        <div className="flex flex-wrap items-center gap-2"><span className="rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-medium text-neutral-600 dark:border-neutral-700 dark:text-neutral-300" aria-label={`Project video format ${videoAspectRatio}`}>{videoAspectRatio}</span><span className="text-xs text-neutral-600 dark:text-neutral-300">{videoVersion}</span>{isApproved && !showingPreviousCut && <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><Check className="h-3.5 w-3.5" /> Approved</span>}</div>
       </div>
+
+      {previousCut && <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Compare video cuts">
+        <span className="mr-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">Compare</span>
+        <button type="button" aria-pressed={!showingPreviousCut} onClick={() => setShowPreviousCut(false)} className={`rounded-full px-3 py-1.5 text-[11px] font-medium ${!showingPreviousCut ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border border-neutral-200 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300'}`}>Current · {deliverable.version_number}</button>
+        <button type="button" aria-pressed={showingPreviousCut} onClick={() => setShowPreviousCut(true)} className={`rounded-full px-3 py-1.5 text-[11px] font-medium ${showingPreviousCut ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border border-neutral-200 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300'}`}>Previous · {previousCut.version_number}</button>
+      </div>}
 
       <div ref={playerFrameRef} className="video-stage flex w-full justify-center overflow-hidden rounded-xl bg-neutral-950">
       <div className={`relative overflow-hidden bg-neutral-950 ${videoAspectRatio === '16:9' ? 'aspect-video w-full' : 'h-[min(70vh,700px)] max-h-[70vh] max-w-full aspect-[9/16]'}`}>
         {videoUrl ? (
           isDirectVideo ? (
-            <video ref={videoRef} src={videoUrl} muted={isMuted} playsInline preload="metadata" className="h-full w-full bg-black object-contain" onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${deliverable.version_number} video`} />
+            <video ref={videoRef} src={videoUrl} muted={isMuted} playsInline preload="metadata" className="h-full w-full bg-black object-contain" onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} aria-label={`${videoVersion} video`} />
           ) : googleDrivePreviewUrl ? (
             <>
-              <iframe src={googleDrivePreviewUrl} title={`${deliverable.version_number} video`} className="hidden h-full w-full border-0 sm:block" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+              <iframe src={googleDrivePreviewUrl} title={`${videoVersion} video`} className="hidden h-full w-full border-0 sm:block" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
               <div className="flex h-full min-h-0 flex-col items-center justify-center gap-2 px-4 py-3 text-center text-white sm:hidden">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10"><Play className="h-5 w-5"/></span>
                 <div className="max-w-sm"><p className="text-[13px] font-semibold">Watch this cut in Google Drive</p><p className="mt-1 text-[11px] leading-4 text-neutral-400">Open in Drive for full playback controls.</p></div>
@@ -234,7 +268,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspe
               </div>
             </>
           ) : (
-            <iframe src={googleDrivePreviewUrl ?? videoUrl} title={`${deliverable.version_number} video`} className="h-full w-full border-0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+            <iframe src={googleDrivePreviewUrl ?? videoUrl} title={`${videoVersion} video`} className="h-full w-full border-0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
           )
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-neutral-300">
@@ -264,7 +298,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ deliverable, videoAspe
         <span className="text-xs text-neutral-500 dark:text-neutral-400">{formatRelativeTime(deliverable.uploaded_at)}</span>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={handleCopyLink} disabled={!videoUrl} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-neutral-300 px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">{copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}{copied ? 'Copied' : 'Copy video link'}</button>
-          {!isApproved && <button type="button" onClick={onApproveCut} disabled={!videoUrl || Boolean(videoLoadError)} title={videoLoadError ? 'The video must load before it can be approved.' : undefined} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-xs font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"><CheckCircle className="h-3.5 w-3.5" /> Approve cut</button>}
+          {!isApproved && !showingPreviousCut && <button type="button" onClick={onApproveCut} disabled={!videoUrl || Boolean(videoLoadError)} title={videoLoadError ? 'The video must load before it can be approved.' : undefined} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-xs font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-emerald-600 dark:hover:bg-emerald-500"><CheckCircle className="h-3.5 w-3.5" /> Approve cut</button>}
         </div>
       </div>
     </section>
