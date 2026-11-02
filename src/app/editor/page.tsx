@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search, FolderPlus, LogOut, ArrowUpRight, AlertCircle, CheckCircle2, Users, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -62,6 +62,7 @@ function EditorLoadingScreen() {
 
 export default function EditorPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { currentUser, isLoading, logout } = useAuth();
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [query, setQuery] = useState('');
@@ -72,6 +73,10 @@ export default function EditorPage() {
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ProjectRow | null>(null);
+
+  useEffect(() => {
+    if (pathname === '/editor') setOpeningProjectId(null);
+  }, [pathname]);
 
   const loadProjects = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
