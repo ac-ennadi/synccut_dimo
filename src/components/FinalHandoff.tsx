@@ -91,9 +91,9 @@ export function FinalHandoff({ handoff, currentVersion, approvalStatus, editable
 
       <form onSubmit={save} className="mt-4 space-y-4">
         <p className="text-xs text-neutral-500 dark:text-neutral-400">This handoff is for cut <strong className="font-semibold text-neutral-700 dark:text-neutral-300">{currentVersion}</strong>.</p>
-        <label className="block space-y-1.5 text-xs font-medium text-neutral-600 dark:text-neutral-300">
+        <label className="block space-y-2 text-xs font-medium tracking-[-0.01em] text-[#1d1d1f] dark:text-neutral-300">
           Delivery notes
-          <textarea rows={3} value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Share export details, usage notes, or anything the client should know." className="w-full resize-y rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm font-normal text-neutral-900 outline-none focus:border-[#0071e3] dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100" />
+          <textarea rows={3} value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Add export details or a note for the client." className="min-h-24 w-full resize-y rounded-[18px] border border-[#d6d6d6] bg-[#fafafc] px-4 py-3 text-sm font-normal leading-6 tracking-[-0.01em] text-[#1d1d1f] outline-none placeholder:text-[#86868b] focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/15 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500" />
         </label>
 
         <div className="space-y-2">

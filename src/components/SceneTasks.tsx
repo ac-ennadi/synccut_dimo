@@ -118,7 +118,7 @@ export function SceneTasks({ brief, projectId, editable = false, onChange }: Pro
           <p className="mt-1 text-xs tracking-[-0.01em] text-[#707070] dark:text-neutral-400">{tasks.length ? `${completedCount} of ${tasks.length} tasks complete` : 'Turn the script into a clear editing plan.'}</p>
         </div>
         {editable && (
-          <button type="button" onClick={() => void suggestFromScript()} disabled={!scriptText || isSuggesting || !projectId} className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-[#0071e3]/25 bg-[#0071e3]/[0.06] px-3 py-1.5 text-xs font-medium text-[#0066cc] transition hover:bg-[#0071e3]/10 disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#0071e3]/30 dark:bg-[#0071e3]/10 dark:text-blue-300 dark:hover:bg-[#0071e3]/15">
+          <button type="button" onClick={() => void suggestFromScript()} disabled={!scriptText || isSuggesting || !projectId} className={`inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed ${scriptText && projectId ? 'border-[#0066cc]/25 bg-[#0066cc]/[0.06] text-[#0066cc] hover:bg-[#0066cc]/10 dark:border-[#0071e3]/30 dark:bg-[#0071e3]/10 dark:text-blue-300 dark:hover:bg-[#0071e3]/15' : 'border-[#d6d6d6] bg-[#f5f5f7] text-[#707070] dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'}`}>
             {isSuggesting ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             {isSuggesting ? 'Reading script…' : 'Suggest from script'}
           </button>
