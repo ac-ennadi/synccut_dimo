@@ -95,18 +95,13 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
 
         {/* 2 & 3. Main Responsive Workspace */}
         {/* On Phone (< lg): Action Items show first so clients can respond or approve immediately. On PC (lg+): 2 Columns side-by-side. */}
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* Creative Backbone: The Script & Brief */}
-          {/* order-2 on mobile (below action items), order-1 on laptop (left column) */}
-          <section className="space-y-0 order-2 lg:order-1 lg:col-span-6">
+        <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+          {/* Keep the script and review player in the first row. The reference and feedback blocks below share a row, so their position follows the script height. */}
+          <section className="order-2 min-w-0 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} />
-            <VisualReferences references={brief.references} />
           </section>
 
-          {/* Action Items & Deliverables */}
-          {/* order-1 on mobile (top priority), order-2 on laptop (right column) */}
-          <section className="space-y-6 order-1 lg:order-2 lg:col-span-6">
+          <section className="order-1 min-w-0 space-y-6 lg:order-none lg:col-span-6">
             <ActionAlert
               deliverable={deliverable}
             />
@@ -117,7 +112,13 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
               onTimecodeSelected={(tc) => setCurrentTimecode(tc)}
               onApproveCut={onApproveCut}
             />
+          </section>
 
+          <section className="order-3 min-w-0 lg:order-none lg:col-span-6">
+            <VisualReferences references={brief.references} />
+          </section>
+
+          <section className="order-4 min-w-0 lg:order-none lg:col-span-6">
             <FeedbackSection
               notes={deliverable.feedback_notes}
               currentTimecode={currentTimecode}
