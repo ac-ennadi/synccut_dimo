@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { ScrollReveal } from './ScrollReveal';
 
 const videos = [
   {
@@ -65,25 +66,27 @@ export function LandingVideoGallery() {
 
         <div className="grid gap-5 md:grid-cols-3">
           {videos.map((video, index) => (
-            <figure key={video.src} className="min-w-0">
-              <video
-                ref={(element) => { videoRefs.current[index] = element; }}
-                muted
-                loop
-                playsInline
-                preload="none"
-                aria-label={video.label}
-                className="aspect-video w-full rounded-2xl bg-black object-contain"
-              >
-                <source src={video.src} type="video/mp4" />
-                Your browser does not support embedded video.
-              </video>
-              <figcaption className="pt-4">
-                <p className="text-xs font-medium tabular-nums text-[#86868b]">{video.label}</p>
-                <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[#1d1d1f]">{video.title}</h3>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-[#707070]">{video.description}</p>
-              </figcaption>
-            </figure>
+            <ScrollReveal key={video.src} className="min-w-0" delay={index * 70}>
+              <figure>
+                <video
+                  ref={(element) => { videoRefs.current[index] = element; }}
+                  muted
+                  loop
+                  playsInline
+                  preload="none"
+                  aria-label={video.label}
+                  className="aspect-video w-full rounded-2xl bg-black object-contain"
+                >
+                  <source src={video.src} type="video/mp4" />
+                  Your browser does not support embedded video.
+                </video>
+                <figcaption className="pt-4">
+                  <p className="text-xs font-medium tabular-nums text-[#86868b]">{video.label}</p>
+                  <h3 className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[#1d1d1f]">{video.title}</h3>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#707070]">{video.description}</p>
+                </figcaption>
+              </figure>
+            </ScrollReveal>
           ))}
         </div>
       </div>

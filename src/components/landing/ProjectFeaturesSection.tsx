@@ -1,3 +1,5 @@
+import { ScrollReveal } from './ScrollReveal';
+
 const features = [
   {
     title: 'Script beside the cut',
@@ -41,36 +43,42 @@ export function ProjectFeaturesSection() {
   return (
     <section id="features" className="bg-white px-5 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-6xl">
-        <div className="max-w-xl">
+        <ScrollReveal className="max-w-xl">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">What’s included</p>
           <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1d1d1f] sm:text-4xl">
             The edit, review, and handoff stay connected.
           </h2>
-        </div>
+        </ScrollReveal>
         <dl className="mt-10 grid gap-x-16 sm:grid-cols-2">
-          {features.map((feature) => (
-            <div key={feature.title} className="border-t border-[#d6d6d6] py-6">
-              <dt className="text-lg font-semibold tracking-[-0.02em] text-[#1d1d1f]">{feature.title}</dt>
-              <dd className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">{feature.description}</dd>
-            </div>
+          {features.map((feature, index) => (
+            <ScrollReveal key={feature.title} delay={(index % 5) * 55}>
+              <div className="border-t border-[#d6d6d6] py-6">
+                <dt className="text-lg font-semibold tracking-[-0.02em] text-[#1d1d1f]">{feature.title}</dt>
+                <dd className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">{feature.description}</dd>
+              </div>
+            </ScrollReveal>
           ))}
         </dl>
 
         <div className="mt-12 grid gap-10 border-t border-[#d6d6d6] pt-8 sm:grid-cols-2 sm:gap-16">
-          <section aria-labelledby="client-workspace-heading">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Client workspace</p>
-            <h3 id="client-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Review and respond.</h3>
-            <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
-              Watch the latest or previous cut, leave notes at a timecode, follow their status, and approve the version when it’s ready.
-            </p>
-          </section>
-          <section aria-labelledby="editor-workspace-heading" className="border-[#d6d6d6] sm:border-l sm:pl-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Editor workspace</p>
-            <h3 id="editor-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Manage the project.</h3>
-            <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
-              Turn the script into editable tasks, run the publish checklist, and prepare approved files for delivery.
-            </p>
-          </section>
+          <ScrollReveal>
+            <section aria-labelledby="client-workspace-heading">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Client workspace</p>
+              <h3 id="client-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Review and respond.</h3>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
+                Watch the latest or previous cut, leave notes at a timecode, follow their status, and approve the version when it’s ready.
+              </p>
+            </section>
+          </ScrollReveal>
+          <ScrollReveal delay={80}>
+            <section aria-labelledby="editor-workspace-heading" className="border-[#d6d6d6] sm:border-l sm:pl-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">Editor workspace</p>
+              <h3 id="editor-workspace-heading" className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[#1d1d1f]">Manage the project.</h3>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-[#707070]">
+                Turn the script into editable tasks, run the publish checklist, and prepare approved files for delivery.
+              </p>
+            </section>
+          </ScrollReveal>
         </div>
       </div>
     </section>

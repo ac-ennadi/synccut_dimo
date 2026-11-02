@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { ScrollReveal } from './ScrollReveal';
 
 export function EditorCTASection() {
   return (
     <>
       <section id="for-editors" className="bg-[#f5f5f7] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+        <ScrollReveal className="mx-auto flex max-w-6xl flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#707070]">For editors</p>
             <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1d1d1f] sm:text-4xl">
@@ -24,7 +25,7 @@ export function EditorCTASection() {
               Client portal
             </Link>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       <footer className="bg-white px-5 py-8 sm:px-8">

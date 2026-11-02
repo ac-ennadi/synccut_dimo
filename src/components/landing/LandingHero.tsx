@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { ScrollReveal } from './ScrollReveal';
 
 export function LandingHero() {
   return (
     <section className="landing-hero bg-white px-5 pb-24 pt-20 text-center sm:px-8 sm:pb-28 sm:pt-24">
-      <div className="mx-auto max-w-4xl">
+      <ScrollReveal className="mx-auto max-w-4xl">
         <p className="mb-5 text-xs font-semibold uppercase tracking-[0.14em] text-[#0066cc]">
           SyncCut for video teams
         </p>
@@ -27,7 +28,7 @@ export function LandingHero() {
           <span>Approved script</span><span aria-hidden="true">·</span>
           <span>Timecoded feedback</span>
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }
