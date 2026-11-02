@@ -1,5 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
+const REQUEST_TIMEOUT_MS = 20_000;
+
+export const fetchWithTimeout: typeof fetch = (input, init = {}) => {
+  const controller = new AbortController();
+  const upstreamSignal = init.signal ?? (input instanceof Request ? input.signal : undefined);
+  const abortFromUpstream = () => controller.abort(upstreamSignal?.reason);
+  if (upstreamSignal?.aborted) abortFromUpstream();
+  else upstreamSignal?.addEventListener('abort', abortFromUpstream, { once: true });
+
+  const timeout = setTimeout(() => controller.abort(new DOMException('Request timed out', 'TimeoutError')), REQUEST_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => {
+    clearTimeout(timeout);
+    upstreamSignal?.removeEventListener('abort', abortFromUpstream);
+  });
+};
+
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-project.supabase.co';
 const supabasePublishableKey =
@@ -14,7 +30,9 @@ export const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder-project.supabase.co',
 );
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+  global: { fetch: fetchWithTimeout },
+});
 
 /**
  * Short-lived signed URLs are cached for speed. Signing out must drop them so a

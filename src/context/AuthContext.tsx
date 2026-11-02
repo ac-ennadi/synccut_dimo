@@ -3,7 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { User, UserRole } from '@/types';
-import { isSupabaseConfigured, signInWithPassword, signOutAndClearCaches, supabase } from '@/lib/supabase';
+import { fetchWithTimeout, isSupabaseConfigured, signInWithPassword, signOutAndClearCaches, supabase } from '@/lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -51,7 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted) setCurrentUser(user);
       } catch (error) {
         console.error('This Supabase account is not assigned to a SyncCut project.', error);
-        await signOutAndClearCaches();
+        void signOutAndClearCaches().catch((signOutError) => {
+          console.warn('Could not clear the expired remote session.', signOutError);
+        });
         clearAllUserCaches();
         if (mounted) setCurrentUser(null);
       }
@@ -185,7 +187,7 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
   // memberships so an editor who is also assigned to a client project cannot
   // be routed through the client portal.
   if (accessToken) {
-    const editorRes = await fetch('/api/auth/profile', {
+    const editorRes = await fetchWithTimeout('/api/auth/profile', {
       headers: { Authorization: `Bearer ${accessToken}` },
     }).catch(() => null);
     if (editorRes?.ok) {
@@ -255,8 +257,8 @@ async function buildAppUser(authUser: SupabaseUser, accessToken?: string): Promi
   // 4. Fallback endpoints if direct RLS lookup returned no rows (e.g. new editor setup)
   if (accessToken) {
     const [clientRes, editorRes] = await Promise.all([
-      fetch('/api/auth/client-projects', { headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => null),
-      fetch('/api/auth/profile', { headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => null),
+      fetchWithTimeout('/api/auth/client-projects', { headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => null),
+      fetchWithTimeout('/api/auth/profile', { headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => null),
     ]);
 
     if (clientRes?.ok) {

@@ -18,7 +18,7 @@ function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string })
     return () => window.clearTimeout(timeout);
   }, []);
 
-  const isProject = /project|workspace/i.test(label);
+  const isProject = /opening project workspace/i.test(label);
   const loadingLabel = isProject ? 'Verifying project access' : 'Loading assigned projects';
 
   return (
