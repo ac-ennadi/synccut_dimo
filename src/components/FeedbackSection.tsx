@@ -6,6 +6,11 @@ import { MessageSquare, Send, Clock, CheckCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/lib/formatters';
 
+const formatManualTimecode = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+  return digits.length >= 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits;
+};
+
 interface FeedbackSectionProps {
   notes?: FeedbackNote[];
   currentTimecode: string;
@@ -24,6 +29,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { currentUser } = useAuth();
+  const hasCompleteManualTimecode = /^\d{2}:\d{2}$/.test(manualTimecode);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +56,9 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
   };
 
   const handleStampTimecode = () => {
-    const timecode = manualTimecode.trim() || currentTimecode;
+    const timecode = manualTimecode
+      ? (hasCompleteManualTimecode ? manualTimecode : '')
+      : currentTimecode;
     if (timecode) setTimecodeTag(timecode);
   };
 
@@ -97,15 +105,15 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400"><span>Timecode</span><input type="text" inputMode="numeric" pattern="[0-9]{2}:[0-9]{2}" maxLength={5} value={manualTimecode} onChange={(event) => setManualTimecode(event.target.value)} placeholder={currentTimecode || "00:00"} aria-label="Enter a video timecode in minutes and seconds" className="w-20 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 font-mono text-neutral-900 placeholder:text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100" /></label>
+          <label className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400"><span>Timecode</span><input type="text" inputMode="numeric" maxLength={5} value={manualTimecode} onChange={(event) => setManualTimecode(formatManualTimecode(event.target.value))} placeholder={currentTimecode || "00:00"} aria-label="Enter a video timecode in minutes and seconds" className="w-20 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 font-mono text-neutral-900 placeholder:text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100" /></label>
           <button
             type="button"
             onClick={handleStampTimecode}
-            disabled={!currentTimecode && !manualTimecode.trim()}
+            disabled={manualTimecode ? !hasCompleteManualTimecode : !currentTimecode}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Clock className="w-3.5 h-3.5 text-indigo-500" />
-            <span>{manualTimecode ? "Stamp entered timecode" : currentTimecode ? "Stamp current moment (" + currentTimecode + ")" : "Add a timecode"}</span>
+            <span>{manualTimecode ? hasCompleteManualTimecode ? 'Stamp entered timecode' : 'Finish timecode' : currentTimecode ? 'Stamp current moment (' + currentTimecode + ')' : 'Add a timecode'}</span>
           </button>
 
           <button
