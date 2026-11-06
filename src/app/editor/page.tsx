@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, FolderPlus, LogOut, ArrowUpRight, AlertCircle, CheckCircle2, Users, Trash2 } from 'lucide-react';
+import { FolderPlus, ArrowUpRight, AlertCircle, CheckCircle2, Users, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { DeleteProjectModal } from '@/components/DeleteProjectModal';
-import { BrandLogo } from '@/components/BrandLogo';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { DashboardSearch, DashboardShell } from '@/components/dashboard/DashboardShell';
 import type { ProjectTemplateId, VideoAspectRatio } from '@/types';
 import { getProjectTemplate, PROJECT_TEMPLATES } from '@/lib/project-templates';
 
@@ -135,48 +134,25 @@ export default function EditorPage() {
     .some((value) => value.toLowerCase().includes(normalizedQuery)));
 
   return (
-    <main className="apple-shell min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-950 p-4 text-neutral-100 sm:p-8">
-      <div className="mx-auto w-full min-w-0 max-w-6xl space-y-7">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-5">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link href="/" aria-label="SyncCut home" className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-              <BrandLogo variant="light" className="h-9 w-auto shrink-0 object-contain object-left" priority />
-            </Link>
-            <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
-              <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-indigo-400">Editor</p>
-              <h1 className="text-2xl font-bold leading-7 text-white">Editor projects</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <span className="hidden text-sm text-neutral-400 sm:inline">Signed in as {currentUser.name}</span>
-            <button
-              type="button"
-              onClick={() => { logout(); router.replace('/editor/login'); }}
-              className="inline-flex items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:bg-neutral-800 hover:text-white transition shadow-sm"
-            >
-              <LogOut size={14} /> Sign out
-            </button>
-          </div>
-        </header>
-
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-white">Active Projects</h2>
-            <p className="mt-1 text-sm text-neutral-400">Create client projects, manage versions, and control access permissions.</p>
-          </div>
+    <DashboardShell role="Editor" name={currentUser.name} onSignOut={() => { logout(); router.replace('/editor/login'); }}>
+      <section className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between" aria-labelledby="editor-projects-heading">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#707070]">Your workspace</p>
+          <h1 id="editor-projects-heading" className="mt-3 text-4xl font-semibold leading-[1.08] tracking-[-0.04em] text-[#1d1d1f] sm:text-5xl">Projects</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#707070] sm:text-base">Keep client reviews, edit versions, and delivery details together.</p>
+        </div>
           <button
             type="button"
             onClick={() => { setShowForm((current) => !current); setMessage(null); }}
-            className="apple-primary inline-flex items-center gap-2 rounded-full bg-[#0071e3] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[#0066cc]"
+            className="apple-primary inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-full bg-[#0071e3] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#0066cc] sm:self-auto"
           >
             <FolderPlus size={15} /> Create project
           </button>
-        </div>
+      </section>
 
         {showForm && (
-          <section className="rounded-2xl border border-neutral-800 bg-neutral-900/90 p-5 sm:p-6 shadow-xl backdrop-blur-md">
-            <h3 className="font-semibold text-white">Create a New Project Workspace</h3>
+          <section className="rounded-[28px] border border-[#d6d6d6] bg-white p-5 sm:p-7" aria-labelledby="create-project-heading">
+            <h2 id="create-project-heading" className="text-xl font-semibold text-[#1d1d1f]">Create a project</h2>
             <form onSubmit={createProject} className="mt-4 grid gap-3 sm:grid-cols-2">
               <input
                 aria-label="Project name"
@@ -268,75 +244,73 @@ export default function EditorPage() {
           </p>
         )}
 
-        <label className="flex max-w-lg items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/80 px-3.5 py-1 text-neutral-100 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
-          <Search size={16} className="text-neutral-500" />
-          <input
-            aria-label="Search projects and users"
-            placeholder="Search projects by name, company, or team members..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            className="w-full bg-transparent py-2.5 text-sm placeholder:text-neutral-500 outline-none"
-          />
-        </label>
+        <section aria-label="Project list" className="space-y-5">
+          <div className="flex flex-col gap-4 border-b border-[#d6d6d6] pb-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[#1d1d1f]">All projects</h2>
+              <p className="mt-1 text-sm text-[#707070]">{loading ? 'Loading projects…' : `${filtered.length} ${filtered.length === 1 ? 'project' : 'projects'}`}</p>
+            </div>
+            <DashboardSearch
+              label="Search projects and users"
+              placeholder="Search by project, client, or member"
+              value={query}
+              onChange={setQuery}
+            />
+          </div>
 
         {loading ? (
           <div className="py-16 text-center text-sm text-neutral-500">Loading projects…</div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-800 py-16 text-center">
-            <h3 className="font-semibold text-white">{projects.length ? 'No matching projects found' : 'No projects created yet'}</h3>
-            <p className="mt-1 text-xs text-neutral-400">{projects.length ? 'Try another search term.' : 'Click "Create project" above to set up your first workspace.'}</p>
+          <div className="rounded-[28px] border border-[#d6d6d6] bg-white px-6 py-14 text-center sm:py-16">
+            <h3 className="text-lg font-semibold text-[#1d1d1f]">{projects.length ? 'No matching projects' : 'Your workspace is ready'}</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#707070]">{projects.length ? 'Try a different project, client, or member name.' : 'Create your first project to start sharing scripts, cuts, and review notes with a client.'}</p>
           </div>
         ) : (
-          <section className="min-w-0 space-y-3">
+          <div className="min-w-0 overflow-hidden rounded-[28px] border border-[#d6d6d6] bg-white">
             {filtered.map((project) => (
               <article
                 key={project.project_id}
-                className="group relative min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-5 transition-colors hover:border-[#9bc8f3]"
+                className="group relative flex min-w-0 flex-col gap-4 border-b border-[#d6d6d6] px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6"
               >
-                <button
-                  type="button"
-                  onClick={() => setPendingDelete(project)}
-                  aria-label={`Delete project ${project.title}`}
-                  title="Delete project"
-                  className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-2 text-neutral-500 transition-colors hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
-                >
-                  <Trash2 size={15} />
-                </button>
                 <Link
                   href={`/editor/clients/${encodeURIComponent(project.project_id)}`}
                   onClick={() => setOpeningProjectId(project.project_id)}
-                  className="block py-5 pr-14 focus-visible:outline-none"
+                  className="min-w-0 flex-1 rounded-md focus-visible:outline-none"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 pr-8">
-                      <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">{project.company_name || 'Project'}</p>
-                      <h3 className="mt-1 truncate text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">{project.title}</h3>
-                      <p className="mt-1.5 text-xs font-semibold text-indigo-400">{getProjectTemplate(project.templateId).name} · {project.projectType === 'after_effects' ? 'After Effects · Animation' : 'Premiere Pro · Live Action'} · {project.videoAspectRatio}</p>
+                  <div className="flex min-w-0 items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-[#707070]">{project.company_name || 'Project'}</p>
+                      <h3 className="mt-1 truncate text-xl font-semibold tracking-[-0.025em] text-[#1d1d1f] transition-colors group-hover:text-[#0066cc]">{project.title}</h3>
+                      <p className="mt-2 text-sm leading-5 text-[#707070]">{getProjectTemplate(project.templateId).name} <span aria-hidden="true">·</span> {project.projectType === 'after_effects' ? 'After Effects · Animation' : 'Premiere Pro · Live Action'} <span aria-hidden="true">·</span> {project.videoAspectRatio}</p>
                     </div>
-                    <ArrowUpRight size={17} className="shrink-0 text-neutral-500 group-hover:text-indigo-400 transition" />
-                  </div>
-                  <div className="mt-4 flex items-center gap-2 text-xs text-neutral-400">
-                    <Users size={14} className="text-neutral-500" />
-                    <span>{project.members.length} {project.members.length === 1 ? 'member' : 'members'}</span>
-                    <span className="ml-2 rounded-full border border-neutral-800 px-2 py-0.5 text-[10px]">{project.videoAspectRatio}</span>
-                  </div>
-                  <p className="mt-1 min-h-4 truncate text-[11px] text-neutral-500">
-                    {project.members.map((member) => member.display_name).join(', ') || 'No client members assigned yet'}
-                  </p>
-                  <div className="mt-5 flex items-center justify-between border-t border-neutral-800/80 pt-3.5 text-xs">
-                    <span className="rounded-full bg-neutral-800 px-2.5 py-0.5 text-[11px] font-medium text-neutral-300 border border-neutral-700/50">
-                      {project.status}
-                    </span>
-                    <span className="max-w-[55%] truncate font-mono text-[11px] text-neutral-400">
-                      {project.latestCut}
-                    </span>
+                    <ArrowUpRight size={18} aria-hidden="true" className="mt-1 shrink-0 text-[#86868b] transition-colors group-hover:text-[#0066cc]" />
                   </div>
                 </Link>
+                <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#d6d6d6] pt-3 text-xs sm:max-w-[280px] sm:justify-end sm:border-0 sm:pt-0">
+                  <span className="inline-flex items-center gap-1.5 text-[#707070]">
+                    <Users size={14} aria-hidden="true" />
+                    {project.members.length} {project.members.length === 1 ? 'member' : 'members'}
+                  </span>
+                  <span className="max-w-[180px] truncate text-[#86868b]" title={project.members.map((member) => member.display_name).join(', ') || 'No client members assigned'}>
+                    {project.members.map((member) => member.display_name).join(', ') || 'No clients assigned'}
+                  </span>
+                  <span className="max-w-[160px] truncate text-[#86868b]">{project.latestCut}</span>
+                  <span className="rounded-full bg-[#f5f5f7] px-2.5 py-1 font-medium text-[#424245]">{project.status}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPendingDelete(project)}
+                    aria-label={`Delete project ${project.title}`}
+                    title="Delete project"
+                    className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full text-[#86868b] transition-colors hover:bg-[#fff0f0] hover:text-[#b42318] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3] sm:ml-0"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
               </article>
             ))}
-          </section>
+          </div>
         )}
-      </div>
+        </section>
 
       {openingProjectId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-950/90 p-6 text-white backdrop-blur-md" role="status" aria-live="polite">
@@ -354,6 +328,6 @@ export default function EditorPage() {
       )}
 
       {pendingDelete && <DeleteProjectModal projectId={pendingDelete.project_id} projectTitle={pendingDelete.title} onClose={() => setPendingDelete(null)} onDeleted={(projectId) => { setProjects((current) => current.filter((project) => project.project_id !== projectId)); setPendingDelete(null); setMessage({ error: false, text: 'Project deleted. Client sign-in accounts were kept.' }); }} />}
-    </main>
+    </DashboardShell>
   );
 }

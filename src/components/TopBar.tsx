@@ -50,7 +50,7 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
   const currentStageLabel = stages[stageIndex]?.label ?? projectStatus;
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-6 shadow-xs space-y-5" aria-labelledby="project-title">
+    <section className="rounded-[28px] border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 md:p-7 space-y-6" aria-labelledby="project-title">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Project</p>

@@ -87,8 +87,8 @@ export const EditorDashboard: React.FC<Props> = ({
 
   return (
     <ScriptEditorProvider value={{ requestEdit: scriptEditorHandler, registerEditor: registerScriptEditor }}>
-    <div className="apple-shell editor-dashboard min-h-screen bg-neutral-950 p-4 text-neutral-100 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="apple-shell editor-dashboard workspace-dashboard min-h-screen bg-neutral-950 p-5 text-neutral-100 sm:p-8 lg:p-10">
+      <div className="mx-auto max-w-7xl space-y-8">
         {/* Editor Workspace Header */}
         <header className="space-y-4 border-b border-neutral-800 pb-4">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
@@ -101,14 +101,14 @@ export const EditorDashboard: React.FC<Props> = ({
             </Link>
             <div className="min-w-0 flex-1 border-l border-neutral-800 pl-3 sm:pl-4">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="rounded-md border border-indigo-500/30 bg-indigo-950/60 px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-300">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
                   Editor Cockpit
                 </span>
                 <span className="text-xs text-neutral-400">
                   Producer · {project?.producer_name || 'Studio'}
                 </span>
               </div>
-              <h1 className="mt-1 break-words text-base font-semibold leading-snug text-white sm:text-lg">
+              <h1 className="mt-1 break-words text-lg font-semibold leading-snug tracking-[-0.02em] text-white sm:text-xl">
                 {project?.title || 'Project Workspace'}
               </h1>
             </div>
@@ -183,9 +183,9 @@ export const EditorDashboard: React.FC<Props> = ({
         <ProjectDangerZone projectId={project.project_id} projectTitle={project.title} />
 
         {/* Two-Column Responsive Workspace */}
-        <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <main className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
           {/* Script-related content and video-related content flow in separate columns. */}
-          <section className="order-2 min-w-0 space-y-4 lg:order-none lg:col-span-6">
+          <section className="order-2 min-w-0 space-y-6 lg:order-none lg:col-span-6">
             <ScriptBox brief={brief} editable />
             <SceneTasks brief={brief} projectId={project.project_id} editable onChange={onUpdateScript} />
             <VisualReferences

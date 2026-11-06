@@ -1,14 +1,12 @@
 'use client';
 
 import React, { Suspense, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ProjectProvider, useProject } from '@/context/ProjectContext';
 import { ClientPortal } from '@/components/ClientPortal';
-import { ArrowRight, BriefcaseBusiness, LogOut, Search } from 'lucide-react';
-import { BrandLogo } from '@/components/BrandLogo';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { ArrowRight } from 'lucide-react';
+import { DashboardSearch, DashboardShell } from '@/components/dashboard/DashboardShell';
 
 function ProjectLoadingScreen({ label = 'Loading project' }: { label?: string }) {
   const [isTakingLonger, setIsTakingLonger] = useState(false);
@@ -75,87 +73,63 @@ function ProjectChooser({
   });
 
   return (
-    <main className="apple-shell min-h-screen w-full min-w-0 overflow-x-hidden bg-neutral-950 p-4 text-neutral-100 sm:p-8">
-      <div className="mx-auto w-full min-w-0 max-w-6xl space-y-7">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-5">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link href="/" aria-label="SyncCut home" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-sm">
-              <BrandLogo variant="light" className="h-9 w-auto shrink-0 object-contain object-left" priority />
-            </Link>
-            <div className="flex min-h-10 flex-col justify-center border-l border-neutral-800 pl-4">
-              <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.14em] text-emerald-400">Client</p>
-              <h1 className="text-2xl font-bold leading-7 text-white">Project Workspaces</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <span className="hidden text-sm text-neutral-400 sm:inline">Signed in as {clientName}</span>
-            <button
-              type="button"
-              onClick={onLogout}
-              className="inline-flex items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:bg-neutral-800 hover:text-white transition shadow-sm"
-            >
-              <LogOut size={14} /> Sign out
-            </button>
-          </div>
-        </header>
-        <section className="space-y-5">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+    <DashboardShell role="Client" name={clientName} onSignOut={onLogout}>
+      <section className="space-y-8" aria-labelledby="client-projects-heading">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#707070]">Client portal</p>
+          <h1 id="client-projects-heading" className="mt-3 text-4xl font-semibold leading-[1.08] tracking-[-0.04em] text-[#1d1d1f] sm:text-5xl">Your projects</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#707070] sm:text-base">Choose a project to watch the latest cut, share feedback, and follow delivery.</p>
+        </div>
+        <div className="space-y-5">
+          <div className="flex flex-col gap-4 border-b border-[#d6d6d6] pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">Your Projects</h2>
-              <p className="mt-1 text-sm text-neutral-400">Choose the project you want to review and collaborate on.</p>
+              <h2 className="text-lg font-semibold text-[#1d1d1f]">Shared with you</h2>
+              <p className="mt-1 text-sm text-[#707070]">{projectIds.length} {projectIds.length === 1 ? 'project' : 'projects'}</p>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-400">
-              <BriefcaseBusiness size={14} /> {projectIds.length} {projectIds.length === 1 ? 'project' : 'projects'}
-            </div>
-          </div>
-          <label className="flex w-full max-w-lg items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/80 px-3.5 py-1 text-neutral-100 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-            <Search size={15} className="shrink-0 text-neutral-500" aria-hidden="true" />
-            <input
-              aria-label="Search projects"
-              placeholder="Search projects by name..."
+            <DashboardSearch
+              label="Search projects"
+              placeholder="Search your projects"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className="w-full bg-transparent py-2.5 text-sm placeholder:text-neutral-500 outline-none"
+              onChange={setQuery}
             />
-          </label>
-          <div className="min-w-0 space-y-3">
-            {visibleProjects.map((projectId) => {
-              const index = projectIds.indexOf(projectId);
-              const label = projectTitles[projectId] || `Project ${index + 1}`;
-              return (
-                <button
-                  key={projectId}
-                  type="button"
-                  disabled={isOpening}
-                  onClick={() => onOpenProject(projectId)}
-                  className="group relative flex min-h-0 min-w-0 w-full max-w-full items-center justify-between gap-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 text-left transition-colors hover:border-[#9bc8f3] disabled:cursor-wait disabled:opacity-60"
-                >
-                  <span className="min-w-0">
-                    <span className="mb-2 block text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
-                      Project {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="block min-w-0 break-words text-lg font-bold leading-6 text-white group-hover:text-emerald-300 transition-colors">
-                      {label}
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-neutral-500 group-hover:text-[#0071e3]">
-                    <span>Open</span>
-                    <ArrowRight className="shrink-0 text-neutral-500 transition group-hover:translate-x-1 group-hover:text-emerald-400" size={17} />
-                  </span>
-                </button>
-              );
-            })}
           </div>
-          {!visibleProjects.length && (
-            <p className="rounded-2xl border border-dashed border-neutral-800 py-12 text-center text-sm text-neutral-500">
-              No projects match your search.
-            </p>
+          {visibleProjects.length > 0 ? (
+            <div className="min-w-0 overflow-hidden rounded-[28px] border border-[#d6d6d6] bg-white">
+              {visibleProjects.map((projectId) => {
+                const index = projectIds.indexOf(projectId);
+                const label = projectTitles[projectId] || `Project ${index + 1}`;
+                return (
+                  <button
+                    key={projectId}
+                    type="button"
+                    disabled={isOpening}
+                    onClick={() => onOpenProject(projectId)}
+                    className="group flex min-h-[84px] min-w-0 w-full max-w-full items-center justify-between gap-5 border-b border-[#d6d6d6] px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-[#fafafc] disabled:cursor-wait disabled:opacity-60 sm:min-h-[96px] sm:px-7"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-xs font-medium text-[#707070]">Project {String(index + 1).padStart(2, '0')}</span>
+                      <span className="mt-1 block min-w-0 break-words text-lg font-semibold leading-6 tracking-[-0.02em] text-[#1d1d1f] transition-colors group-hover:text-[#0066cc] sm:text-xl">
+                        {label}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2 text-sm font-medium text-[#707070] transition-colors group-hover:text-[#0066cc]">
+                      <span className="hidden sm:inline">Open project</span>
+                      <ArrowRight className="shrink-0" size={18} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[28px] border border-[#d6d6d6] bg-white px-6 py-14 text-center sm:py-16">
+              <h3 className="text-lg font-semibold text-[#1d1d1f]">{projectIds.length ? 'No matching projects' : 'No projects shared yet'}</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#707070]">{projectIds.length ? 'Try a different project name.' : 'When your editor shares a project with you, it will appear here.'}</p>
+            </div>
           )}
-        </section>
-      </div>
+        </div>
+      </section>
       {isOpening && <ProjectLoadingScreen label="Opening project workspace…" />}
-    </main>
+    </DashboardShell>
   );
 }
 
