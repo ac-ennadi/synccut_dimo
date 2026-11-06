@@ -266,11 +266,11 @@ export default function EditorPage() {
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#707070]">{projects.length ? 'Try a different project, client, or member name.' : 'Create your first project to start sharing scripts, cuts, and review notes with a client.'}</p>
           </div>
         ) : (
-          <div className="min-w-0 overflow-hidden rounded-[28px] border border-[#d6d6d6] bg-white">
+          <div className="min-w-0 space-y-3">
             {filtered.map((project) => (
               <article
                 key={project.project_id}
-                className="group relative flex min-w-0 flex-col gap-4 border-b border-[#d6d6d6] px-5 py-5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6"
+                className="group relative flex min-w-0 flex-col gap-4 rounded-[24px] border border-[#d6d6d6] bg-white px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6"
               >
                 <Link
                   href={`/editor/clients/${encodeURIComponent(project.project_id)}`}
@@ -280,7 +280,7 @@ export default function EditorPage() {
                   <div className="flex min-w-0 items-start justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-[#707070]">{project.company_name || 'Project'}</p>
-                      <h3 className="mt-1 truncate text-xl font-semibold tracking-[-0.025em] text-[#1d1d1f] transition-colors group-hover:text-[#0066cc]">{project.title}</h3>
+                      <h3 className="mt-1 break-words text-xl font-semibold tracking-[-0.025em] text-[#1d1d1f] transition-colors group-hover:text-[#0066cc]">{project.title}</h3>
                       <p className="mt-2 text-sm leading-5 text-[#707070]">{getProjectTemplate(project.templateId).name} <span aria-hidden="true">·</span> {project.projectType === 'after_effects' ? 'After Effects · Animation' : 'Premiere Pro · Live Action'} <span aria-hidden="true">·</span> {project.videoAspectRatio}</p>
                     </div>
                     <ArrowUpRight size={18} aria-hidden="true" className="mt-1 shrink-0 text-[#86868b] transition-colors group-hover:text-[#0066cc]" />

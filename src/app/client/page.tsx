@@ -94,7 +94,7 @@ function ProjectChooser({
             />
           </div>
           {visibleProjects.length > 0 ? (
-            <div className="min-w-0 overflow-hidden rounded-[28px] border border-[#d6d6d6] bg-white">
+            <div className="min-w-0 space-y-3">
               {visibleProjects.map((projectId) => {
                 const index = projectIds.indexOf(projectId);
                 const label = projectTitles[projectId] || `Project ${index + 1}`;
@@ -104,7 +104,7 @@ function ProjectChooser({
                     type="button"
                     disabled={isOpening}
                     onClick={() => onOpenProject(projectId)}
-                    className="group flex min-h-[84px] min-w-0 w-full max-w-full items-center justify-between gap-5 border-b border-[#d6d6d6] px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-[#fafafc] disabled:cursor-wait disabled:opacity-60 sm:min-h-[96px] sm:px-7"
+                    className="group flex min-h-[84px] min-w-0 w-full max-w-full items-center justify-between gap-5 rounded-[24px] border border-[#d6d6d6] bg-white px-5 py-5 text-left transition-colors hover:bg-[#fafafc] disabled:cursor-wait disabled:opacity-60 sm:min-h-[96px] sm:px-7"
                   >
                     <span className="min-w-0">
                       <span className="block text-xs font-medium text-[#707070]">Project {String(index + 1).padStart(2, '0')}</span>
