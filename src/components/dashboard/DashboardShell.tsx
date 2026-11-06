@@ -32,7 +32,7 @@ export function DashboardShell({ role, name, onSignOut, children }: DashboardShe
             <button
               type="button"
               onClick={onSignOut}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#d6d6d6] bg-white px-3.5 py-2 text-xs font-medium text-[#424245] transition-colors hover:bg-[#f5f5f7]"
+              className="dashboard-signout inline-flex min-h-10 items-center gap-2 rounded-full border border-[#d6d6d6] bg-white px-3.5 py-2 text-xs font-medium text-[#424245] transition-colors hover:bg-[#f5f5f7]"
             >
               <LogOut size={14} aria-hidden="true" />
               <span>Sign out</span>

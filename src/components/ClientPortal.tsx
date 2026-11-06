@@ -86,7 +86,7 @@ export const ClientPortal: React.FC<ClientPortalProps> = ({
             {/* Sign Out Button */}
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-neutral-300 hover:text-white transition-colors shadow-2xs"
+              className="dashboard-signout inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-neutral-300 hover:text-white transition-colors shadow-2xs"
               title="Sign out of client session"
             >
               <LogOut className="w-3.5 h-3.5" />

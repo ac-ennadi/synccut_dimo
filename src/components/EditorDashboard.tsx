@@ -146,7 +146,7 @@ export const EditorDashboard: React.FC<Props> = ({
                 logout();
                 router.replace('/editor/login');
               }}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 text-neutral-400 transition hover:bg-neutral-800 hover:text-white sm:w-auto sm:gap-1.5 sm:px-3.5 sm:text-xs sm:font-medium"
+              className="dashboard-signout inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 text-neutral-400 transition hover:bg-neutral-800 hover:text-white sm:w-auto sm:gap-1.5 sm:px-3.5 sm:text-xs sm:font-medium"
             >
               <LogOut size={14} />
               <span className="hidden sm:inline">Sign out</span>

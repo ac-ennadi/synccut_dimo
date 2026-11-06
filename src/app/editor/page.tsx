@@ -295,7 +295,7 @@ export default function EditorPage() {
                     {project.members.map((member) => member.display_name).join(', ') || 'No clients assigned'}
                   </span>
                   <span className="max-w-[160px] truncate text-[#86868b]">{project.latestCut}</span>
-                  <span className="rounded-full bg-[#f5f5f7] px-2.5 py-1 font-medium text-[#424245]">{project.status}</span>
+                  <span className="rounded-full bg-[#f5f5f7] px-2.5 py-1 font-medium text-neutral-700">{project.status}</span>
                   <button
                     type="button"
                     onClick={() => setPendingDelete(project)}
