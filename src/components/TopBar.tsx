@@ -114,17 +114,22 @@ export const TopBar: React.FC<TopBarProps> = ({ project, onStatusChange, isStatu
             const isPast = index < stageIndex;
             const isCurrent = index === stageIndex;
             const stageClass = isCurrent
-              ? 'border-emerald-600 bg-emerald-50 text-emerald-900 dark:border-emerald-500 dark:bg-emerald-950/40 dark:text-emerald-200'
+              ? 'border-[#0071e3] bg-[#eef6fd] text-indigo-700 dark:border-[#5aaaff] dark:bg-indigo-950/40 dark:text-indigo-200'
               : isPast
-                ? 'border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-800/40 dark:text-neutral-300'
-                : 'border-neutral-200 text-neutral-500 dark:border-neutral-800 dark:text-neutral-500';
-            const contents = <><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${isPast || isCurrent ? 'bg-emerald-600 text-white' : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800'}`}>{isPast ? <Check className="h-3.5 w-3.5" /> : index + 1}</span><span className="text-sm font-medium">{stage.label}</span></>;
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200'
+                : 'border-neutral-300 bg-white text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300';
+            const markerClass = isPast
+              ? 'bg-emerald-600 text-white'
+              : isCurrent
+                ? 'bg-[#0071e3] text-white'
+                : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200';
+            const contents = <><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${markerClass}`}>{isPast ? <Check className="h-3.5 w-3.5" /> : index + 1}</span><span className="text-sm font-medium">{stage.label}</span></>;
             return (
               <li key={stage.key}>
                 {onStatusChange ? (
-                  <button type="button" aria-pressed={isCurrent} onClick={() => onStatusChange(stage.key)} className={`flex min-h-12 w-full items-center gap-2 rounded-lg border px-2.5 text-left transition-colors hover:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${stageClass}`}>{contents}</button>
+                  <button type="button" aria-pressed={isCurrent} onClick={() => onStatusChange(stage.key)} className={`flex min-h-12 w-full items-center gap-2 rounded-xl border px-2.5 text-left transition-colors hover:border-[#0071e3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3] ${stageClass}`}>{contents}</button>
                 ) : (
-                  <div aria-current={isCurrent ? 'step' : undefined} className={`flex min-h-12 items-center gap-2 rounded-lg border px-2.5 ${stageClass}`}>{contents}</div>
+                  <div aria-current={isCurrent ? 'step' : undefined} className={`flex min-h-12 items-center gap-2 rounded-xl border px-2.5 ${stageClass}`}>{contents}</div>
                 )}
               </li>
             );
